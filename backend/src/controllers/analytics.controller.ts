@@ -46,7 +46,7 @@ class AnalyticsController {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                joined_at: user.created_at,
+                joined_at: user.created_at, // Fix: use createdAt
             }));
 
             // Jobs by category (assuming you have a 'category' field, else group by employment_type)

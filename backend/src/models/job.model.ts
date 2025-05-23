@@ -79,7 +79,8 @@ Jobs.init({
         allowNull : true,
     },
     subscription_type : {
-        type : DataTypes.ENUM('gold', 'gold_plus', 'diamond', 'regular'),
+        // Add all possible subscription types for jobs
+        type : DataTypes.ENUM('gold', 'gold_plus', 'diamond', 'regular', 'job'),
         defaultValue : 'regular'
     },
     requirements : {

@@ -21,7 +21,8 @@ import {
 } from "@/redux/slices/paymentSlice";
 import { fetchCurrentUser } from "@/redux/slices/userSlice";
 
-const RAZORPAY_KEY_ID = "YOUR_RAZORPAY_PUBLIC_KEY"; // Replace with your Razorpay public key
+// Use environment variable for Razorpay key
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 
 const JobListings = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -51,24 +52,23 @@ const JobListings = () => {
   // Razorpay script loading state
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
 
-  let userSubscriptionType = "regular"; // Default subscription type
-  if(user){
-    userSubscriptionType = user.subscription_type || "regular"; 
+  let userSubscriptionType = "regular";
+  if (user) {
+    userSubscriptionType = user.subscription_type || "regular";
   }
-  console.log(userSubscriptionType);
-  useEffect(()=>{
-    dispatch(fetchCurrentUser());
-  }, [dispatch, user?.id])
 
-  console.log("USer: ", user);
+  useEffect(() => {
+    dispatch(fetchCurrentUser());
+    // eslint-disable-next-line
+  }, [dispatch, user?.id]);
+
   useEffect(() => {
     setKeyword(searchParams.get("keyword") || "");
     setLocation(searchParams.get("location") || "");
   }, [searchParams]);
 
   useEffect(() => {
-    // Only fetch jobs if user is logged in
-      dispatch(fetchAllJobs());
+    dispatch(fetchAllJobs());
   }, [dispatch]);
 
   useEffect(() => {
@@ -160,18 +160,15 @@ const JobListings = () => {
 
   const handleOpenPremiumModal = () => {
     if (!user) {
-      // Redirect to login if the user is not logged in
       navigate("/login?redirect=/jobs");
     } else if (
-      userSubscriptionType === "premium" || // Check if the user is already a premium user
-      userSubscriptionType === "booster" || // Add other premium subscription types if applicable
+      userSubscriptionType === "premium" ||
+      userSubscriptionType === "booster" ||
       userSubscriptionType === "standard" ||
       userSubscriptionType === "basic"
     ) {
-      // Do nothing if the user is already a premium user
       return;
     } else {
-      // Open the modal for non-premium users
       setIsPremiumModalOpen(true);
     }
   };
@@ -196,6 +193,10 @@ const JobListings = () => {
       );
       return;
     }
+    if (!RAZORPAY_KEY_ID) {
+      alert("Payment gateway is not configured. Please contact support.");
+      return;
+    }
     try {
       // Create order for ₹99 (amount in paise)
       const resultAction = await dispatchPayment(createPaymentOrder(99 * 100));
@@ -207,25 +208,29 @@ const JobListings = () => {
       }
 
       const options = {
-        key: "rzp_test_GBC6wsiyhZIszp",
+        key: RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: "INR",
         name: "Premium Jobs Access",
         description: "Unlock all premium jobs for ₹99",
         order_id: orderData.order_id,
         handler: async function (response: any) {
-          await dispatchPayment(
-            verifyAndStorePayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              amount: orderData.amount,
-              currency: orderData.currency,
-              user_id: user.id,
-            })
-          );
-          setIsPremiumModalOpen(false);
-          window.location.reload();
+          try {
+            await dispatchPayment(
+              verifyAndStorePayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                user_id: user.id,
+              })
+            );
+            setIsPremiumModalOpen(false);
+            window.location.reload();
+          } catch (e) {
+            alert("Payment verification failed. Please contact support.");
+          }
         },
         prefill: {
           name: user.name,
@@ -233,6 +238,11 @@ const JobListings = () => {
         },
         theme: {
           color: "#9b87f5",
+        },
+        modal: {
+          ondismiss: () => {
+            // Optionally handle modal dismiss
+          },
         },
       };
 

@@ -26,11 +26,11 @@ const adminMiddleware = (req: Request, res: Response, next: NextFunction): void 
         req.admin = { id: decoded.id, email : decoded.email};
         next();
     } catch (err) {
-        console.error(err);
         res.status(401).json({
             success: false,
             message: "Invalid or expired token.",
         });
+        next(err);
     }
 };
 

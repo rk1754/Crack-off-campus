@@ -30,7 +30,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
 app.use((0, morgan_1.default)("dev"));
 app.use((0, helmet_1.default)());
-app.get("/", (res) => {
+app.get("/", (req, res) => {
     res.status(200).json({
         message: "Foundit API up and running",
     });
