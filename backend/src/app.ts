@@ -1,4 +1,4 @@
-import express, { Response } from "express";
+import express, { Request, Response } from "express";
 import { PORT } from "./config/config";
 import authRoutes from "./routes/auth.routes";
 import adminRoutes from "./routes/admin.route";
@@ -51,7 +51,7 @@ declare global {
     }
   }
 }
-app.get("/", (res: Response) => {
+app.get("/", (req : Request, res: Response) => {
   res.status(200).json({
     message: "Foundit API up and running",
   });
@@ -67,7 +67,7 @@ app.use("/api/v1/session", sessionRoutes);
 app.use("/api/v1/session/booking", sessionBookingRoutes);
 app.use("/api/v1/resume", resumeRoutes);
 app.use("/api/v1/payment", paymentRoutes);
-app.use('/api/v1/new/resume', new_resumeRoutes);
+app.use("/api/v1/new/resume", new_resumeRoutes);
 
 app.listen(PORT, async () => {
   // await sequelize.sync({force : true});

@@ -257,12 +257,17 @@ const ResourcesPage = () => {
                     onClick={
                       canAccess(resource)
                         ? resource.action
-                        : () => handleUpgradeSubscription(resource.requiredSubscription) // UPDATED
+                        : () =>
+                            handleUpgradeSubscription(
+                              resource.requiredSubscription
+                            ) // UPDATED
                     }
                   >
                     {canAccess(resource)
                       ? resource.buttonText
-                      : `${resource.buttonText} (₹${resource.requiredSubscription === "resume" ? 79 : 49})`}
+                      : `${resource.buttonText} (₹${
+                          resource.requiredSubscription === "resume" ? 79 : 49
+                        })`}
                   </Button>
                   {error && <p className="text-red-500 mt-2">{error}</p>}
                 </div>

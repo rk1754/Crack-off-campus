@@ -45,7 +45,7 @@ app.use("/api/v1/session", session_route_1.default);
 app.use("/api/v1/session/booking", sessionBooking_route_1.default);
 app.use("/api/v1/resume", resume_route_1.default);
 app.use("/api/v1/payment", payment_routes_1.default);
-app.use('/api/v2/resume', new_resume_route_1.default);
+app.use("/api/v1/new/resume", new_resume_route_1.default);
 app.listen(config_1.PORT, async () => {
     // await sequelize.sync({force : true});
     console.log(`Server is running on port ${config_1.PORT}`);
