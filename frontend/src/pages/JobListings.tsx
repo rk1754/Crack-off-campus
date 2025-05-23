@@ -51,7 +51,7 @@ const JobListings = () => {
   // Razorpay script loading state
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
 
-  const userSubscriptionType = user.subscription_type;
+  const userSubscriptionType = user.subscription_type || "regular";
   console.log(userSubscriptionType);
   useEffect(()=>{
     dispatch(fetchCurrentUser());
