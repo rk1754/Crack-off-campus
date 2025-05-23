@@ -53,7 +53,7 @@ const JobListings = () => {
 
   let userSubscriptionType = "regular"; // Default subscription type
   if(user){
-    userSubscriptionType = user.subscription_type || "regular";
+    userSubscriptionType = user.subscription_type || "regular"; 
   }
   console.log(userSubscriptionType);
   useEffect(()=>{
