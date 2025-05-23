@@ -33,14 +33,41 @@ const loadRazorpayScript = () => {
 
 const ResourcesPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { error, order, loading } = useSelector((state: RootState) => state.payment);
-  const userSubscription = useSelector((state: RootState) => state.user.user?.subscription_type);
+  const { error, order, loading } = useSelector(
+    (state: RootState) => state.payment
+  );
+  const userSubscription = useSelector(
+    (state: RootState) => state.user.user?.subscription_type
+  );
   const user = useSelector((state: RootState) => state.user.user);
 
   // Handle payment and upgrade subscription using Redux
-  const handleUpgradeSubscription = async () => {
-    dispatch(createPaymentOrder(7900)); // amount in Paise
-    // 7900 Paise = 79.00 INR
+  const handleUpgradeSubscription = async (
+    requiredSubscriptionType: string
+  ) => {
+    let amountInPaise = 0;
+    let description = "Upgrade Subscription";
+
+    if (requiredSubscriptionType === "resume") {
+      amountInPaise = 7900; // 79 INR in Paise
+      description = "Payment for Resume Template Access";
+    } else if (requiredSubscriptionType === "other_templates") {
+      amountInPaise = 4900; // 49 INR in Paise
+      description = "Payment for Templates Access";
+    } else {
+      console.error(
+        "Unknown subscription type for upgrade:",
+        requiredSubscriptionType
+      );
+      // Optionally, show an error toast to the user
+      return; // Do not proceed if the type is unknown
+    }
+
+    if (amountInPaise > 0) {
+      // The createPaymentOrder action likely only needs the amount.
+      // The description will be used in the Razorpay options.
+      dispatch(createPaymentOrder(amountInPaise));
+    }
   };
 
   // Razorpay redirect effect
@@ -52,12 +79,21 @@ const ResourcesPage = () => {
         return;
       }
       if (order && order.order_id) {
+        let paymentDescription = "Upgrade Subscription"; // Default
+        if (order.amount === 7900) {
+          // 79 INR
+          paymentDescription = "Payment for Resume Template Access";
+        } else if (order.amount === 4900) {
+          // 49 INR
+          paymentDescription = "Payment for Templates Access";
+        }
+
         const options = {
           key: "rzp_test_GBC6wsiyhZIszp", // Replace with your Razorpay key or use env
           amount: order.amount,
           currency: order.currency,
-          name: "Foundit",
-          description: "Upgrade Subscription",
+          name: "Crack off Campus", // UPDATED
+          description: paymentDescription, // UPDATED
           order_id: order.order_id,
           handler: async (response: any) => {
             dispatch(
@@ -65,7 +101,7 @@ const ResourcesPage = () => {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                amount: order.amount * 100,
+                amount: order.amount, // Assuming backend expects amount in paise
                 currency: "INR",
                 user_id: user?.id,
               })
@@ -84,9 +120,18 @@ const ResourcesPage = () => {
 
   // Resource access logic
   const canAccess = (resource: any) => {
-    if (["booster", "standard", "basic"].includes(userSubscription)) return true;
-    if (resource.requiredSubscription === "resume" && userSubscription === "resume") return true;
-    if (resource.requiredSubscription === "other_templates" && userSubscription === "other_templates") return true;
+    if (["booster", "standard", "basic"].includes(userSubscription))
+      return true;
+    if (
+      resource.requiredSubscription === "resume" &&
+      userSubscription === "resume"
+    )
+      return true;
+    if (
+      resource.requiredSubscription === "other_templates" &&
+      userSubscription === "other_templates"
+    )
+      return true;
     return false;
   };
 
@@ -212,18 +257,14 @@ const ResourcesPage = () => {
                     onClick={
                       canAccess(resource)
                         ? resource.action
-                        : handleUpgradeSubscription
+                        : () => handleUpgradeSubscription(resource.requiredSubscription) // UPDATED
                     }
                   >
                     {canAccess(resource)
                       ? resource.buttonText
-                      : "Upgrade Subscription"}
+                      : `${resource.buttonText} (₹${resource.requiredSubscription === "resume" ? 79 : 49})`}
                   </Button>
-                  {error && (
-                    <p className="text-red-500 mt-2">
-                      {error}
-                    </p>
-                  )}
+                  {error && <p className="text-red-500 mt-2">{error}</p>}
                 </div>
               </div>
             ))}
