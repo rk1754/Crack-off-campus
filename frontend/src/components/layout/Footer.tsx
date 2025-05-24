@@ -2,6 +2,9 @@ import type React from "react";
 import { Link } from "react-router-dom";
 import { Instagram, Send, Linkedin, Youtube } from "lucide-react";
 
+// Helper to scroll to top on link click
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: "instant" });
+
 const Footer: React.FC = () => {
   return (
     <footer className="bg-foundit-blue dark:bg-gray-900 text-white w-full">
@@ -12,6 +15,7 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">About us</h3>
             <Link
               to="/"
+              onClick={scrollToTop}
               className="flex items-center mb-4 transition-transform hover:translate-x-1"
             >
               <span className="text-white text-xl font-bold">
@@ -71,6 +75,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/jobs"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Browse Jobs
@@ -79,6 +84,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/jobs"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Job Categories
@@ -87,6 +93,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/jobs"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Companies
@@ -95,6 +102,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/profile"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   My Profile
@@ -103,6 +111,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/jobs"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Applied Jobs
@@ -118,6 +127,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/our-crackers"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Crack Insights
@@ -126,6 +136,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/our-crackers"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Blog
@@ -134,6 +145,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/resources"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Resources
@@ -142,6 +154,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/services"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Services
@@ -150,6 +163,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/jobs"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Careers
@@ -165,6 +179,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/our-crackers"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Contact us
@@ -173,6 +188,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/terms-and-conditions"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Terms and Conditions
@@ -181,6 +197,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/refund-policy"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Refund Policy
@@ -189,6 +206,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/privacy-policy"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   Privacy Policy
@@ -197,6 +215,7 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   to="/faq"
+                  onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
                   FAQ
