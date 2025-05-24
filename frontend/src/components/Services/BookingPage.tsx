@@ -148,7 +148,7 @@ export default function BookingPage() {
       "6": {
         id: 6,
         title: "Find Job & Internship Strategy",
-        duration: "45 Hour",
+        duration: "45 Minutes",
         amount: 299,
         moreDetails:
           "Build a complete job search roadmap to land your dream role.",
