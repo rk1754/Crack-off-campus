@@ -28,8 +28,8 @@ export default function BookingPage() {
       "1": {
         id: 1,
         title: "Resume / CV Review",
-        duration: "30 Mins",
-        amount: 449,
+        duration: "45 Mins",
+        amount: 199,
         moreDetails:
           "We'll help you revise your resume as per industry standards.",
         whatIncluded: [
@@ -116,8 +116,8 @@ export default function BookingPage() {
       },
       "4": {
         id: 4,
-        title: "Career Guidance | Referral (Exp: 0-2 years)",
-        duration: "30 Mins",
+        title: "Career Guidance ",
+        duration: "45 Mins",
         amount: 199,
         moreDetails:
           "Discuss your career path, job options, and get referrals.",
@@ -148,7 +148,7 @@ export default function BookingPage() {
       "6": {
         id: 6,
         title: "Find Job & Internship Strategy",
-        duration: "1 Hour",
+        duration: "45 Hour",
         amount: 299,
         moreDetails:
           "Build a complete job search roadmap to land your dream role.",

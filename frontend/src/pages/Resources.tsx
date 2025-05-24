@@ -307,7 +307,9 @@ const ResourcesPage = () => {
                       {main}
                       {points.length > 0 && (
                         <div className="mt-3">
-                          <div className="font-semibold mb-1">What you get:</div>
+                          <div className="font-semibold mb-1">
+                            What you get:
+                          </div>
                           <ul className="space-y-2">
                             {points.map((point, i) => (
                               <li key={i} className="flex items-start gap-2">
@@ -322,7 +324,9 @@ const ResourcesPage = () => {
                     <Button
                       className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
                       size="lg"
-                      disabled={resource.buttonText === "Coming Soon" || loading}
+                      disabled={
+                        resource.buttonText === "Coming Soon" || loading
+                      }
                       onClick={
                         canAccess(resource)
                           ? resource.action
