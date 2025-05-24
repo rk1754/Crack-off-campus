@@ -70,7 +70,7 @@ interface JobFormData {
 const JobManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { jobs, loading, error } = useSelector((state: RootState) => state.job);
-  const { admin } = useSelector((state: RootState) => state.admin);
+  const admin = useSelector((state: RootState) => state.admin as { admin: boolean }).admin;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddJobDialogOpen, setIsAddJobDialogOpen] = useState(false);

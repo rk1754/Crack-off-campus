@@ -257,35 +257,35 @@ const JobListings = () => {
   };
 
   // If user is not logged in, show the login/register message
-  if (!user) {
-    return (
-      <Layout>
-        <div className="min-h-[calc(100vh-150px)] flex items-center justify-center bg-white text-center px-4">
-          <div className="space-y-4">
-            <p className="text-gray-700 text-lg">
-              Please{" "}
-              <span
-                className="text-purple-600 font-medium cursor-pointer hover:underline"
-                onClick={() => navigate("/login?redirect=/jobs")}
-              >
-                log in
-              </span>{" "}
-              to view job listings.
-            </p>
-            <p className="text-gray-600">
-              Don’t have an account?{" "}
-              <span
-                className="text-purple-600 font-medium cursor-pointer hover:underline"
-                onClick={() => navigate("/register?redirect=/jobs")}
-              >
-                Sign up now!
-              </span>
-            </p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  // if (!user) {
+  //   return (
+  //     <Layout>
+  //       <div className="min-h-[calc(100vh-150px)] flex items-center justify-center bg-white text-center px-4">
+  //         <div className="space-y-4">
+  //           <p className="text-gray-700 text-lg">
+  //             Please{" "}
+  //             <span
+  //               className="text-purple-600 font-medium cursor-pointer hover:underline"
+  //               onClick={() => navigate("/login?redirect=/jobs")}
+  //             >
+  //               log in
+  //             </span>{" "}
+  //             to view job listings.
+  //           </p>
+  //           <p className="text-gray-600">
+  //             Don’t have an account?{" "}
+  //             <span
+  //               className="text-purple-600 font-medium cursor-pointer hover:underline"
+  //               onClick={() => navigate("/register?redirect=/jobs")}
+  //             >
+  //               Sign up now!
+  //             </span>
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </Layout>
+  //   );
+  // }
 
   return (
     <Layout>
