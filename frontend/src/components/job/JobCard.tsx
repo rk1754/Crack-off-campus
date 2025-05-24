@@ -1,4 +1,3 @@
-"use client";
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,25 +42,34 @@ const JobCard = ({
   experience,
   skills,
 }: JobCardProps) => {
-const checkAccess = ()=>{
-  if(userSubscriptionType === "booster" || userSubscriptionType === "job" || userSubscriptionType === "standard" || userSubscriptionType === "basic"){
+  console.log(`Job ${title} subscription type: ${jobSubscriptionType}`);
+  const checkAccess = () => {
+  if (jobSubscriptionType === "regular") {
+    
     return true;
+  } else {
+    
+    return (
+      userSubscriptionType === "booster" ||
+      userSubscriptionType === "job" ||
+      userSubscriptionType === "standard" ||
+      userSubscriptionType === "basic" ||
+      userSubscriptionType === "premium"
+    );
   }
-  else{
-    return false;
-  }
-}
-
-const getJobPremiumStatus = ()=>{
-  if(jobSubscriptionType !== "regular"){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
+};
+  const getJobPremiumStatus = () => {
+    if (jobSubscriptionType !== "regular") {
+      return true;
+    } else {
+      return false;
+    }
+  };
+ 
+  
   const canAccess = checkAccess();
-  const isPremiumJob  = getJobPremiumStatus();
+  const isPremiumJob = getJobPremiumStatus();
+  console.log("canAccess", canAccess);
 
   return (
     <div className="job-card relative border p-4 rounded-lg shadow-sm bg-white">
@@ -154,7 +162,7 @@ const getJobPremiumStatus = ()=>{
                   onClick={onUnlockJob}
                   className="text-xs px-3 py-1 h-auto flex items-center"
                 >
-                  <Crown size={14} className="mr-1" />
+                  {/* <Crown size={14} className="mr-1" /> */}
                   Apply Now
                 </Button>
               )}

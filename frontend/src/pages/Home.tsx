@@ -231,7 +231,7 @@ const Home = () => {
                   <span className="text-[#F97316]">Crack It.</span>
                 </h2>
                 <p className="text-black mb-4">
-                  Don't just chase openings — unlock them. Discover jobs,
+                  Don't just chase openings — Unlock them. Discover jobs,
                   referrals, and real prep with Crack Off Campus.
                 </p>
               </div>

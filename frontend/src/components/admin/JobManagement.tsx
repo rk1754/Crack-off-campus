@@ -683,7 +683,9 @@ Remote work options"
 
             {/* Passout Year Field */}
             <div className="space-y-2">
-              <Label htmlFor="edit-passout_year">Target Batch (Passout Year)</Label>
+              <Label htmlFor="edit-passout_year">
+                Target Batch (Passout Year)
+              </Label>
               <Input
                 id="edit-passout_year"
                 name="passout_year"

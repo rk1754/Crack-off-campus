@@ -202,10 +202,15 @@ const jobSlice = createSlice({
         state.loading = false;
         state.jobs = action.payload.jobs;
         state.message = action.payload.success
-          ? "Jobs fetched successfully"
+          ? "Admin jobs fetched successfully"
           : null;
+        state.error = null; // Clear any previous errors
       })
-      .addCase(getAllJobsAdmin.rejected, rejected);
+      .addCase(getAllJobsAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to fetch admin jobs";
+        state.message = null; // Clear any previous messages
+      });
   },
 });
 

@@ -71,6 +71,8 @@ const JobListings = () => {
     dispatch(fetchAllJobs());
   }, [dispatch]);
 
+  console.log("Jobs fetched:", jobs);
+
   useEffect(() => {
     let newFilteredJobs = [...jobs];
 
@@ -124,7 +126,7 @@ const JobListings = () => {
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   };
-
+  console.log("user",user)
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
   const currentJobsToDisplay = filteredJobs.slice(
@@ -167,6 +169,7 @@ const JobListings = () => {
       userSubscriptionType === "standard" ||
       userSubscriptionType === "basic"
     ) {
+      setIsPremiumModalOpen(false);
       return;
     } else {
       setIsPremiumModalOpen(true);
@@ -400,7 +403,7 @@ const JobListings = () => {
                   No Jobs Found
                 </h3>
                 <p className="mt-2 text-md text-gray-500">
-                  We couldn't find any jobs matching your current search or
+                  We couldn't find any jobs matching
                   filters.
                 </p>
                 <p className="mt-1 text-md text-gray-500">
