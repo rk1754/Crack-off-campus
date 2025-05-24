@@ -1,9 +1,9 @@
 import CommunityServices from "@/components/Services/CommunityServices";
 import Layout from "../components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { FaCheck } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { FaCheck } from "react-icons/fa";
 import {
   downloadResumeTemplate,
   downloadHrEmailTemplate,
@@ -16,6 +16,10 @@ import {
   verifyAndStorePayment,
 } from "../redux/slices/paymentSlice";
 import { RootState, AppDispatch } from "../redux/store";
+
+// Razorpay key from env for production
+const RAZORPAY_KEY_ID =
+  import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_GBC6wsiyhZIszp";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -31,6 +35,17 @@ const loadRazorpayScript = () => {
   });
 };
 
+const parseDescription = (desc: string) => {
+  // Split description into main and "What you get" section
+  const [main, whatYouGet] = desc.split("What you get:");
+  const points =
+    whatYouGet
+      ?.split("\n")
+      .map((line) => line.trim())
+      .filter((line) => !!line) || [];
+  return { main: main?.trim(), points };
+};
+
 const ResourcesPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { error, order, loading } = useSelector(
@@ -41,36 +56,24 @@ const ResourcesPage = () => {
   );
   const user = useSelector((state: RootState) => state.user.user);
 
-  // Handle payment and upgrade subscription using Redux
+  // Payment handler
   const handleUpgradeSubscription = async (
     requiredSubscriptionType: string
   ) => {
     let amountInPaise = 0;
-    let description = "Upgrade Subscription";
-
     if (requiredSubscriptionType === "resume") {
-      amountInPaise = 7900; // 79 INR in Paise
-      description = "Payment for Resume Template Access";
+      amountInPaise = 7900; // 79 INR
     } else if (requiredSubscriptionType === "other_templates") {
-      amountInPaise = 4900; // 49 INR in Paise
-      description = "Payment for Templates Access";
+      amountInPaise = 4900; // 49 INR
     } else {
-      console.error(
-        "Unknown subscription type for upgrade:",
-        requiredSubscriptionType
-      );
-      // Optionally, show an error toast to the user
-      return; // Do not proceed if the type is unknown
+      return;
     }
-
     if (amountInPaise > 0) {
-      // The createPaymentOrder action likely only needs the amount.
-      // The description will be used in the Razorpay options.
       dispatch(createPaymentOrder(amountInPaise));
     }
   };
 
-  // Razorpay redirect effect
+  // Razorpay effect
   useEffect(() => {
     const openRazorpay = async () => {
       const res = await loadRazorpayScript();
@@ -79,21 +82,18 @@ const ResourcesPage = () => {
         return;
       }
       if (order && order.order_id) {
-        let paymentDescription = "Upgrade Subscription"; // Default
-        if (order.amount === 7900) {
-          // 79 INR
+        let paymentDescription = "Upgrade Subscription";
+        if (order.amount === 7900)
           paymentDescription = "Payment for Resume Template Access";
-        } else if (order.amount === 4900) {
-          // 49 INR
+        else if (order.amount === 4900)
           paymentDescription = "Payment for Templates Access";
-        }
 
         const options = {
-          key: "rzp_test_GBC6wsiyhZIszp", // Replace with your Razorpay key or use env
+          key: RAZORPAY_KEY_ID,
           amount: order.amount,
           currency: order.currency,
-          name: "Crack off Campus", // UPDATED
-          description: paymentDescription, // UPDATED
+          name: "Crack off Campus",
+          description: paymentDescription,
           order_id: order.order_id,
           handler: async (response: any) => {
             dispatch(
@@ -118,7 +118,7 @@ const ResourcesPage = () => {
     }
   }, [order, dispatch, user]);
 
-  // Resource access logic
+  // Access logic
   const canAccess = (resource: any) => {
     if (["booster", "standard", "basic"].includes(userSubscription))
       return true;
@@ -135,6 +135,15 @@ const ResourcesPage = () => {
     return false;
   };
 
+  // Helper for login check
+  const requireLogin = (action: () => void) => {
+    if (!user) {
+      alert("Please login to access this resource.");
+      return;
+    }
+    action();
+  };
+
   const resources = [
     {
       id: 1,
@@ -144,7 +153,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Resume Template",
       imagePath: "/lovable-uploads/Resume Template.png",
       imageAlt: "Resume Template",
-      action: () => dispatch(downloadResumeTemplate()),
+      action: () => requireLogin(() => dispatch(downloadResumeTemplate())),
       requiredSubscription: "resume",
     },
     {
@@ -155,7 +164,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Referral Template",
       imagePath: "/lovable-uploads/refralTemplate.png",
       imageAlt: "Referral Template",
-      action: () => dispatch(downloadReferralTemplate()),
+      action: () => requireLogin(() => dispatch(downloadReferralTemplate())),
       requiredSubscription: "other_templates",
     },
     {
@@ -166,7 +175,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Cold Email Template",
       imagePath: "/lovable-uploads/ColdEmail.png",
       imageAlt: "Cold Email Template",
-      action: () => dispatch(downloadColdMailTemplate()),
+      action: () => requireLogin(() => dispatch(downloadColdMailTemplate())),
       requiredSubscription: "other_templates",
     },
     {
@@ -177,7 +186,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Cover Letter",
       imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
-      action: () => dispatch(downloadCoverLetterTemplate()),
+      action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate())),
       requiredSubscription: "other_templates",
     },
     {
@@ -188,8 +197,53 @@ const ResourcesPage = () => {
       buttonText: "Get Verified HR Emails",
       imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
-      action: () => dispatch(downloadHrEmailTemplate()),
+      action: () => requireLogin(() => dispatch(downloadHrEmailTemplate())),
       requiredSubscription: "other_templates",
+    },
+    {
+      id: 6,
+      title: "LinkedIn Optimize Profile",
+      description:
+        "Start networking smart with a well-optimized LinkedIn profile — it improves your chances of getting seen, approached, and hired.",
+      buttonText: "Optimize Your LinkedIn Profile",
+      imagePath: "/lovable-uploads/LinkedinProfile.png",
+      imageAlt: "LinkedIn Profile Optimization",
+    },
+    {
+      id: 7,
+      title: "9000+ Verified HR`s Emails",
+      description:
+        "Start building meaningful connections with a trusted HR Contact Directory — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet in which will be company names and emails. A recorded session on how to contact HR`s.",
+      buttonText: "Get Verified HR Eamils",
+      imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
+      imageAlt: "HR Contact Directory",
+    },
+    {
+      id: 8,
+      title: "Roadmaps",
+      description:
+        " Career roadmaps to help you navigate your professional journey with confidence.",
+      buttonText: "Coming Soon",
+      imagePath: "/lovable-uploads/Roadmap-removebg-preview.png",
+      imageAlt: "Career Roadmaps",
+    },
+    {
+      id: 9,
+      title: "Projects Ideation",
+      description:
+        "Get inspired with project ideas that will enhance your portfolio and showcase your skills to potential employers.",
+      buttonText: "Coming Soon",
+      imagePath: "/lovable-uploads/Project Ideation.png",
+      imageAlt: "Projects Ideation",
+    },
+    {
+      id: 10,
+      title: "Interview Preparation",
+      description:
+        " Comprehensive interview preparation resources to help you ace your interviews and land your dream job.",
+      buttonText: "Coming Soon",
+      imagePath: "/lovable-uploads/Interview_pre-removebg-preview.png",
+      imageAlt: "Interview Preparation",
     },
   ];
 
@@ -213,66 +267,80 @@ const ResourcesPage = () => {
       <section className="py-12 sm:py-16 bg-background dark:bg-gray-900">
         <div className="container">
           <div className="space-y-16 md:space-y-24">
-            {resources.map((resource, index) => (
-              <div
-                key={resource.id}
-                className={`flex flex-col ${
-                  index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                } items-center gap-8 md:gap-12`}
-              >
-                {/* Image */}
-                <div className="w-full md:w-2/5">
-                  <div className="relative aspect-square md:aspect-[4/3] overflow-hidden rounded-2xl shadow-lg bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-gray-800 dark:to-gray-700 p-6 flex items-center justify-center">
-                    <img
-                      src={resource.imagePath || "/placeholder.svg"}
-                      alt={resource.imageAlt}
-                      className="max-h-56 max-w-full w-auto object-contain"
-                    />
+            {resources.map((resource, index) => {
+              const { main, points } = parseDescription(resource.description);
+              return (
+                <div
+                  key={resource.id}
+                  className={`flex flex-col ${
+                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                  } items-center gap-8 md:gap-12`}
+                >
+                  {/* Image */}
+                  <div className="w-full md:w-2/5">
+                    <div className="relative aspect-square md:aspect-[4/3] overflow-hidden rounded-2xl shadow-lg bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-gray-800 dark:to-gray-700 p-6 flex items-center justify-center">
+                      <img
+                        src={resource.imagePath || "/placeholder.svg"}
+                        alt={resource.imageAlt}
+                        className="max-h-56 max-w-full w-auto object-contain"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="w-full md:w-3/5 space-y-4">
-                  <div
-                    className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
-                      index % 3 === 0
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                        : index % 3 === 1
-                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
-                        : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-                    }`}
-                  >
-                    Resource {resource.id}
+                  {/* Content */}
+                  <div className="w-full md:w-3/5 space-y-4">
+                    <div
+                      className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
+                        index % 3 === 0
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                          : index % 3 === 1
+                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                          : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                      }`}
+                    >
+                      Resource {resource.id}
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-foreground dark:text-white">
+                      {resource.title}
+                    </h2>
+                    <div className="text-muted-foreground dark:text-gray-300 whitespace-pre-line">
+                      {main}
+                      {points.length > 0 && (
+                        <div className="mt-3">
+                          <div className="font-semibold mb-1">What you get:</div>
+                          <ul className="space-y-2">
+                            {points.map((point, i) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <FaCheck className="text-green-500 mt-1" />
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                      size="lg"
+                      disabled={resource.buttonText === "Coming Soon" || loading}
+                      onClick={
+                        canAccess(resource)
+                          ? resource.action
+                          : () =>
+                              user
+                                ? handleUpgradeSubscription(
+                                    resource.requiredSubscription
+                                  )
+                                : alert("Please login to access this resource.")
+                      }
+                    >
+                      {resource.buttonText}
+                    </Button>
+                    {error && <p className="text-red-500 mt-2">{error}</p>}
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-foreground dark:text-white">
-                    {resource.title}
-                  </h2>
-                  <div className="text-muted-foreground dark:text-gray-300">
-                    {resource.description}
-                  </div>
-                  <Button
-                    className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
-                    size="lg"
-                    disabled={resource.buttonText === "Coming Soon" || loading}
-                    onClick={
-                      canAccess(resource)
-                        ? resource.action
-                        : () =>
-                            handleUpgradeSubscription(
-                              resource.requiredSubscription
-                            ) // UPDATED
-                    }
-                  >
-                    {canAccess(resource)
-                      ? resource.buttonText
-                      : `${resource.buttonText} (₹${
-                          resource.requiredSubscription === "resume" ? 79 : 49
-                        })`}
-                  </Button>
-                  {error && <p className="text-red-500 mt-2">{error}</p>}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

@@ -76,7 +76,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
-        "2000+ HR Contact Directory",
+        "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
       ],
       recommended: false,
     },
@@ -87,7 +87,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
-        "2000+ HR Contact Directory",
+        "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
         "Resume Template",
         "Cover Letter Template",
       ],
@@ -100,7 +100,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
-        "2000+ HR Contact Directory",
+        "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
         "Resume Template",
         "Cover Letter Template",
         "One Get a Referral Session",
