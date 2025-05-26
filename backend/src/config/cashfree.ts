@@ -1,13 +1,17 @@
 import { Cashfree, CFEnvironment } from "cashfree-pg";
+import { CASHFREE_CLIENT_ID, CASHFREE_CLIENT_SECRET, CASHFREE_ENV } from "./config";
 
 // Get the appropriate environment enum
-const env: CFEnvironment =
-  process.env.CASHFREE_ENV === "production"
-    ? CFEnvironment.PRODUCTION
-    : CFEnvironment.SANDBOX;
+// const env: CFEnvironment =
+//   CASHFREE_ENV === "production"
+//     ? CFEnvironment.PRODUCTION
+//     : CFEnvironment.SANDBOX;
 
-const clientId = process.env.CASHFREE_APP_ID || "";
-const clientSecret = process.env.CASHFREE_SECRET_KEY || "";
+
+const env: CFEnvironment = CFEnvironment.PRODUCTION;
+
+const clientId = CASHFREE_CLIENT_ID;
+const clientSecret = CASHFREE_CLIENT_SECRET;
 
 // Validate credentials
 if (!clientId || !clientSecret) {
