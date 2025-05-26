@@ -80,12 +80,12 @@ const faqData: FaqItem[] = [
         hours), subject to availability and our policy outlined in the Terms and
         Conditions. Please contact us at{" "}
         <a
-          href="mailto:support@crackoffcampus.com"
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          href="mailto:crackoffcampus63@gmail.com"
+          className="text-purple-600 hover:underline dark:text-purple-400"
         >
-          support@crackoffcampus.com
-        </a>{" "}
-        for assistance.
+          crackoffcampus63@gmail.com
+        </a>
+        . for assistance.
       </>
     ),
   },
@@ -94,13 +94,13 @@ const faqData: FaqItem[] = [
     id: "premium-1",
     question: "What are the benefits of a premium subscription?",
     answer:
-      "Premium subscriptions (e.g., BASIC, STANDARD, BOOSTER) unlock exclusive benefits such as access to premium job listings, downloadable resources (like resume templates, cover letters), and potentially bundled career services or access to HR contact directories. Details are available on our 'Pricing' or 'Premium Plans' page.",
+      "Premium subscriptions (e.g., BASIC, STANDARD, BOOSTER) unlock exclusive benefits such as access to premium job listings, downloadable resources (like resume templates, cover letters), and potentially bundled career services or access to HR contact directories. Details are available on our 'Pricing' or 'Go Premium Plans' page.",
   },
   {
     id: "premium-2",
     question: "How do I purchase a premium subscription?",
     answer:
-      "You can purchase a premium subscription by visiting our 'Pricing' or 'Premium Plans' page, selecting the plan that suits you, and completing the payment process.",
+      "You can purchase a premium subscription by visiting our 'Pricing' or 'Go Premium Plans' page, selecting the plan that suits you, and completing the payment process.",
   },
   {
     id: "premium-3",
@@ -148,12 +148,12 @@ const faqData: FaqItem[] = [
         If you have any further questions or need support, please feel free to
         contact us at{" "}
         <a
-          href="mailto:support@crackoffcampus.com"
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          href="mailto:crackoffcampus63@gmail.com"
+          className="text-purple-600 hover:underline dark:text-purple-400"
         >
-          support@crackoffcampus.com
+          crackoffcampus63@gmail.com
         </a>
-        , or use the contact form on our 'Contact Us' page.
+        . , or use the contact form on our 'Contact Us' page.
       </>
     ),
   },

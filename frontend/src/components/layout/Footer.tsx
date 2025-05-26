@@ -12,14 +12,14 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* First Column */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">About us</h3>
+            <h3 className="text-lg font-semibold mb-4">About Us</h3>
             <Link
               to="/"
               onClick={scrollToTop}
               className="flex items-center mb-4 transition-transform hover:translate-x-1"
             >
               <span className="text-white text-xl font-bold">
-                Crack of Campus
+                Crack Off-Campus
               </span>
             </Link>
             <p className="text-gray-300 mb-6 leading-relaxed">
@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
                 href="https://www.instagram.com/crack_off_campus?igsh=MWY3bDhsdDRyZ2x0Yw=="
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-all duration-300 hover:scale-110"
+                className="text-pink-500 hover:text-pink-400 transition-all duration-300 hover:scale-110"
               >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
@@ -42,7 +42,7 @@ const Footer: React.FC = () => {
                 href="https://t.me/crackoffcampus635"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-all duration-300 hover:scale-110"
+                className="text-blue-500 hover:text-blue-400 transition-all duration-300 hover:scale-110"
               >
                 <Send className="h-5 w-5" />
                 <span className="sr-only">Telegram</span>
@@ -51,7 +51,7 @@ const Footer: React.FC = () => {
                 href="https://www.linkedin.com/company/crack-off-campus/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-all duration-300 hover:scale-110"
+                className="text-blue-600 hover:text-blue-500 transition-all duration-300 hover:scale-110"
               >
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
                 href="https://youtube.com/@crackoff-campus?si=lTgpkMErg3XIwdLM"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-all duration-300 hover:scale-110"
+                className="text-red-500 hover:text-red-400 transition-all duration-300 hover:scale-110"
               >
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
@@ -182,7 +182,7 @@ const Footer: React.FC = () => {
                   onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
-                  Contact us
+                  Contact Us
                 </Link>
               </li>
               <li>

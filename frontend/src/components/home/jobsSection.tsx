@@ -43,7 +43,7 @@ const JobSection: React.FC<JobSectionProps> = ({ user }) => {
               Find Your Dream Opportunities
             </h2>
             <p className="text-base sm:text-lg text-gray-700">
-              Explore the right jobs, not just any — start your journey toward
+              Explore the right jobs, not just any — Start your journey toward
               your dream opportunity today
             </p>
             <Button

@@ -25,8 +25,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       <h3 className="text-xl font-bold text-Black-700 mb-2">{title}</h3>
       <p className="text-gray-700 mb-4 flex-grow">{description}</p>
 
-      <button className="mt-4 w-full bg-[rgb(150,130,209)] hover:bg-[rgb(160,140,220)] text-white font-medium py-2 px-4 rounded-lg transition-colors">
-        Comming Soon
+      <button className="mt-4 w-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 font-medium py-2 px-4 rounded-lg transition-colors">
+        Coming Soon
       </button>
     </div>
   );
@@ -37,13 +37,13 @@ const CommunityServices: React.FC = () => {
     {
       title: "Events",
       description:
-        "Connect with our community through exciting events and networking opportunities.",
+        "Connect with companies through exciting events and networking opportunities.",
       imageUrl: "/lovable-uploads/Events.jpg",
     },
     {
       title: "Hackathon & Challenges",
       description:
-        "Participate in our coding competitions and problem-solving challenges.",
+        "Hackathon & Companies – Participate in coding competitions and problem solving challenges of companies.",
       imageUrl: "/lovable-uploads/Hackethon and challanges.png",
     },
     {

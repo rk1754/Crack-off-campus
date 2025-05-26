@@ -127,12 +127,12 @@ const PrivacyPolicy: React.FC = () => {
                 </p>
                 <p>
                   <strong>Email:</strong>{" "}
-                  <a
-                    href="mailto:crackoffcampus63@gmail.com"
-                    className="text-foundit-blue hover:underline dark:text-blue-400"
-                  >
-                    crackoffcampus63@gmail.com
-                  </a>
+                <a
+                      href="mailto:crackoffcampus63@gmail.com"
+                      className="text-purple-600 hover:underline dark:text-purple-400"
+                    >
+                      crackoffcampus63@gmail.com
+                    </a>.
                 </p>
               </article>
             </div>

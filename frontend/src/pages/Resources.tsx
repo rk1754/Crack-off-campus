@@ -149,7 +149,7 @@ const ResourcesPage = () => {
       id: 1,
       title: "Resume Template",
       description:
-        "Start applying with a well-structured resume template. It helps you stand out to recruiters and boosts your chances of landing your job.\n\nWhat you get:\n Editable Resume ATS Template\n Recorded session on how to edit this resume according to your profile.\n Shortlisted sample resume",
+        "Start applying with a well-structured resume template. It helps you stand out to recruiters and boosts your chances of landing your job.\n\nWhat you get:\n A Editable ATS Friendly resume template",
       buttonText: "Get a Resume Template",
       imagePath: "/lovable-uploads/Resume Template.png",
       imageAlt: "Resume Template",
@@ -160,7 +160,7 @@ const ResourcesPage = () => {
       id: 2,
       title: "Referral Template",
       description:
-        "Reach out the right way with a clear referral template. It increases your chances of getting noticed and referred for the job you want.\n\nWhat you get:\n Editable Referral template\n Recorded session on how to edit this referral template according to your profile.",
+        "Reach out the right way with a clear referral template. It increases your chances of getting noticed and referred for the job you want.\n\nWhat you get:\n A Editable referral template.",
       buttonText: "Get a Referral Template",
       imagePath: "/lovable-uploads/refralTemplate.png",
       imageAlt: "Referral Template",
@@ -171,7 +171,7 @@ const ResourcesPage = () => {
       id: 3,
       title: "Cold Email Template",
       description:
-        "Make a strong first impression with a clear cold email template — increase your chances of getting replies and landing the opportunities you're aiming for.\n\nWhat you get:\n Editable Cold email template\n Recorded session on how to edit this cold email template according to your profile and how to send on recruiter email.",
+        "Make a strong first impression with a clear cold email template — increase your chances of getting replies and landing the opportunities you're aiming for.\n\nWhat you get:\nA Editable cold email template.",
       buttonText: "Get a Cold Email Template",
       imagePath: "/lovable-uploads/ColdEmail.png",
       imageAlt: "Cold Email Template",
@@ -182,7 +182,7 @@ const ResourcesPage = () => {
       id: 4,
       title: "Cover Letter",
       description:
-        "Start your job application with a clear cover letter — it adds a personal touch and increases your chances of getting shortlisted.\n\nWhat you get:\n Editable Cover letter template\n Recorded session on how to edit this cover letter according to your profile and how to send on recruiter email.",
+        "Start your job application with a clear cover letter — it adds a personal touch and increases your chances of getting shortlisted.\n\nWhat you get:\n A Editable cover letter template.",
       buttonText: "Get a Cover Letter",
       imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
@@ -191,9 +191,9 @@ const ResourcesPage = () => {
     },
     {
       id: 5,
-      title: "HR Email Template",
+      title: "9000+ Verified HR Emails",
       description:
-        "Start building meaningful connections with a trusted HR Contact Directory — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet in which will be company names and emails. A recorded session on how to contact HR`s.",
+        "Start building meaningful connections with a trusted HR Contact Directory — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet.",
       buttonText: "Get Verified HR Emails",
       imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
@@ -205,17 +205,16 @@ const ResourcesPage = () => {
       title: "LinkedIn Optimize Profile",
       description:
         "Start networking smart with a well-optimized LinkedIn profile — it improves your chances of getting seen, approached, and hired.",
-      buttonText: "Optimize Your LinkedIn Profile",
+     buttonText: "Coming Soon",
       imagePath: "/lovable-uploads/LinkedinProfile.png",
       imageAlt: "LinkedIn Profile Optimization",
     },
     {
       id: 7,
-      title: "9000+ Verified HR`s Emails",
-      description:
-        "Start building meaningful connections with a trusted HR Contact Directory — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet in which will be company names and emails. A recorded session on how to contact HR`s.",
-      buttonText: "Get Verified HR Eamils",
-      imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
+      title: "CV Template",
+      description: " Start applying with a well-structured CV template it helps you stand out to recruiters and boosts your chances of landing your job.",
+      buttonText: "Coming Soon",
+      imagePath: "/lovable-uploads/CV Template.png",
       imageAlt: "HR Contact Directory",
     },
     {

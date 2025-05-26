@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +14,8 @@ import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import { User } from "@/redux/slices/userSlice";
+import type { RootState } from "@/redux/store";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 export interface PremiumPlansModalProps {
   isOpen: boolean;
@@ -33,15 +34,16 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-  // Fix: select the actual user object from the slice
   const user = useSelector((state: RootState) => state.user.user);
+  const [isRazorpayLoading, setIsRazorpayLoading] = useState(true);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   // Silently return null if modal is closed
   if (!isOpen) {
     return null;
   }
 
-  // Guard clauses for invalid props or user
+  // Guard clauses for invalid props
   if (!onClose || typeof onClose !== "function") {
     console.error("Invalid props: onClose is missing or not a function", {
       isOpen,
@@ -50,12 +52,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     return null;
   }
 
-  if (!user || !user.id || !user.name || !user.email) {
-    console.error("Invalid user data", { user });
-    toast.error("Please log in to access premium plans.");
-    onClose();
-    return null;
-  }
+  // Removed user check from here to allow modal to open without login
 
   const allFeatures = [
     "One Month Access to Premium Jobs",
@@ -63,7 +60,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     "Cold Email Template",
     "9000+ Verified HR`s Emails",
     "Resume Template",
-    "Cover Letter Template",
+    "Referral Template",
     "One Get a Referral Session",
     "One Resume Review Session",
   ];
@@ -72,6 +69,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     {
       name: "BASIC",
       price: "₹199",
+      originalPrice: "₹299",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
@@ -83,26 +81,28 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     {
       name: "STANDARD",
       price: "₹299",
+      originalPrice: "₹499",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
         "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
         "Resume Template",
-        "Cover Letter Template",
+        "Referral Template",
       ],
       recommended: true,
     },
     {
       name: "BOOSTER",
       price: "₹699",
+      originalPrice: "₹999",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
         "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
         "Resume Template",
-        "Cover Letter Template",
+        "Referral Template",
         "One Get a Referral Session",
         "One Resume Review Session",
       ],
@@ -112,27 +112,34 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
 
   // Razorpay script loader
   useEffect(() => {
-    if (document.getElementById("razorpay-sdk") || window.Razorpay) {
-      setRazorpayLoaded(true);
-      console.log("Razorpay SDK already loaded or present");
-      return;
-    }
+    const loadRazorpay = async () => {
+      if (document.getElementById("razorpay-sdk") || window.Razorpay) {
+        setRazorpayLoaded(true);
+        setIsRazorpayLoading(false);
+        console.log("Razorpay SDK already loaded or present");
+        return;
+      }
 
-    console.log("Loading Razorpay SDK...");
-    const script = document.createElement("script");
-    script.id = "razorpay-sdk";
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => {
-      setRazorpayLoaded(true);
-      console.log("Razorpay SDK loaded successfully");
+      console.log("Loading Razorpay SDK...");
+      const script = document.createElement("script");
+      script.id = "razorpay-sdk";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => {
+        setRazorpayLoaded(true);
+        setIsRazorpayLoading(false);
+        console.log("Razorpay SDK loaded successfully");
+      };
+      script.onerror = () => {
+        setRazorpayLoaded(false);
+        setIsRazorpayLoading(false);
+        toast.error("Failed to load payment gateway. Please try again.");
+        console.error("Razorpay SDK failed to load");
+      };
+      document.body.appendChild(script);
     };
-    script.onerror = () => {
-      setRazorpayLoaded(false);
-      toast.error("Failed to load payment gateway. Please try again.");
-      console.error("Razorpay SDK failed to load");
-    };
-    document.body.appendChild(script);
+
+    loadRazorpay();
 
     return () => {
       const existingScript = document.getElementById("razorpay-sdk");
@@ -140,6 +147,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         existingScript.parentNode.removeChild(existingScript);
       }
       setRazorpayLoaded(false);
+      setIsRazorpayLoading(true);
       console.log("Razorpay SDK script removed");
     };
   }, []);
@@ -147,8 +155,10 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const handleContinue = async (planName: string) => {
     console.log("handleContinue called for plan:", planName);
     if (!user) {
-      toast.error("Please login to purchase a premium plan.");
-      console.log("User not logged in");
+      toast.error("Please log in to purchase a premium plan.");
+      navigate("/login"); // Redirect to login page
+      onClose(); // Close the premium plans modal
+      console.log("User not logged in, redirecting to login.");
       return;
     }
     if (!razorpayLoaded || !window.Razorpay) {
@@ -182,7 +192,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         description: `${planName} Plan`,
         image: "/lovable-Uploads/logo.png",
         order_id,
-        handler: async function (response: any) {
+        handler: async (response: any) => {
           console.log("Payment handler triggered:", response);
           try {
             const verifyRes = await axios.post("/payment/verify", {
@@ -221,7 +231,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
             console.log("Razorpay modal dismissed");
           },
         },
-        "payment.failed": function (response: any) {
+        "payment.failed": (response: any) => {
           toast.error(`Payment failed: ${response.error.description}`);
           setLoading(false);
           console.error("Payment failed:", response.error);
@@ -275,8 +285,25 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
                   <h3 className="text-lg sm:text-xl font-bold mb-2 text-foreground">
                     {plan.name}
                   </h3>
-                  <div className="text-xl sm:text-3xl font-bold mb-4 text-foreground">
-                    {plan.price}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl sm:text-3xl font-bold text-foreground">
+                        {plan.price}
+                      </span>
+                      <span className="text-sm sm:text-lg text-muted-foreground line-through">
+                        {plan.originalPrice}
+                      </span>
+                    </div>
+                    <div className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">
+                      Save{" "}
+                      {(
+                        ((Number.parseInt(plan.originalPrice.slice(1)) -
+                          Number.parseInt(plan.price.slice(1))) /
+                          Number.parseInt(plan.originalPrice.slice(1))) *
+                        100
+                      ).toFixed(0)}
+                      %
+                    </div>
                   </div>
 
                   <Button
@@ -291,13 +318,13 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
                       }
                     }}
                     className="w-full bg-[#F97316] hover:bg-orange-500 text-white mb-4 sm:mb-6"
-                    disabled={loading || !razorpayLoaded}
+                    disabled={loading || isRazorpayLoading}
                   >
                     {loading
                       ? "Processing..."
-                      : razorpayLoaded
-                      ? "Continue"
-                      : "Loading..."}
+                      : isRazorpayLoading
+                      ? "Loading..."
+                      : "Continue"}
                   </Button>
 
                   <div className="space-y-2 sm:space-y-3">
