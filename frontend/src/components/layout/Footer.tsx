@@ -182,7 +182,7 @@ const Footer: React.FC = () => {
                   onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
-                  Contact us
+                  Contact Us
                 </Link>
               </li>
               <li>

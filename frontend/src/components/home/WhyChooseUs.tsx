@@ -59,7 +59,7 @@ export default function WhyChooseUs() {
             <p className="text-sm sm:text-base text-gray-700">
               Prepare smarter with the right placement resources — From resume
               tips to interview prep, everything you need to boost your chances
-              and crack the job.
+              and crack the jobs.
             </p>
             <Button
               onClick={handleExploreResources}

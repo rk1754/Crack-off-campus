@@ -17,7 +17,7 @@ export default function WhyChooseUs2() {
       color: "bg-red-100",
     },
     {
-      title: "Get a Refral",
+      title: "Get a Referral",
       img: "/lovable-uploads/refral.png",
       color: "bg-emerald-100",
     },
@@ -32,7 +32,7 @@ export default function WhyChooseUs2() {
       color: "bg-indigo-100",
     },
     {
-      title: "Find Job and Internship Stategy",
+      title: "Find Jobs and Internships Stategy",
       img: "/lovable-uploads/internshipstategy.png",
       color: "bg-purple-100",
     },
