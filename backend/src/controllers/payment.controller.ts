@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import crypto from "crypto";
 import Transactions from "../models/transaction.model";
-import { RAZORPAY_KEY_SECRET } from "../config/config";
-import razorpay from "../config/razorpay";
+import { cashfree } from "../config/cashfree";
 import User from "../models/user.model";
 import { PaymentRequestBody, SubscriptionMap } from "../types/payment.types";
 
@@ -17,18 +15,25 @@ class PaymentController {
         });
         return;
       }
-      const options = {
-        amount: amount, // Converted to paise
-        currency,
-        receipt: `receipt_${Date.now()}`,
+      // Cashfree order creation
+      const orderPayload = {
+        order_amount: amount / 100, // Cashfree expects INR, not paise
+        order_currency: currency,
+        customer_details: {
+          customer_id: `user_${req.user?.id || Date.now()}`,
+          customer_email: req.user?.email || "test@example.com",
+          customer_phone: (req.user as { phone_number?: string })?.phone_number || "9999999999",
+        },
+        order_id: `order_${Date.now()}`,
       };
-
-      const order = await razorpay.orders.create(options);
+      const order = await cashfree.PGCreateOrder(orderPayload);
+      
       res.status(201).json({
         success: true,
-        order_id: order.id,
+        order_id: orderPayload.order_id,
         currency: currency,
         amount: amount,
+        payment_session_id: order.data.payment_session_id,
       });
       return;
     } catch (err) {
@@ -41,27 +46,25 @@ class PaymentController {
       return;
     }
   };
+
   verifyAndStorePayment = async (
     req: Request<{}, {}, PaymentRequestBody>,
     res: Response
   ): Promise<void> => {
     const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
+      cf_order_id,
+      cf_payment_id,
       amount,
       currency,
       user_id,
     } = req.body;
     try {
-      const generatedSignature = crypto
-        .createHmac("sha256", RAZORPAY_KEY_SECRET)
-        .update(`${razorpay_order_id} | ${razorpay_payment_id}`)
-        .digest("hex");
-      if (generatedSignature !== razorpay_signature) {
+      // Verify payment status from Cashfree
+      const paymentDetails = await cashfree.PGOrderFetchPayment(cf_order_id!, cf_payment_id! );
+      if (!paymentDetails || paymentDetails.data.payment_status !== "SUCCESS") {
         res.status(400).json({
           success: false,
-          message: "Invalid signature",
+          message: "Payment not successful or not found",
         });
         return;
       }
@@ -72,7 +75,6 @@ class PaymentController {
         699: "diamond",
         99: "job",
       };
-
       if (!(amount in sub)) {
         res.status(400).json({
           success: false,
@@ -81,19 +83,16 @@ class PaymentController {
         return;
       }
       const subscriptionType = sub[amount];
-
       const payment = await Transactions.create({
         user_id,
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
+        cf_order_id,
+        cf_payment_id,
         amount,
         currency,
         captured: true,
         status: "success",
-        method: "razorpay",
+        method: "cashfree",
       });
-      const user = req.user;
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
       await User.update(
