@@ -13,7 +13,7 @@ const TermsAndConditionsPage: React.FC = () => {
               </h1>
 
               <p className="text-center text-gray-600 dark:text-gray-300 mb-10">
-                Welcome to Crack Off Campus! By using our website and services, you agree to comply with and be bound by the following Terms and Conditions. Please read them carefully.
+                Welcome to Crack Off-Campus! By using our website and services, you agree to comply with and be bound by the following Terms and Conditions. Please read them carefully.
               </p>
 
               <div className="space-y-6">
@@ -22,7 +22,7 @@ const TermsAndConditionsPage: React.FC = () => {
                     1. Acceptance of Terms
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    By accessing or using Crack Off Campus, you agree to these Terms and Conditions, our Privacy Policy, and all applicable laws. If you do not agree, please do not use our services.
+                    By accessing or using Crack Off-Campus, you agree to these Terms and Conditions, our Privacy Policy, and all applicable laws. If you do not agree, please do not use our services.
                   </p>
                 </section>
 
@@ -31,7 +31,7 @@ const TermsAndConditionsPage: React.FC = () => {
                     2. Services Provided
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Crack Off Campus offers job and internship listings, placement resources, and career support services. Some listings and resources are free, while others require payment.
+                    Crack Off-Campus offers job and internship listings, placement resources, and career support services. Some listings and resources are free, while others require payment.
                   </p>
                 </section>
 
@@ -78,7 +78,7 @@ const TermsAndConditionsPage: React.FC = () => {
                     6. Intellectual Property
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    All content on Crack Off Campus, including text, graphics, and logos, is owned by or licensed to us. You may not reproduce or distribute any content without prior permission.
+                    All content on Crack Off-Campus, including text, graphics, and logos, is owned by or licensed to us. You may not reproduce or distribute any content without prior permission.
                   </p>
                 </section>
 
@@ -96,7 +96,7 @@ const TermsAndConditionsPage: React.FC = () => {
                     8. Limitation of Liability
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300">
-                    Crack Off Campus is not liable for any direct or indirect damages arising from use of the website or services.
+                    Crack Off-Campus is not liable for any direct or indirect damages arising from use of the website or services.
                   </p>
                 </section>
 

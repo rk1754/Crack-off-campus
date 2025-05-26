@@ -145,7 +145,7 @@ const Home = () => {
         key: "rzp_test_GBC6wsiyhZIszp",
         amount: orderData.amount,
         currency: orderData.currency || "INR",
-        name: "Crack Off Campus",
+        name: "Crack Off-Campus",
         description: "Unlock Premium Job Access (₹99)",
         order_id: orderData.order_id,
         handler: async function (response: any) {
@@ -232,7 +232,7 @@ const Home = () => {
                 </h2>
                 <p className="text-black mb-4">
                   Don't just chase openings — Unlock them. Discover jobs,
-                  referrals, and real prep with Crack Off Campus.
+                  referrals, and real prep with <br /> Crack Off-Campus.
                 </p>
               </div>
               <div className="mt-4 md:mt-6 w-full">
@@ -244,7 +244,7 @@ const Home = () => {
                       placeholder={
                         isMobile
                           ? "Skills or Job"
-                          : "Search by Skills or Job Title"
+                          : "Search by Skills"
                       }
                       className="w-full px-3 py-1 focus:outline-none text-gray-700 text-sm md:text-base"
                       value={searchKeyword}
@@ -419,8 +419,8 @@ const Home = () => {
             Ready to Crack Your Next Interview?
           </h2>
           <p className="text-lg md:text-xl mb-8">
-            Join thousands of students and professionals who trust Crack Off
-            Campus.
+            Join thousands of students and professionals who trust Crack
+            Off-Campus.
           </p>
           <Link
             to={user ? "/jobs" : "/register"}

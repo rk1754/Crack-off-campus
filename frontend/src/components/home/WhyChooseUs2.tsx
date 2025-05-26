@@ -62,7 +62,7 @@ export default function WhyChooseUs2() {
               onClick={handleExploreServices}
               className="mt-4 bg-orange-500 hover:bg-orange-600 text-white"
             >
-              Explore all Services
+              Explore All Services
             </Button>
           </div>
 

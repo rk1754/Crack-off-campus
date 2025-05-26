@@ -22,23 +22,23 @@ const RefundPolicyPage: React.FC = () => {
             <article className="prose dark:prose-invert prose-lg max-w-none">
               <p>
                 At <strong>Crack Off-Campus</strong>, we strive to provide the
-                best services and resources to help you succeed. Please read
-                our refund policy carefully before making a purchase.
+                best services and resources to help you succeed. Please read our
+                refund policy carefully before making a purchase.
               </p>
 
               <h2>1. Paid Services</h2>
               <p>
-                All sales of paid services (such as CV reviews, mock
-                interviews, referrals, mentorship, and placement resources) are
-                final. We do not offer refunds or exchanges once a service has
-                been purchased.
+                All sales of paid services (such as CV reviews, mock interviews,
+                referrals, mentorship, and placement resources) are final. We do
+                not offer refunds or exchanges once a service has been
+                purchased.
               </p>
 
               <h2>2. Service Delivery</h2>
               <p>
-                Our services are delivered online. After your purchase, you
-                will receive instructions via email on how to access and avail
-                the service.
+                Our services are delivered online. After your purchase, you will
+                receive instructions via email on how to access and avail the
+                service.
               </p>
 
               <h2>3. Refund Eligibility</h2>
@@ -49,9 +49,13 @@ const RefundPolicyPage: React.FC = () => {
               </p>
               <p>
                 Email:{" "}
-                <a href="mailto:crackoffcampus63@gmail.com">
+                <a
+                  href="mailto:crackoffcampus63@gmail.com"
+                  className="text-purple-600 hover:underline dark:text-purple-400"
+                >
                   crackoffcampus63@gmail.com
                 </a>
+                .
               </p>
               <p>
                 We will investigate your claim and, if found valid, issue a
@@ -62,10 +66,13 @@ const RefundPolicyPage: React.FC = () => {
               <ul>
                 <li>
                   Email us at{" "}
-                  <a href="mailto:info@crackoffcampus.com">
-                    info@crackoffcampus.com
-                  </a>{" "}
-                  with your order details and reason for refund.
+                  <a
+                    href="mailto:crackoffcampus63@gmail.com"
+                    className="text-purple-600 hover:underline dark:text-purple-400"
+                  >
+                    crackoffcampus63@gmail.com
+                  </a>
+                  . with your order details and reason for refund.
                 </li>
                 <li>
                   Our team will review and respond within 3-5 business days.
@@ -83,10 +90,13 @@ const RefundPolicyPage: React.FC = () => {
               <p>
                 If you have any questions about this refund policy, please
                 contact us at{" "}
-                <a href="mailto:crackoffcampus63@gmail.com">
+                <a
+                  href="mailto:crackoffcampus63@gmail.com"
+                  className="text-purple-600 hover:underline dark:text-purple-400"
+                >
                   crackoffcampus63@gmail.com
                 </a>
-                .
+                . .
               </p>
             </article>
           </div>

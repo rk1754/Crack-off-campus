@@ -57,7 +57,7 @@ export default function WhyChooseUs() {
               Placement Resources
             </h2>
             <p className="text-sm sm:text-base text-gray-700">
-              Prepare smarter with the right placement resources — from resume
+              Prepare smarter with the right placement resources — From resume
               tips to interview prep, everything you need to boost your chances
               and crack the job.
             </p>

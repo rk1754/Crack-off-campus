@@ -139,7 +139,7 @@ export default function BookingPage() {
         title: "Quick Chat",
         duration: "15 Mins",
         amount: 49,
-        moreDetails: "A brief 1-on-1 session to solve any quick career query.",
+        moreDetails: "A brief 1-on-1 Chat to solve any quick career query.",
         whatIncluded: [
           "Solve doubts related to resumes, interviews or job switching",
           "Fast and actionable advice",
