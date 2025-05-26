@@ -11,7 +11,7 @@ const authController = new AuthController();
 
 router.get("/all", adminMiddleware, authController.findAllUser);
 
-router.get('/set_user_premium', authMiddleware, authController.setUserPremium);
+router.get("/set_user_premium", authMiddleware, authController.setUserPremium);
 
 router.post("/login", authController.login);
 

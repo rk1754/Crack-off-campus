@@ -26,6 +26,7 @@ import ServicesPage from "./pages/Services";
 import PremiumPage from "./pages/premium";
 import OurCrackers from "./pages/OurCrakers";
 import ResourcesPage from "./pages/Resources";
+import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import FaqPage from "./pages/FaqPage"; // Added
@@ -121,6 +122,10 @@ const App = () => {
                 <Route path="/register" element={<Register />} />
                 <Route path="/employers-login" element={<EmployersLogin />} />
                 <Route path="/services" element={<ServicesPage />} />
+                <Route
+                  path="/reset-password/:token"
+                  element={<ResetPassword />}
+                ></Route>
                 <Route
                   path="/premium"
                   element={
