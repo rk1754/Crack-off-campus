@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { PORT } from "./config/config";
+import { FRONTEND_URL, FRONTEND_URL_2, PORT } from "./config/config";
 import authRoutes from "./routes/auth.routes";
 import adminRoutes from "./routes/admin.route";
 import educationRoutes from "./routes/education.route";
@@ -19,12 +19,23 @@ import sequelize from "./config/db";
 const app = express();
 
 // Use environment variable for CORS origin, fallback to localhost
-const corsOrigin = process.env.FRONTEND_URL || "http://localhost:8080";
+const allowedOrigins = [
+  FRONTEND_URL,
+  FRONTEND_URL_2
+]
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // If you're sending cookies or auth headers
+};
 app.use(
-  cors({
-    origin: corsOrigin,
-    credentials: true,
-  })
+  cors(corsOptions)
 );
 
 app.use(express.json());
