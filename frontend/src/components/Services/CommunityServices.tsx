@@ -43,7 +43,7 @@ const CommunityServices: React.FC = () => {
     {
       title: "Hackathon & Challenges",
       description:
-        "Hackathon & Companies – Participate in coding competitions and problem solving challenges of companies.",
+        "Hackathon & Challenges – Participate in coding competitions and problem solving challenges of companies.",
       imageUrl: "/lovable-uploads/Hackethon and challanges.png",
     },
     {

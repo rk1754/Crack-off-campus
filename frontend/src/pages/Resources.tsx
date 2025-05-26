@@ -193,7 +193,7 @@ const ResourcesPage = () => {
       id: 5,
       title: "9000+ Verified HR Emails",
       description:
-        "Start building meaningful connections with a trusted HR Contact Directory — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet.",
+        "Start building meaningful connections with a trusted HR emails sheet — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet.",
       buttonText: "Get Verified HR Emails",
       imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
@@ -205,14 +205,15 @@ const ResourcesPage = () => {
       title: "LinkedIn Optimize Profile",
       description:
         "Start networking smart with a well-optimized LinkedIn profile — it improves your chances of getting seen, approached, and hired.",
-     buttonText: "Coming Soon",
+      buttonText: "Coming Soon",
       imagePath: "/lovable-uploads/LinkedinProfile.png",
       imageAlt: "LinkedIn Profile Optimization",
     },
     {
       id: 7,
       title: "CV Template",
-      description: " Start applying with a well-structured CV template it helps you stand out to recruiters and boosts your chances of landing your job.",
+      description:
+        " Start applying with a well-structured CV template it helps you stand out to recruiters and boosts your chances of landing your job.",
       buttonText: "Coming Soon",
       imagePath: "/lovable-uploads/CV Template.png",
       imageAlt: "HR Contact Directory",
