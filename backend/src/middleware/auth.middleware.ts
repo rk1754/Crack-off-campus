@@ -12,9 +12,9 @@ const authMiddleware = async(req : Request, res : Response, next : NextFunction)
             });
             return;
         }
-        const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email : string, subscription_type : string, phone_number : string };
+        const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email : string, subscription_type : string };
         console.log(decoded);
-        req.user = { id: decoded.id, email : decoded.email, subscription_type : decoded.subscription_type, phone_number : decoded.phone_number};
+        req.user = { id: decoded.id, email : decoded.email, subscription_type : decoded.subscription_type};
         next();
     }catch(err){
         console.error(err);

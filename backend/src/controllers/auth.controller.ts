@@ -33,7 +33,6 @@ class AuthController {
           id: user.id,
           email: user.email,
           subscription_type: user.subscription_type,
-          phone_number: user.phone_number,
         },
         JWT_SECRET,
         {
@@ -93,7 +92,6 @@ class AuthController {
           id: user.id,
           email: user.email,
           subscription_type: user.subscription_type,
-          phone_number: user.phone_number,
         },
         JWT_SECRET,
         {
