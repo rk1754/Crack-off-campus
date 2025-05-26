@@ -3,9 +3,13 @@ import { Optional } from "sequelize";
 export interface PaymentTransactionAttributes {
     id : string;
     user_id : string;
-    razorpay_payment_id : string;
-    razorpay_order_id : string;
-    razorpay_signature : string;
+    // Razorpay fields (optional for backward compatibility)
+    razorpay_payment_id ?: string;
+    razorpay_order_id ?: string;
+    razorpay_signature ?: string;
+    // Cashfree fields
+    cf_order_id?: string;
+    cf_payment_id?: string;
     amount : number;
     currency : string;
     status : string;
@@ -16,9 +20,13 @@ export interface PaymentTransactionAttributes {
 }
 
 export type PaymentRequestBody = {
-    razorpay_order_id : string;
-    razorpay_payment_id: string;
-    razorpay_signature:string;
+    // Razorpay fields (optional)
+    razorpay_order_id ?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?:string;
+    // Cashfree fields
+    cf_order_id?: string;
+    cf_payment_id?: string;
     amount : number;
     currency : string;
     user_id : string;
