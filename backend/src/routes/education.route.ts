@@ -1,17 +1,18 @@
 import express from "express";
 import EducationController from "../controllers/education.controller";
+import authMiddleware from "../middleware/auth.middleware";
 const router = express.Router();
 
 const educationController = new EducationController();
 
-router.post('/add', educationController.addEducation);
+router.post('/add',authMiddleware, educationController.addEducation);
 
-router.get('/my/education', educationController.fetchUserEducation);
+router.get('/my/education',authMiddleware, educationController.fetchUserEducation);
 
-router.put('/update', educationController.updateEducation);
+router.put('/update',authMiddleware, educationController.updateEducation);
 
-router.delete('/remove', educationController.removeEducation);
+router.delete('/remove',authMiddleware, educationController.removeEducation);
 
-router.get('/:id', educationController.findEducationById);
+router.get('/:id',authMiddleware, educationController.findEducationById);
 
 export default router;
