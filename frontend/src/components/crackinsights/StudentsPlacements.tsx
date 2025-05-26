@@ -145,8 +145,8 @@ const StudentPlacementsPage: React.FC = () => {
           From Shortlisted to Selected – Track Every Step
         </h2>
         <p className="mt-4 text-base md:text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
-          Explore real journeys of students who've been shortlisted, received
-          interview calls, got task assignments, or successfully placed in top
+          Explore real journeys of students who've been shortlisted for
+          interview calls or assessments or successfully placed in top
           companies.
         </p>
       </div>
