@@ -17,6 +17,10 @@ router.post("/login", authController.login);
 
 router.post("/register", authController.signup);
 
+router.put('/update-resume', authMiddleware, upload.single('resume'), authController.updateResume);
+
+router.get('/resume', authMiddleware, authController.downloadResume);
+
 router.post("/forgot-password", authMiddleware, authController.forgotPassword);
 
 router.post("/reset-password", authMiddleware, authController.resetPassword);

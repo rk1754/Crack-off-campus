@@ -1,11 +1,18 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, response, Response } from "express";
+import axios from "axios";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 import { BCRYPT_SALT, JWT_EXPIRES_IN, JWT_SECRET } from "../config/config";
 import nodemailer from "nodemailer";
+import { createWriteStream } from 'fs';
+import { pipeline } from 'stream';
+import { promisify } from 'util';
 import bcrypt from "bcrypt";
 import cloudinary from "../config/cloudinary";
 import { transporter } from "../utils/mailer";
+
+
+const streamPipeline = promisify(pipeline);
 
 class AuthController {
   signup = async (req: Request, res: Response): Promise<void> => {
@@ -19,6 +26,7 @@ class AuthController {
     }
 
     try {
+      
       const hashedPassword = await bcrypt.hash(data.password, BCRYPT_SALT);
       data.password = hashedPassword;
       const user = await User.create({
@@ -27,6 +35,18 @@ class AuthController {
         subscription_type: "regular",
         provider: "manual",
       });
+
+      if(req.file){
+        const base64 = `data:${
+          req.file.mimetype
+        };base64,${req.file.buffer.toString("base64")}`;
+        const result = await cloudinary.uploader.upload(base64, {
+          folder: "job-portal/profiles",
+        });
+          user.resume_url = result.secure_url;
+          user.resume_public_id = result.public_id;
+          await user.save();
+      }
 
       const token = jwt.sign(
         {
@@ -610,6 +630,113 @@ class AuthController {
       return;
     }
   };
+
+  // ...existing code...
+  updateResume = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
+        return;
+      }
+
+      const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const user = req.user as User;
+      if (!user) {
+        res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+        return;
+      }
+      const u = await User.findByPk(user.id);
+      if (!u) {
+        res.status(403).json({
+          success: false,
+          message: "Please login first",
+        });
+        return;
+      }
+      if (u.resume_public_id) {
+        try {
+          await cloudinary.uploader.destroy(u.resume_public_id);
+        } catch (e) {
+          console.warn("Failed to delete old resume from Cloudinary:", e);
+        }
+      }
+      const result = await cloudinary.uploader.upload(base64, {
+        folder: "job-portal/resumes",
+        resource_type: "auto",
+      });
+
+      const update = await u.update({
+        resume_url: result.secure_url,
+        resume_public_id: result.public_id,
+      });
+      console.log(update);
+      res.status(200).json({
+        success: true,
+        message: "Resume updated successfully",
+        resumeUrl: result.secure_url,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong",
+      });
+    }
+  };
+// ...existing code...
+
+  downloadResume = async(req : Request, res : Response):Promise<void>=>{
+    try{
+      const user = req.user as User;
+      if(!user){
+        res.status(403).json({
+          success: false,
+          message: "Please login first",
+        });
+        return;
+      }
+      const u = await User.findByPk(user.id);
+      if(!u){
+        res.status(403).json({
+          success: false,
+          message: "Please login first",
+        });
+        return;
+      }
+      const resumeUrl = u.resume_url;
+      if(!resumeUrl){
+        res.status(404).json({
+          success: false,
+          message: "Resume not found",
+        });
+        return;
+      }
+      const fileName = `resume-${u.name || u.email}.pdf`;
+      const response = await axios({
+        method : "get",
+        url : resumeUrl,
+        responseType : "stream",
+      });
+
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Type', response.headers['content-type']);
+      await streamPipeline(response.data, res);
+      return;
+    }catch(err){
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong",
+      });
+      return;
+    }
+  }
 }
 
 export default AuthController;

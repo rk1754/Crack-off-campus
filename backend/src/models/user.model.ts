@@ -13,6 +13,8 @@ class User extends Model {
   public profile_pic?: string;
   public bio?: string;
   public cover_image? : string;
+  public resume_url?: string;
+  public resume_public_id?: string;
   public provider!: "manual" | "google";
   public resetPasswordToken? : string | null;
   public resetPasswordExpires ? : Date | null;
@@ -98,6 +100,14 @@ User.init(
       resetPasswordExpires : {
         type : DataTypes.DATE,
           allowNull : true,
+      },
+      resume_url : {
+        type : DataTypes.STRING,
+          allowNull : true,
+      },
+      resume_public_id : {
+        type : DataTypes.STRING,
+        allowNull : true
       },
     created_at: {
       type: DataTypes.DATE,
