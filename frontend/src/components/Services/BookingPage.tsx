@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Import useEffect
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Calendar, ArrowRight } from "lucide-react";
 import Navbar from "../layout/Navbar";
@@ -22,6 +22,10 @@ export default function BookingPage() {
   const { serviceId } = useParams<{ serviceId: string }>();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []); // This effect runs once when the component mounts
 
   const getServiceDetails = (id: string | undefined): ServiceDetails => {
     const serviceMap: Record<string, ServiceDetails> = {
