@@ -40,3 +40,7 @@ export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "";
 // Frontend URL for CORS and password reset links
 export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
 
+// Cashfree Config
+export const CASHFREE_CLIENT_ID = process.env.CASHFREE_CLIENT_ID;
+export const CASHFREE_CLIENT_SECRET = process.env.CASHFREE_CLIENT_SECRET;
+export const CASHFREE_ENV = process.env.CASHFREE_ENV as string;

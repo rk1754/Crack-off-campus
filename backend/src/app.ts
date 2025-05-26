@@ -47,6 +47,7 @@ declare global {
       id: string;
       email: string;
       subscription_type: string;
+      phone_number: string;
     }
 
     interface Admin {
