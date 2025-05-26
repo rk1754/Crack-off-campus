@@ -118,7 +118,7 @@ const JobCard = ({
               <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mb-3">
                 <p className="text-sm font-medium text-gray-700 flex items-center">
                   <Lock size={16} className="text-yellow-500 mr-2" />
-                  This premium job is only available for premium members
+                 This  premium job can be  applied for either through referral or via sending your resume directly to the recruiter email.
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
                   Upgrade your subscription to access this job.
