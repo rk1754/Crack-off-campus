@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Import useEffect
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Calendar, ArrowRight } from "lucide-react";
 import Navbar from "../layout/Navbar";
 import Footer from "../layout/Footer";
 import { Button } from "../ui/button";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { toast } from "sonner";
 
 interface ServiceDetails {
   id: number;
@@ -22,10 +26,51 @@ export default function BookingPage() {
   const { serviceId } = useParams<{ serviceId: string }>();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const user = useSelector((state: RootState) => state.user.user);
 
+  // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []); // This effect runs once when the component mounts
+  }, []);
+
+  // Load Cashfree SDK
+  useEffect(() => {
+    const loadCashfreeSDK = async () => {
+      if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+        setSdkLoaded(true);
+        console.log("Cashfree SDK already loaded");
+        return;
+      }
+
+      console.log("Loading Cashfree SDK...");
+      const script = document.createElement("script");
+      script.id = "cashfree-sdk";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      script.onload = () => {
+        setSdkLoaded(true);
+        console.log("Cashfree SDK loaded successfully");
+      };
+      script.onerror = () => {
+        setSdkLoaded(false);
+        toast.error("Failed to load Cashfree SDK. Please try again.");
+        console.error("Cashfree SDK failed to load");
+      };
+      document.body.appendChild(script);
+    };
+
+    loadCashfreeSDK();
+
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
+    };
+  }, []);
 
   const getServiceDetails = (id: string | undefined): ServiceDetails => {
     const serviceMap: Record<string, ServiceDetails> = {
@@ -202,15 +247,81 @@ export default function BookingPage() {
 
   const handleGoBack = () => navigate("/services");
 
-  const handleConfirmSlots = () => {
+  const handleConfirmSlots = async () => {
     if (!selectedDate || !selectedTime) {
-      alert("Please select both date and time before proceeding.");
+      toast.error("Please select both date and time before proceeding.");
       return;
     }
 
-    navigate(`/services/${serviceId}/form`, {
-      state: { date: selectedDate, time: selectedTime },
-    });
+    if (!user) {
+      toast.error("Please log in to proceed with payment.");
+      navigate("/login");
+      return;
+    }
+
+    if (!sdkLoaded || !window.Cashfree) {
+      toast.error("Payment gateway is not available. Please try again later.");
+      console.error("Cashfree SDK not loaded");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("Creating Cashfree order for amount:", service.amount);
+      const orderRes = await axios.post("/payment/create-order", {
+        amount: service.amount,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+      });
+      console.log("Order response:", orderRes.data);
+      const { payment_session_id, order_id } = orderRes.data;
+
+      if (!payment_session_id) {
+        throw new Error("Payment session ID not found in response");
+      }
+
+      // Validate payment_session_id
+      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+        console.error("Invalid payment_session_id:", payment_session_id);
+        throw new Error("Invalid payment session ID format");
+      }
+
+      // Initialize Cashfree SDK
+      const cashfree = new window.Cashfree({
+        mode: "production",
+      });
+
+      // Define checkout options with explicit typing
+      const checkoutOptions: {
+        paymentSessionId: string;
+        returnUrl: string;
+        redirectTarget?: "_self" | "_blank";
+      } = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}&serviceId=${serviceId}`,
+        redirectTarget: "_self",
+      };
+
+      console.log("Initiating Cashfree checkout with options:", checkoutOptions);
+      cashfree.checkout(checkoutOptions).then((result) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+          console.error("Checkout error:", result.error);
+          setLoading(false);
+        } else if (result.redirect) {
+          console.log("Redirecting to Cashfree checkout page");
+          toast.info("Redirecting to Cashfree payment gateway...");
+        }
+      });
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ||
+          "Could not initiate payment. Please try again."
+      );
+      console.error("Payment initiation error:", err);
+      setLoading(false);
+    }
   };
 
   const getDates = () => {
@@ -262,10 +373,6 @@ export default function BookingPage() {
             <h1 className="text-2xl font-bold text-gray-900">
               {service.title}
             </h1>
-            {/* <div className="flex items-center">
-              <span className="font-medium">5</span>
-              <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 ml-1" />
-            </div> */}
           </div>
 
           <div className="space-y-6">
@@ -378,8 +485,9 @@ export default function BookingPage() {
             <Button
               className="w-full bg-[#F97316] hover:bg-[#ea630e] text-white font-semibold text-lg py-3"
               onClick={handleConfirmSlots}
+              disabled={loading || !sdkLoaded}
             >
-              Starts From 5 June
+              {loading ? "Processing..." : !sdkLoaded ? "Loading..." : "Confirm and Pay"}
             </Button>
           </div>
         </div>

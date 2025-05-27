@@ -188,7 +188,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
 
       // Initialize Cashfree SDK
       const cashfree = new window.Cashfree({
-        mode: "production",
+        mode: "production"
       });
 
       // Define checkout options with explicit typing
@@ -198,7 +198,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         redirectTarget?: "_self" | "_blank";
       } = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://yourdomain.com/payment/verify?order_id=${order_id}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
         redirectTarget: "_self", // Explicitly typed as "_self"
       };
 

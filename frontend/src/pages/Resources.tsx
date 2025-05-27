@@ -2,7 +2,7 @@ import CommunityServices from "@/components/Services/CommunityServices";
 import Layout from "../components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 import {
   downloadResumeTemplate,
@@ -11,32 +11,11 @@ import {
   downloadColdMailTemplate,
   downloadCoverLetterTemplate,
 } from "../redux/slices/resourceSlice";
-import {
-  createPaymentOrder,
-  verifyAndStorePayment,
-} from "../redux/slices/paymentSlice";
 import { RootState, AppDispatch } from "../redux/store";
-
-// Razorpay key from env for production
-const RAZORPAY_KEY_ID =
-  import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_GBC6wsiyhZIszp";
-
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
+import { toast } from "sonner";
+import axios from "axios";
 
 const parseDescription = (desc: string) => {
-  // Split description into main and "What you get" section
   const [main, whatYouGet] = desc.split("What you get:");
   const points =
     whatYouGet
@@ -48,80 +27,136 @@ const parseDescription = (desc: string) => {
 
 const ResourcesPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { error, order, loading } = useSelector(
-    (state: RootState) => state.payment
-  );
   const userSubscription = useSelector(
     (state: RootState) => state.user.user?.subscription_type
   );
   const user = useSelector((state: RootState) => state.user.user);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Load Cashfree SDK
+  useEffect(() => {
+    const loadCashfreeSDK = async () => {
+      if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+        setSdkLoaded(true);
+        console.log("Cashfree SDK already loaded");
+        return;
+      }
+
+      console.log("Loading Cashfree SDK...");
+      const script = document.createElement("script");
+      script.id = "cashfree-sdk";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      script.onload = () => {
+        setSdkLoaded(true);
+        console.log("Cashfree SDK loaded successfully");
+      };
+      script.onerror = () => {
+        setSdkLoaded(false);
+        toast.error("Failed to load Cashfree SDK. Please try again.");
+        console.error("Cashfree SDK failed to load");
+      };
+      document.body.appendChild(script);
+    };
+
+    loadCashfreeSDK();
+
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
+    };
+  }, []);
 
   // Payment handler
   const handleUpgradeSubscription = async (
     requiredSubscriptionType: string
   ) => {
+    if (!user) {
+      toast.error("Please login to access this resource.");
+      return;
+    }
+
+    if (!sdkLoaded || !window.Cashfree) {
+      toast.error("Payment gateway is not available. Please try again later.");
+      console.error("Cashfree SDK not loaded");
+      return;
+    }
+
     let amountInPaise = 0;
     if (requiredSubscriptionType === "resume") {
-      amountInPaise = 7900; // 79 INR
+      amountInPaise = 7900; // ₹79
     } else if (requiredSubscriptionType === "other_templates") {
-      amountInPaise = 4900; // 49 INR
+      amountInPaise = 4900; // ₹49
     } else {
       return;
     }
-    if (amountInPaise > 0) {
-      dispatch(createPaymentOrder(amountInPaise));
+
+    setLoading(true);
+    try {
+      console.log("Creating Cashfree order for amount:", amountInPaise);
+      const orderRes = await axios.post("/payment/create-order", {
+        amount: amountInPaise,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+      });
+      console.log("Order response:", orderRes.data);
+      const { payment_session_id, order_id } = orderRes.data;
+
+      if (!payment_session_id) {
+        throw new Error("Payment session ID not found in response");
+      }
+
+      // Validate payment_session_id
+      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+        console.error("Invalid payment_session_id:", payment_session_id);
+        throw new Error("Invalid payment session ID format");
+      }
+
+      // Initialize Cashfree SDK
+      const cashfree = new window.Cashfree({
+        mode: "production",
+      });
+
+      // Define checkout options with explicit typing
+      const checkoutOptions: {
+        paymentSessionId: string;
+        returnUrl: string;
+        redirectTarget?: "_self" | "_blank";
+      } = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://yourdomain.com/payment/verify?order_id=${order_id}&resourceType=${requiredSubscriptionType}`,
+        redirectTarget: "_self",
+      };
+
+      console.log("Initiating Cashfree checkout with options:", checkoutOptions);
+      cashfree.checkout(checkoutOptions).then((result) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+          console.error("Checkout error:", result.error);
+          setLoading(false);
+        } else if (result.redirect) {
+          console.log("Redirecting to Cashfree checkout page");
+          toast.info("Redirecting to Cashfree payment gateway...");
+        }
+      });
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message ||
+          "Could not initiate payment. Please try again."
+      );
+      console.error("Payment initiation error:", err);
+      setLoading(false);
     }
   };
 
-  // Razorpay effect
-  useEffect(() => {
-    const openRazorpay = async () => {
-      const res = await loadRazorpayScript();
-      if (!res) {
-        alert("Razorpay SDK failed to load. Are you online?");
-        return;
-      }
-      if (order && order.order_id) {
-        let paymentDescription = "Upgrade Subscription";
-        if (order.amount === 7900)
-          paymentDescription = "Payment for Resume Template Access";
-        else if (order.amount === 4900)
-          paymentDescription = "Payment for Templates Access";
-
-        const options = {
-          key: RAZORPAY_KEY_ID,
-          amount: order.amount,
-          currency: order.currency,
-          name: "Crack off Campus",
-          description: paymentDescription,
-          order_id: order.order_id,
-          handler: async (response: any) => {
-            dispatch(
-              verifyAndStorePayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                amount: order.amount, // Assuming backend expects amount in paise
-                currency: "INR",
-                user_id: user?.id,
-              })
-            );
-          },
-          theme: { color: "#F37254" },
-        };
-        const razorpay = new (window as any).Razorpay(options);
-        razorpay.open();
-      }
-    };
-    if (order && order.order_id) {
-      openRazorpay();
-    }
-  }, [order, dispatch, user]);
-
   // Access logic
   const canAccess = (resource: any) => {
-    if (["booster", "standard", "basic"].includes(userSubscription))
-      return true;
+    if (["booster", "standard", "basic"].includes(userSubscription)) return true;
     if (
       resource.requiredSubscription === "resume" &&
       userSubscription === "resume"
@@ -138,7 +173,7 @@ const ResourcesPage = () => {
   // Helper for login check
   const requireLogin = (action: () => void) => {
     if (!user) {
-      alert("Please login to access this resource.");
+      toast.error("Please login to access this resource.");
       return;
     }
     action();
@@ -151,7 +186,7 @@ const ResourcesPage = () => {
       description:
         "Start applying with a well-structured resume template. It helps you stand out to recruiters and boosts your chances of landing your job.\n\nWhat you get:\n A Editable ATS Friendly resume template",
       buttonText: "Get a Resume Template",
-      imagePath: "/lovable-uploads/Resume Template.png",
+      imagePath: "/lovable-Uploads/Resume Template.png",
       imageAlt: "Resume Template",
       action: () => requireLogin(() => dispatch(downloadResumeTemplate())),
       requiredSubscription: "resume",
@@ -162,7 +197,7 @@ const ResourcesPage = () => {
       description:
         "Reach out the right way with a clear referral template. It increases your chances of getting noticed and referred for the job you want.\n\nWhat you get:\n A Editable referral template.",
       buttonText: "Get a Referral Template",
-      imagePath: "/lovable-uploads/refralTemplate.png",
+      imagePath: "/lovable-Uploads/refralTemplate.png",
       imageAlt: "Referral Template",
       action: () => requireLogin(() => dispatch(downloadReferralTemplate())),
       requiredSubscription: "other_templates",
@@ -173,7 +208,7 @@ const ResourcesPage = () => {
       description:
         "Make a strong first impression with a clear cold email template — increase your chances of getting replies and landing the opportunities you're aiming for.\n\nWhat you get:\nA Editable cold email template.",
       buttonText: "Get a Cold Email Template",
-      imagePath: "/lovable-uploads/ColdEmail.png",
+      imagePath: "/lovable-Uploads/ColdEmail.png",
       imageAlt: "Cold Email Template",
       action: () => requireLogin(() => dispatch(downloadColdMailTemplate())),
       requiredSubscription: "other_templates",
@@ -184,7 +219,7 @@ const ResourcesPage = () => {
       description:
         "Start your job application with a clear cover letter — it adds a personal touch and increases your chances of getting shortlisted.\n\nWhat you get:\n A Editable cover letter template.",
       buttonText: "Get a Cover Letter",
-      imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
+      imagePath: "/lovable-Uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
       action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate())),
       requiredSubscription: "other_templates",
@@ -195,7 +230,7 @@ const ResourcesPage = () => {
       description:
         "Start building meaningful connections with a trusted HR emails sheet — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet.",
       buttonText: "Get Verified HR Emails",
-      imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
+      imagePath: "/lovable-Uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
       action: () => requireLogin(() => dispatch(downloadHrEmailTemplate())),
       requiredSubscription: "other_templates",
@@ -206,7 +241,7 @@ const ResourcesPage = () => {
       description:
         "Start networking smart with a well-optimized LinkedIn profile — it improves your chances of getting seen, approached, and hired.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-uploads/LinkedinProfile.png",
+      imagePath: "/lovable-Uploads/LinkedinProfile.png",
       imageAlt: "LinkedIn Profile Optimization",
     },
     {
@@ -215,7 +250,7 @@ const ResourcesPage = () => {
       description:
         " Start applying with a well-structured CV template it helps you stand out to recruiters and boosts your chances of landing your job.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-uploads/CV Template.png",
+      imagePath: "/lovable-Uploads/CV Template.png",
       imageAlt: "HR Contact Directory",
     },
     {
@@ -224,7 +259,7 @@ const ResourcesPage = () => {
       description:
         " Career roadmaps to help you navigate your professional journey with confidence.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-uploads/Roadmap-removebg-preview.png",
+      imagePath: "/lovable-Uploads/Roadmap-removebg-preview.png",
       imageAlt: "Career Roadmaps",
     },
     {
@@ -233,7 +268,7 @@ const ResourcesPage = () => {
       description:
         "Get inspired with project ideas that will enhance your portfolio and showcase your skills to potential employers.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-uploads/Project Ideation.png",
+      imagePath: "/lovable-Uploads/Project Ideation.png",
       imageAlt: "Projects Ideation",
     },
     {
@@ -242,7 +277,7 @@ const ResourcesPage = () => {
       description:
         " Comprehensive interview preparation resources to help you ace your interviews and land your dream job.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-uploads/Interview_pre-removebg-preview.png",
+      imagePath: "/lovable-Uploads/Interview_pre-removebg-preview.png",
       imageAlt: "Interview Preparation",
     },
   ];
@@ -325,22 +360,16 @@ const ResourcesPage = () => {
                       className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
                       size="lg"
                       disabled={
-                        resource.buttonText === "Coming Soon" || loading
+                        resource.buttonText === "Coming Soon" || loading || !sdkLoaded
                       }
                       onClick={
                         canAccess(resource)
                           ? resource.action
-                          : () =>
-                              user
-                                ? handleUpgradeSubscription(
-                                    resource.requiredSubscription
-                                  )
-                                : alert("Please login to access this resource.")
+                          : () => handleUpgradeSubscription(resource.requiredSubscription)
                       }
                     >
-                      {resource.buttonText}
+                      {loading ? "Processing..." : !sdkLoaded ? "Loading..." : resource.buttonText}
                     </Button>
-                    {error && <p className="text-red-500 mt-2">{error}</p>}
                   </div>
                 </div>
               );
