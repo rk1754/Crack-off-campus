@@ -17,7 +17,7 @@ class PaymentController {
       }
       // Cashfree order creation
       const orderPayload = {
-        order_amount: amount / 100, // Cashfree expects INR, not paise
+        order_amount: amount, // <-- FIXED: do NOT divide by 100
         order_currency: currency,
         customer_details: {
           customer_id: `user_${req.user?.id || Date.now()}`,
@@ -27,14 +27,14 @@ class PaymentController {
         order_id: `order_${Date.now()}`,
       };
       const order = await cashfree.PGCreateOrder(orderPayload);
+      console.log("Order created:", order);
       
-      res.status(201).json({
-        success: true,
-        order_id: orderPayload.order_id,
-        currency: currency,
-        amount: amount,
-        payment_session_id: order.data.payment_session_id,
-      });
+res.status(201).json({
+  success: true,
+  order_id: orderPayload.order_id,
+  payment_session_id: order.data.payment_session_id,
+  redirect_url: `https://payments.cashfree.com/pg/checkout?payment_session_id=${order.data.payment_session_id}`,
+});
       return;
     } catch (err) {
       console.error(err);

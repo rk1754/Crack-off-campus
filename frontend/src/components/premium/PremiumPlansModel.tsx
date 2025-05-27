@@ -15,7 +15,10 @@ import { Check, X } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+
+// Ensure the cashfree.d.ts file is included in your project
+// If not, create it as shown in the previous response
 
 export interface PremiumPlansModalProps {
   isOpen: boolean;
@@ -33,10 +36,9 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   onClose,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
   const user = useSelector((state: RootState) => state.user.user);
-  const [isRazorpayLoading, setIsRazorpayLoading] = useState(true);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   // Silently return null if modal is closed
   if (!isOpen) {
@@ -52,7 +54,42 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     return null;
   }
 
-  // Removed user check from here to allow modal to open without login
+  // Load Cashfree SDK
+  useEffect(() => {
+    const loadCashfreeSDK = async () => {
+      if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+        setSdkLoaded(true);
+        console.log("Cashfree SDK already loaded");
+        return;
+      }
+
+      console.log("Loading Cashfree SDK...");
+      const script = document.createElement("script");
+      script.id = "cashfree-sdk";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      script.onload = () => {
+        setSdkLoaded(true);
+        console.log("Cashfree SDK loaded successfully");
+      };
+      script.onerror = () => {
+        setSdkLoaded(false);
+        toast.error("Failed to load Cashfree SDK. Please try again.");
+        console.error("Cashfree SDK failed to load");
+      };
+      document.body.appendChild(script);
+    };
+
+    loadCashfreeSDK();
+
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
+    };
+  }, []);
 
   const allFeatures = [
     "One Month Access to Premium Jobs",
@@ -74,7 +111,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
-        "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
+        "9000+ Verified HR`s Emails",
       ],
       recommended: false,
     },
@@ -86,7 +123,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
-        "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
+        "9000+ Verified HR`s Emails",
         "Resume Template",
         "Referral Template",
       ],
@@ -100,7 +137,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         "One Month Access to Premium Jobs",
         "Cover Letter",
         "Cold Email Template",
-        "9000+ Verified HR`s Emails", // <-- fixed: match string exactly
+        "9000+ Verified HR`s Emails",
         "Resume Template",
         "Referral Template",
         "One Get a Referral Session",
@@ -110,149 +147,78 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
   ];
 
-  // Razorpay script loader
-  useEffect(() => {
-    const loadRazorpay = async () => {
-      if (document.getElementById("razorpay-sdk") || window.Razorpay) {
-        setRazorpayLoaded(true);
-        setIsRazorpayLoading(false);
-        console.log("Razorpay SDK already loaded or present");
-        return;
-      }
-
-      console.log("Loading Razorpay SDK...");
-      const script = document.createElement("script");
-      script.id = "razorpay-sdk";
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      script.onload = () => {
-        setRazorpayLoaded(true);
-        setIsRazorpayLoading(false);
-        console.log("Razorpay SDK loaded successfully");
-      };
-      script.onerror = () => {
-        setRazorpayLoaded(false);
-        setIsRazorpayLoading(false);
-        toast.error("Failed to load payment gateway. Please try again.");
-        console.error("Razorpay SDK failed to load");
-      };
-      document.body.appendChild(script);
-    };
-
-    loadRazorpay();
-
-    return () => {
-      const existingScript = document.getElementById("razorpay-sdk");
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
-      }
-      setRazorpayLoaded(false);
-      setIsRazorpayLoading(true);
-      console.log("Razorpay SDK script removed");
-    };
-  }, []);
-
   const handleContinue = async (planName: string) => {
     console.log("handleContinue called for plan:", planName);
     if (!user) {
       toast.error("Please log in to purchase a premium plan.");
-      navigate("/login"); // Redirect to login page
-      onClose(); // Close the premium plans modal
+      navigate("/login");
+      onClose();
       console.log("User not logged in, redirecting to login.");
       return;
     }
-    if (!razorpayLoaded || !window.Razorpay) {
-      toast.error("Payment gateway is not available. Please try again later.");
-      console.error("Razorpay SDK not loaded");
-      return;
-    }
 
-    const razorpayKey = "rzp_test_GBC6wsiyhZIszp";
-    if (!razorpayKey) {
-      toast.error(
-        "Payment gateway configuration is missing. Please contact support."
-      );
-      console.error("Razorpay key is not defined");
+    if (!sdkLoaded || !window.Cashfree) {
+      toast.error("Payment gateway is not available. Please try again later.");
+      console.error("Cashfree SDK not loaded");
       return;
     }
 
     setLoading(true);
     try {
       const amount = planAmountMap[planName];
-      console.log("Creating order for amount:", amount);
-      const orderRes = await axios.post("/payment/create-order", { amount });
+      console.log("Creating Cashfree order for amount:", amount);
+      const orderRes = await axios.post("/payment/create-order", {
+        amount,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+      });
       console.log("Order response:", orderRes.data);
-      const { order_id, currency } = orderRes.data;
+      const { payment_session_id, order_id } = orderRes.data;
 
-      const options = {
-        key: razorpayKey,
-        amount: amount * 100,
-        currency,
-        name: "Crack Off-Campus Premium",
-        description: `${planName} Plan`,
-        image: "/lovable-Uploads/logo.png",
-        order_id,
-        handler: async (response: any) => {
-          console.log("Payment handler triggered:", response);
-          try {
-            const verifyRes = await axios.post("/payment/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              amount,
-              currency,
-              user_id: user.id,
-            });
-            if (verifyRes.data.success) {
-              toast.success("Payment successful! Premium activated.");
-              onClose();
-            } else {
-              toast.error("Payment verification failed.");
-              console.error("Verification failed:", verifyRes.data);
-            }
-          } catch (err: any) {
-            toast.error(
-              err?.response?.data?.message ||
-                "Payment verification failed. Please contact support."
-            );
-            console.error("Verification error:", err);
-          }
-        },
-        prefill: {
-          name: user.name,
-          email: user.email,
-        },
-        theme: {
-          color: "#9b87f5",
-        },
-        modal: {
-          ondismiss: () => {
-            setLoading(false);
-            console.log("Razorpay modal dismissed");
-          },
-        },
-        "payment.failed": (response: any) => {
-          toast.error(`Payment failed: ${response.error.description}`);
-          setLoading(false);
-          console.error("Payment failed:", response.error);
-        },
+      if (!payment_session_id) {
+        throw new Error("Payment session ID not found in response");
+      }
+
+      // Validate payment_session_id
+      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+        console.error("Invalid payment_session_id:", payment_session_id);
+        throw new Error("Invalid payment session ID format");
+      }
+
+      // Initialize Cashfree SDK
+      const cashfree = new window.Cashfree({
+        mode: "production",
+      });
+
+      // Define checkout options with explicit typing
+      const checkoutOptions: {
+        paymentSessionId: string;
+        returnUrl: string;
+        redirectTarget?: "_self" | "_blank";
+      } = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://yourdomain.com/payment/verify?order_id=${order_id}`,
+        redirectTarget: "_self", // Explicitly typed as "_self"
       };
 
-      console.log("Opening Razorpay checkout with options:", options);
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", (response: any) => {
-        toast.error(`Payment failed: ${response.error.description}`);
-        setLoading(false);
-        console.error("Payment failed event:", response.error);
+      console.log("Initiating Cashfree checkout with options:", checkoutOptions);
+      cashfree.checkout(checkoutOptions).then((result) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+          console.error("Checkout error:", result.error);
+          setLoading(false);
+        } else if (result.redirect) {
+          console.log("Redirecting to Cashfree checkout page");
+          toast.info("Redirecting to Cashfree payment gateway...");
+        }
       });
-      rzp.open();
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
           "Could not initiate payment. Please try again."
       );
       console.error("Payment initiation error:", err);
-    } finally {
       setLoading(false);
     }
   };
@@ -318,13 +284,9 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
                       }
                     }}
                     className="w-full bg-[#F97316] hover:bg-orange-500 text-white mb-4 sm:mb-6"
-                    disabled={loading || isRazorpayLoading}
+                    disabled={loading || !sdkLoaded}
                   >
-                    {loading
-                      ? "Processing..."
-                      : isRazorpayLoading
-                      ? "Loading..."
-                      : "Continue"}
+                    {loading ? "Processing..." : !sdkLoaded ? "Loading..." : "Continue"}
                   </Button>
 
                   <div className="space-y-2 sm:space-y-3">
