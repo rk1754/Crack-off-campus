@@ -4,6 +4,7 @@ import { transporter } from "../utils/mailer";
 import { SMTP_USER } from "../config/config";
 import Admin from "../models/admin.model";
 import User from "../models/user.model";
+import logger from "../utils/logger";
 
 class SlotBookingController {
     // Book a slot (service_id, date, time)
@@ -79,7 +80,8 @@ class SlotBookingController {
         <p>Team Crack off Campus</p>
                 `,
       });
-
+      logger.info(`Slot booked successfully for user ${user.name} (${user.email}) on ${date} at ${time}`);
+      logger.info(`Notification email sent to user ${user.email}`);
       await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: "crackoffcampus63@gmail.com",
@@ -92,6 +94,7 @@ class SlotBookingController {
         <p>Team Crack off Campus</p>
                 `,
       })
+      logger.info(`Notification email sent to admin about new booking by ${user.email}`);
             res.status(201).json({
                 success: true,
                 message: "Slot booked successfully",
