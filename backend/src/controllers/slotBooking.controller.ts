@@ -93,6 +93,7 @@ class SlotBookingController {
       const adminHTML = `
         <p>Dear Admin,</p>
         <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on ${date} at ${time}.</p>
+        <p> User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best regards,</p>
         <p>Team Crack-Off-Campus</p>
