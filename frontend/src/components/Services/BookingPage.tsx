@@ -266,6 +266,7 @@ export default function BookingPage() {
         // Directly book the service for booster users
         await axios.post("/services/book", {
           userId: user.id,
+          service_name: service.title,
           serviceId,
           date: selectedDate,
           time: selectedTime,

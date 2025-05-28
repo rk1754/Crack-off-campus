@@ -6,6 +6,7 @@ class SessionBooking extends Model {
     public id?: string;
     public userId!: string;
     public service_id!: string;
+    public service_name!: string;
     public date!: string; // ISO date string
     public time!: string; // e.g. "09:00 PM"
     public meet_link?: string;
@@ -29,6 +30,10 @@ SessionBooking.init({
         },
         allowNull : false,
     },
+    service_name : {
+        type: DataTypes.STRING,
+        allowNull: false,
+    }  ,
     service_id: {
         type: DataTypes.STRING,
         allowNull: false,

@@ -110,13 +110,14 @@ const JobDetail = () => {
           <div className="lg:col-span-2">
             {/* Premium Job Instructions */}
             {isPremiumJob && (
-              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 p-6 rounded-lg shadow-sm mb-6">
+              <div className="bg-[rgb(150,130,209)] border border-orange-200 p-6 rounded-lg shadow-sm mb-6">
                 <div className="flex items-start mb-4">
                   <AlertCircle className="text-orange-500 w-6 h-6 mr-3 flex-shrink-0 mt-1" />
                   <h2 className="text-lg font-semibold text-orange-800">
                     Premium Job Application Guidelines
                   </h2>
                 </div>
+
                 <p className="text-orange-700 mb-4 font-medium">
                   Please follow the instructions carefully before applying to
                   premium jobs.
