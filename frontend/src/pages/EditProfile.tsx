@@ -15,6 +15,14 @@ import {
   updateUser,
 } from "@/redux/slices/userSlice";
 import { Camera } from "lucide-react";
+import {
+  addExperience,
+  getMyExperience,
+} from "@/redux/slices/experienceSlice";
+import {
+  addEducation,
+  getMyEducation,
+} from "@/redux/slices/educationSlice";
 
 interface FormData {
   name: string;
@@ -52,6 +60,31 @@ const EditProfile = () => {
   );
   const [isSaving, setIsSaving] = useState(false);
 
+  // Experience Modal State
+  const [isExperienceModalOpen, setIsExperienceModalOpen] = useState(false);
+  const [experienceForm, setExperienceForm] = useState({
+    job_title: "",
+    company_name: "",
+    start_date: "",
+    end_date: "",
+    location: "",
+    description: "",
+    employment_type: "full_time",
+  });
+
+  // Education Modal State
+  const [isEducationModalOpen, setIsEducationModalOpen] = useState(false);
+  const [educationForm, setEducationForm] = useState({
+    education: "",
+    specialization: "",
+    start_year: "",
+    end_year: "",
+  });
+
+  // Redux experience/education state
+  const experienceState = useSelector((state: RootState) => state.experience);
+  const educationState = useSelector((state: RootState) => state.education);
+
   useEffect(() => {
     if (!user?.id) {
       dispatch(fetchCurrentUser());
@@ -73,6 +106,13 @@ const EditProfile = () => {
       setCoverImagePreview(user.cover_image || null);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(getMyExperience());
+      dispatch(getMyEducation());
+    }
+  }, [dispatch, user?.id]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -134,6 +174,55 @@ const EditProfile = () => {
     }
   };
 
+  // Experience handlers
+  const handleExperienceInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setExperienceForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleAddExperience = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await dispatch(addExperience(experienceForm as any)).unwrap();
+      toast.success("Experience added!");
+      setIsExperienceModalOpen(false);
+      setExperienceForm({
+        job_title: "",
+        company_name: "",
+        start_date: "",
+        end_date: "",
+        location: "",
+        description: "",
+        employment_type: "full_time",
+      });
+      dispatch(getMyExperience());
+    } catch (err: any) {
+      toast.error("Failed to add experience");
+    }
+  };
+
+  // Education handlers
+  const handleEducationInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEducationForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleAddEducation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await dispatch(addEducation(educationForm as any)).unwrap();
+      toast.success("Education added!");
+      setIsEducationModalOpen(false);
+      setEducationForm({
+        education: "",
+        specialization: "",
+        start_year: "",
+        end_year: "",
+      });
+      dispatch(getMyEducation());
+    } catch (err: any) {
+      toast.error("Failed to add education");
+    }
+  };
+
   if (userLoading && !user?.id) {
     return (
       <Layout>
@@ -159,7 +248,6 @@ const EditProfile = () => {
           <div className="md:col-span-1">
             <ProfileSidebar />
           </div>
-
           <div className="md:col-span-3">
             <form
               onSubmit={handleSaveChanges}
@@ -313,6 +401,61 @@ const EditProfile = () => {
                 </div>
               </div>
 
+              {/* Add Experience/Education Buttons */}
+              <div className="flex gap-4 mb-4">
+                <Button
+                  type="button"
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={() => setIsExperienceModalOpen(true)}
+                >
+                  + Add Experience
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => setIsEducationModalOpen(true)}
+                >
+                  + Add Education
+                </Button>
+              </div>
+
+              {/* List Experience */}
+              <div>
+                <h2 className="font-semibold text-lg mb-2">Experience</h2>
+                <ul className="space-y-2">
+                  {experienceState.experiences && experienceState.experiences.length > 0 ? (
+                    experienceState.experiences.map((exp: any) => (
+                      <li key={exp.id || exp._id} className="border rounded p-2">
+                        <div className="font-medium">{exp.job_title} at {exp.company_name}</div>
+                        <div className="text-sm text-gray-500">{exp.start_date} - {exp.end_date || "Present"}</div>
+                        <div className="text-sm">{exp.location}</div>
+                        <div className="text-xs text-gray-700">{exp.description}</div>
+                        <div className="text-xs text-gray-400">{exp.employment_type}</div>
+                      </li>
+                    ))
+                  ) : (
+                    <div className="text-gray-400 text-sm">No experience added yet.</div>
+                  )}
+                </ul>
+              </div>
+
+              {/* List Education */}
+              <div>
+                <h2 className="font-semibold text-lg mb-2">Education</h2>
+                <ul className="space-y-2">
+                  {educationState.educationList && educationState.educationList.length > 0 ? (
+                    educationState.educationList.map((edu: any) => (
+                      <li key={edu.id || edu._id} className="border rounded p-2">
+                        <div className="font-medium">{edu.education} ({edu.specialization})</div>
+                        <div className="text-sm text-gray-500">{edu.start_year} - {edu.end_year}</div>
+                      </li>
+                    ))
+                  ) : (
+                    <div className="text-gray-400 text-sm">No education added yet.</div>
+                  )}
+                </ul>
+              </div>
+
               <div className="flex justify-end">
                 <Button
                   type="submit"
@@ -326,6 +469,96 @@ const EditProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Experience Modal */}
+      {isExperienceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Add Experience</h2>
+            <form onSubmit={handleAddExperience} className="space-y-3">
+              <div>
+                <Label>Job Title</Label>
+                <Input name="job_title" value={experienceForm.job_title} onChange={handleExperienceInput} required />
+              </div>
+              <div>
+                <Label>Company Name</Label>
+                <Input name="company_name" value={experienceForm.company_name} onChange={handleExperienceInput} required />
+              </div>
+              <div>
+                <Label>Start Date</Label>
+                <Input type="date" name="start_date" value={experienceForm.start_date} onChange={handleExperienceInput} required />
+              </div>
+              <div>
+                <Label>End Date</Label>
+                <Input type="date" name="end_date" value={experienceForm.end_date} onChange={handleExperienceInput} />
+              </div>
+              <div>
+                <Label>Location</Label>
+                <Input name="location" value={experienceForm.location} onChange={handleExperienceInput} required />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea name="description" value={experienceForm.description} onChange={handleExperienceInput} />
+              </div>
+              <div>
+                <Label>Employment Type</Label>
+                <select
+                  name="employment_type"
+                  value={experienceForm.employment_type}
+                  onChange={handleExperienceInput}
+                  className="w-full border rounded px-2 py-1"
+                >
+                  <option value="full_time">Full Time</option>
+                  <option value="internship">Internship</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsExperienceModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white">
+                  Add
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Education Modal */}
+      {isEducationModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Add Education</h2>
+            <form onSubmit={handleAddEducation} className="space-y-3">
+              <div>
+                <Label>Degree</Label>
+                <Input name="education" value={educationForm.education} onChange={handleEducationInput} required />
+              </div>
+              <div>
+                <Label>Specialization</Label>
+                <Input name="specialization" value={educationForm.specialization} onChange={handleEducationInput} />
+              </div>
+              <div>
+                <Label>Start Year</Label>
+                <Input type="number" name="start_year" value={educationForm.start_year} onChange={handleEducationInput} required />
+              </div>
+              <div>
+                <Label>End Year</Label>
+                <Input type="number" name="end_year" value={educationForm.end_year} onChange={handleEducationInput} required />
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsEducationModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-green-500 hover:bg-green-600 text-white">
+                  Add
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

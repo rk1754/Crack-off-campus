@@ -6,7 +6,7 @@ export const addExperience = createAsyncThunk(
   '/experience/create',
   async (data) => {
     const res = await axios.post(`${BACKEND_URL}/experience/create`, data);
-    return res.data;
+   return res.data.experience;
   }
 );
 
@@ -72,7 +72,7 @@ const experienceSlice = createSlice({
       })
       .addCase(getMyExperience.fulfilled, (state, action) => {
         state.loading = false;
-        state.experiences = action.payload;
+        state.experiences = action.payload.experience || [];
       })
       .addCase(getMyExperience.rejected, (state, action) => {
         state.loading = false;

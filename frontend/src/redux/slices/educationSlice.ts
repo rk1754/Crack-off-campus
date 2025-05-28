@@ -6,7 +6,7 @@ export const addEducation = createAsyncThunk(
   '/education/add',
   async (data) => {
     const res = await axios.post(`${BACKEND_URL}/education/add`, data);
-    return res.data;
+    return res.data.education;
   }
 );
 
@@ -76,7 +76,7 @@ const educationSlice = createSlice({
       })
       .addCase(getMyEducation.fulfilled, (state, action) => {
         state.loading = false;
-        state.education = action.payload;
+        state.educationList = action.payload.userEducation || [];
       })
       .addCase(getMyEducation.rejected, (state, action) => {
         state.loading = false;
