@@ -9,24 +9,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import {
-  createPaymentOrder,
-  verifyAndStorePayment,
-} from "@/redux/slices/paymentSlice";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import axios from "axios";
 
 const PremiumJobsFeature: React.FC = () => {
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
-  const [isRazorpayReady, setIsRazorpayReady] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.user);
-  const paymentState = useSelector((state: RootState) => state.payment);
 
   const handleOpenUnlockModal = () => {
     if (!user) {
-      navigate("/login?redirect=/jobs"); // Or the current page
+      navigate("/login?redirect=/jobs");
     } else {
       setIsUnlockModalOpen(true);
     }
@@ -36,21 +33,23 @@ const PremiumJobsFeature: React.FC = () => {
     setIsUnlockModalOpen(false);
   };
 
+  // Load Cashfree SDK
   useEffect(() => {
-    const scriptId = "razorpay-sdk-premium-feature";
-    if (document.getElementById(scriptId) || window.Razorpay) {
-      setIsRazorpayReady(true);
+    const scriptId = "cashfree-sdk-premium-feature";
+    if (document.getElementById(scriptId) || window.Cashfree) {
+      setSdkLoaded(true);
       return;
     }
 
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
     script.async = true;
-    script.onload = () => setIsRazorpayReady(true);
+    script.onload = () => setSdkLoaded(true);
     script.onerror = () => {
-      console.error("Failed to load Razorpay SDK for PremiumJobsFeature");
-      // Optionally, inform the user via toast or alert
+      setSdkLoaded(false);
+      toast.error("Failed to load Cashfree SDK. Please try again.");
+      console.error("Failed to load Cashfree SDK for PremiumJobsFeature");
     };
     document.body.appendChild(script);
 
@@ -59,88 +58,67 @@ const PremiumJobsFeature: React.FC = () => {
       if (existingScript && document.body.contains(existingScript)) {
         document.body.removeChild(existingScript);
       }
-      // Not resetting isRazorpayReady to false here, as other components might use the SDK.
-      // If this component is unmounted and remounted, the check at the start of useEffect handles it.
+      setSdkLoaded(false);
     };
   }, []);
 
-  const handleRazorpayPayment = async () => {
+  const handleCashfreePayment = async () => {
     if (!user) {
-      navigate("/login?redirect=/jobs"); // Or the current page
+      navigate("/login?redirect=/jobs");
       return;
     }
-    if (!isRazorpayReady) {
-      alert(
-        // Consider using a toast notification library if available
-        "Payment gateway is still loading. Please wait a moment and try again."
-      );
+    if (!sdkLoaded || !window.Cashfree) {
+      toast.error("Payment gateway is not available. Please try again later.");
       return;
     }
     try {
-      const resultAction = await dispatch(createPaymentOrder(99 * 100)); // Amount in paise
-      const orderData = resultAction.payload;
+      // Amount in INR
+      const amount = 99;
+      const orderRes = await axios.post("/payment/create-order", {
+        amount,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+      });
+      const { payment_session_id, order_id } = orderRes.data;
 
-      if (!orderData || !orderData.order_id) {
-        alert("Failed to create payment order. Please try again.");
-        return;
+      if (!payment_session_id) {
+        throw new Error("Payment session ID not found in response");
       }
 
-      const options = {
-        key: "rzp_test_GBC6wsiyhZIszp", // Replace with your actual Razorpay Key ID
-        amount: orderData.amount, // Amount in paise from backend
-        currency: orderData.currency || "INR",
-        name: "Crack Off-Campus Job Access",
-        description: "Unlock premium job access for ₹99",
-        order_id: orderData.order_id,
-        handler: async function (response: any) {
-          try {
-            await dispatch(
-              verifyAndStorePayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                amount: orderData.amount, // Send amount in paise
-                currency: orderData.currency || "INR",
-                user_id: user.id,
-              })
-            ).unwrap();
-            // alert("Payment successful! Premium job access unlocked.");
-            setIsUnlockModalOpen(false);
-            window.location.reload(); // Refresh to update user subscription status
-          } catch (verificationError: any) {
-            console.error("Payment verification error:", verificationError);
-            alert(
-              verificationError?.message ||
-                "Payment verification failed. Please contact support."
-            );
-          }
-        },
-        prefill: {
-          name: user.name || "",
-          email: user.email || "",
-          contact: user.phone_number || "",
-        },
-        theme: {
-          color: "#9b87f5",
-        },
-        modal: {
-          ondismiss: function () {
-            console.log("Razorpay modal dismissed");
-          },
-        },
+      // Validate payment_session_id
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
+        console.error("Invalid payment_session_id:", payment_session_id);
+        throw new Error("Invalid payment session ID format");
+      }
+
+      const cashfree = new window.Cashfree({
+        mode: "production",
+      });
+
+      const checkoutOptions = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        redirectTarget: "_blank" as "_blank",
       };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        console.error("Razorpay payment failed:", response.error);
-        alert(
-          `Payment Failed: ${response.error.description}. ${response.error.reason}`
-        );
+      cashfree.checkout(checkoutOptions).then((result: any) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+          setIsUnlockModalOpen(false);
+        } else if (result.redirect) {
+          toast.info("Redirecting to Cashfree payment gateway...");
+        }
       });
-      rzp.open();
     } catch (err: any) {
-      console.error("Error during payment initiation:", err);
-      alert(err?.message || "Payment failed to start. Please try again.");
+      toast.error(
+        err?.response?.data?.message ||
+          "Could not initiate payment. Please try again."
+      );
+      console.error("Payment initiation error:", err);
     }
   };
 
@@ -227,14 +205,12 @@ const PremiumJobsFeature: React.FC = () => {
               Cancel
             </Button>
             <Button
-              onClick={handleRazorpayPayment}
+              onClick={handleCashfreePayment}
               className="bg-[#9b87f5] text-white hover:bg-[#7c66e0]"
-              disabled={paymentState.loading || !isRazorpayReady}
+              disabled={!sdkLoaded}
             >
-              {!isRazorpayReady && !paymentState.loading
+              {!sdkLoaded
                 ? "Loading Gateway..."
-                : paymentState.loading
-                ? "Processing..."
                 : "Pay ₹99 & Unlock"}
             </Button>
           </DialogFooter>
