@@ -25,6 +25,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState(""); // For registration
   const [confirmPassword, setConfirmPassword] = useState(""); // Add this line
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false); // Added for register terms
@@ -44,7 +45,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
     register: {
       title: "Create Your Account",
       buttonText: "Register",
-      fields: ["name", "email", "password"],
+      fields: ["name", "email", "password", "phone number"],
       footerText: "Already have an account?",
       footerLink: `/login${location.search}`, // Preserve redirect query param
       footerLinkText: "Log in",
@@ -72,7 +73,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
           name,
           email,
           password,
-          phone_number: "Not provided", // Add a proper phone input if needed
+          phone_number : phoneNumber, // Add a proper phone input if needed
         });
 
         dispatch(
@@ -208,6 +209,26 @@ const AuthForm = ({ type }: AuthFormProps) => {
             placeholder="Enter your password"
           />
         </div>
+
+        {type === "register" && (
+          <div>
+            <Label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium text-gray-700"
+            >
+              Phone Number
+            </Label>
+            <Input
+              type="text"
+              id="phone_number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full mt-1"
+              required
+              placeholder="Enter your phone number"
+            />
+          </div>
+        )}
 
         {type === "register" && (
           <div>

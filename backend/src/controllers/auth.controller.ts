@@ -17,7 +17,7 @@ const streamPipeline = promisify(pipeline);
 class AuthController {
   signup = async (req: Request, res: Response): Promise<void> => {
     const data = req.body;
-    if (!data.email || !data.password || !data.phone_number) {
+    if (!data.email || !data.password || !data.phone_number || data.phone_number === "Not provided") {
       res.status(400).json({
         success: false,
         message: "Please provide complete data to register",
