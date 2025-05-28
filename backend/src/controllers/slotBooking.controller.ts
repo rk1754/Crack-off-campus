@@ -3,6 +3,7 @@ import SessionBooking from "../models/sessionBooking.model";
 import { transporter } from "../utils/mailer";
 import { SMTP_USER } from "../config/config";
 import Admin from "../models/admin.model";
+import User from "../models/user.model";
 
 class SlotBookingController {
     // Book a slot (service_id, date, time)
@@ -48,9 +49,49 @@ class SlotBookingController {
                 time,
                 cancelled: false,
             });
-
+            const u = req.user;
+            if(!u){
+                res.status(401).json({
+                    success: false,
+                    message: "Unauthorized user"
+                });
+                return;
+            }
+            const user = await User.findByPk(u.id);
+            if(!user){
+                res.status(404).json({
+                    success: false,
+                    message: "User not found"
+                });
+                return;
+            }
             // Optionally send confirmation email here...
+            await transporter.sendMail({
+        from: process.env.SMTP_FROM_EMAIL,
+        to: user.email,
+        subject: "Password Reset Request",
+        html: `
+        <p>Dear ${user.name},</p>
+        <p>Your slot has been booked successfully for the service on ${date} at ${time}.</p>
+        <p> You will receive the link to join the session on your registered email.</p>
+        <p>Thank you for choosing our services.</p>
+        <p>Best regards,</p>
+        <p>Team Crack off Campus</p>
+                `,
+      });
 
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM_EMAIL,
+        to: "crackoffcampus63@gmail.com",
+        subject: "New Slot Booking",
+        html: `
+        <p>Dear Admin,</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for the service on ${date} at ${time}.</p>
+        <p>Thank you.</p>
+        <p>Best regards,</p>
+        <p>Team Crack off Campus</p>
+                `,
+      })
             res.status(201).json({
                 success: true,
                 message: "Slot booked successfully",

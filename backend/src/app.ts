@@ -16,6 +16,7 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import sequelize from "./config/db";
+import logger from "./utils/logger";
 const app = express();
 
 // Use environment variable for CORS origin, fallback to localhost
@@ -105,5 +106,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, async () => {
   // await sequelize.sync({force : true});
+  logger.info(`Server is running on port ${PORT}`);
   console.log(`Server is running on port ${PORT}`);
 });
