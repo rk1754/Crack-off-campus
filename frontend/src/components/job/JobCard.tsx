@@ -44,20 +44,18 @@ const JobCard = ({
 }: JobCardProps) => {
   console.log(`Job ${title} subscription type: ${jobSubscriptionType}`);
   const checkAccess = () => {
-  if (jobSubscriptionType === "regular") {
-    
-    return true;
-  } else {
-    
-    return (
-      userSubscriptionType === "booster" ||
-      userSubscriptionType === "job" ||
-      userSubscriptionType === "standard" ||
-      userSubscriptionType === "basic" ||
-      userSubscriptionType === "premium"
-    );
-  }
-};
+    if (jobSubscriptionType === "regular") {
+      return true;
+    } else {
+      return (
+        userSubscriptionType === "booster" ||
+        userSubscriptionType === "job" ||
+        userSubscriptionType === "standard" ||
+        userSubscriptionType === "basic" ||
+        userSubscriptionType === "premium"
+      );
+    }
+  };
   const getJobPremiumStatus = () => {
     if (jobSubscriptionType !== "regular") {
       return true;
@@ -65,11 +63,19 @@ const JobCard = ({
       return false;
     }
   };
- 
-  
+
+  const isPremiumJob = jobSubscriptionType !== "regular";
+
   const canAccess = checkAccess();
-  const isPremiumJob = getJobPremiumStatus();
   console.log("canAccess", canAccess);
+
+  // Helper to ensure protocol
+  const getSafeUrl = (url: string) => {
+    if (!url) return "#";
+    return url.startsWith("http://") || url.startsWith("https://")
+      ? url
+      : `https://${url}`;
+  };
 
   return (
     <div className="job-card relative border p-4 rounded-lg shadow-sm bg-white">
@@ -83,34 +89,44 @@ const JobCard = ({
       <div>
         <div className="flex items-start">
           <div className="flex-grow">
-            <Link
-              to={canAccess ? `/jobs/${id}` : "#"}
-              className={`${!canAccess ? "pointer-events-none" : ""}`}
-            >
-              <h3 className="text-lg font-medium text-foundit-blue hover:text-foundit-blue-light transition-colors">
-                {title}
-              </h3>
-            </Link>
+            {isPremiumJob ? (
+              <Link to={`/jobs/${id}`} className="job-title-class">
+                <h3 className="text-lg font-medium text-foundit-blue hover:text-foundit-blue-light transition-colors">
+                  {title}
+                </h3>
+              </Link>
+            ) : (
+              <a
+                href={getSafeUrl(jobUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="job-title-class"
+              >
+                <h3 className="text-lg font-medium text-foundit-blue hover:text-foundit-blue-light transition-colors">
+                  {title}
+                </h3>
+              </a>
+            )}
             <p className="text-gray-600 mb-1">{company}</p>
 
-            <div className="flex flex-wrap items-center text-sm text-gray-500 mt-2 mb-3">
-              <div className="flex items-center mr-4">
-                <MapPin className="w-4 h-4 mr-1" />
-                <span>{location}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-1" />
-                <span>{postedDate}</span>
-              </div>
-              {experience && (
-                <div className="flex items-center mr-3 mb-1 sm:mb-0">
-                  <span className="capitalize">{experience}</span>
+            <div className="flex flex-wrap items-center text-sm text-gray-500 mt-2 mb-3 gap-6">
+              {location && (
+                <div className="flex items-center">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span>{location}</span>
                 </div>
               )}
-              {passout_year && (
-                <div className="flex items-center mb-1 sm:mb-0">
-                  <span>Batch: {passout_year}</span>
+              {postedDate && (
+                <div className="flex items-center">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  <span>{postedDate}</span>
                 </div>
+              )}
+              {experience && (
+                <span className="capitalize">{experience}</span>
+              )}
+              {passout_year && (
+                <span>Batch: {passout_year}</span>
               )}
             </div>
 
@@ -118,7 +134,8 @@ const JobCard = ({
               <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mb-3">
                 <p className="text-sm font-medium text-gray-700 flex items-center">
                   <Lock size={16} className="text-yellow-500 mr-2" />
-                 This  premium job can be  applied for either through referral or via sending your resume directly to the recruiter email.
+                  This premium job can be applied for either through referral or
+                  via sending your resume directly to the recruiter email.
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
                   Upgrade your subscription to access this job.
@@ -145,25 +162,31 @@ const JobCard = ({
                 )}
               </div>
               {canAccess ? (
-                <a
-                  href={jobUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center ${
-                    !jobUrl ? "pointer-events-none opacity-50" : ""
-                  }`}
-                >
-                  {isPremiumJob && <Crown size={14} className="mr-1" />}
-                  Apply Now
-                </a>
+                isPremiumJob ? (
+                  <Link
+                    to={`/jobs/${id}`}
+                    className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
+                  >
+                    {isPremiumJob && <Crown size={14} className="mr-1" />}
+                    Apply Now
+                  </Link>
+                ) : (
+                  <a
+                    href={getSafeUrl(jobUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
+                  >
+                    Apply Now
+                  </a>
+                )
               ) : (
                 <Button
                   size="sm"
                   onClick={onUnlockJob}
                   className="text-xs px-3 py-1 h-auto flex items-center"
                 >
-                  {/* <Crown size={14} className="mr-1" /> */}
-                  Apply Now
+                  Upgrade to Premium
                 </Button>
               )}
             </div>

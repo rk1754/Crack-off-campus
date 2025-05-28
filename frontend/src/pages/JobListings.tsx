@@ -126,7 +126,7 @@ const JobListings = () => {
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   };
-  console.log("user",user)
+  console.log("user", user);
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
   const currentJobsToDisplay = filteredJobs.slice(
@@ -403,8 +403,7 @@ const JobListings = () => {
                   No Jobs Found
                 </h3>
                 <p className="mt-2 text-md text-gray-500">
-                  We couldn't find any jobs matching
-                  filters.
+                  We couldn't find any jobs matching filters.
                 </p>
                 <p className="mt-1 text-md text-gray-500">
                   Try adjusting your search terms or check back later!
