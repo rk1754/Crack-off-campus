@@ -183,7 +183,9 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       // Validate payment_session_id
       if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
         console.error("Invalid payment_session_id:", payment_session_id);
+        
         throw new Error("Invalid payment session ID format");
+
       }
 
       // Initialize Cashfree SDK
@@ -214,10 +216,11 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         }
       });
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-          "Could not initiate payment. Please try again."
-      );
+      // toast.error(
+      //   err?.response?.data?.message ||
+      //     "Could not initiate payment. Please try again."
+      // );
+      toast.error("Please enter your mobile number to proceed with the payment.");
       console.error("Payment initiation error:", err);
       setLoading(false);
     }

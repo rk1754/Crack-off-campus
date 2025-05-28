@@ -41,6 +41,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
       footerText: "Don't have an account?",
       footerLink: `/register${location.search}`, // Preserve redirect query param
       footerLinkText: "Sign up",
+      icon : <LogIn className="h-5 w-5 mr-2" />,
     },
     register: {
       title: "Create Your Account",
@@ -49,6 +50,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
       footerText: "Already have an account?",
       footerLink: `/login${location.search}`, // Preserve redirect query param
       footerLinkText: "Log in",
+      icon : <UserPlus className="h-5 w-5 mr-2" />,
     },
     employer: {
       title: "Employer / Admin Login",
@@ -57,6 +59,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
       footerText: "Not an employer?",
       footerLink: "/login",
       footerLinkText: "User Login",
+      icon : <User className="h-5 w-5 mr-2" />,
     },
   };
 

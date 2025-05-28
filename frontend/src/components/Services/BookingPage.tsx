@@ -259,6 +259,29 @@ export default function BookingPage() {
       return;
     }
 
+    // Check for booster subscription and skip payment if true
+    if (user.subscription_type === "booster") {
+      setLoading(true);
+      try {
+        // Directly book the service for booster users
+        await axios.post("/services/book", {
+          userId: user.id,
+          serviceId,
+          date: selectedDate,
+          time: selectedTime,
+        });
+        toast.success("Service booked successfully with your Booster subscription!");
+        navigate("/services/booking-success");
+      } catch (err: any) {
+        toast.error(
+          err?.response?.data?.message ||
+            "Could not book the service. Please try again."
+        );
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!sdkLoaded || !window.Cashfree) {
       toast.error("Payment gateway is not available. Please try again later.");
       console.error("Cashfree SDK not loaded");

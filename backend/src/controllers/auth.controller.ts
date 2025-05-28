@@ -555,6 +555,25 @@ class AuthController {
 
       await user.update(data);
       const updatedUser = await User.findByPk(user.id);
+
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          subscription_type: user.subscription_type,
+          phone_number: user.phone_number,
+        },
+        JWT_SECRET,
+        {
+          expiresIn: "2d",
+        }
+      );
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       res.status(200).json({ success: true, user: updatedUser });
     } catch (err) {
       console.error(err);
