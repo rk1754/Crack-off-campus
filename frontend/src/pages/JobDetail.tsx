@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import Layout from "../components/layout/Layout";
-import { AppDispatch } from "@/redux/store";
+import type { AppDispatch } from "@/redux/store";
 import {
   Calendar,
   MapPin,
   Briefcase,
-  Clock,
   Building,
   Check,
   DollarSign,
   GraduationCap,
+  AlertCircle,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import type { RootState } from "@/redux/store";
 import { getJobById } from "@/redux/slices/jobSlice";
 import { format } from "date-fns";
 import PremiumPlansModal from "@/components/premium/PremiumPlansModel";
@@ -30,6 +32,11 @@ const JobDetail = () => {
       dispatch(getJobById(id));
     }
   }, [dispatch, id]);
+
+  // Scroll to top when JobDetail mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // --- Premium job access logic ---
   const isPremiumJob =
@@ -101,13 +108,53 @@ const JobDetail = () => {
       <div className="container py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
+            {/* Premium Job Instructions */}
+            {isPremiumJob && (
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 p-6 rounded-lg shadow-sm mb-6">
+                <div className="flex items-start mb-4">
+                  <AlertCircle className="text-orange-500 w-6 h-6 mr-3 flex-shrink-0 mt-1" />
+                  <h2 className="text-lg font-semibold text-orange-800">
+                    Premium Job Application Guidelines
+                  </h2>
+                </div>
+                <p className="text-orange-700 mb-4 font-medium">
+                  Please follow the instructions carefully before applying to
+                  premium jobs.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
+                      1
+                    </span>
+                    <p className="text-orange-700">
+                      Premium jobs can help improve your chances of getting an
+                      interview call but it does not guarantee a shortlist or
+                      response. Shortlisting also depends on the strength of
+                      your resume, including your skills, education,
+                      experiences, projects, and achievements.
+                    </p>
+                  </div>
+                  <div className="flex items-start">
+                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
+                      2
+                    </span>
+                    <p className="text-orange-700">
+                      Send your resume to the recruiter's email with a brief
+                      introduction. Make sure that both the email subject and
+                      the resume PDF filename are correctly formatted.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
               <h2 className="text-xl font-semibold text-foundit-blue mb-4">
                 Job Description
               </h2>
               <p className="text-gray-700 mb-6">{job.description}</p>
 
-              <h3 className="text-lg font-semibold text-foundit-blue mb-3">
+              {/* <h3 className="text-lg font-semibold text-foundit-blue mb-3">
                 Requirements
               </h3>
               <ul className="list-none space-y-2 mb-6">
@@ -120,9 +167,9 @@ const JobDetail = () => {
                     <span className="text-gray-700">{req}</span>
                   </li>
                 ))}
-              </ul>
+              </ul> */}
 
-              <h3 className="text-lg font-semibold text-foundit-blue mb-3">
+              {/* <h3 className="text-lg font-semibold text-foundit-blue mb-3">
                 Benefits & Perks
               </h3>
               <ul className="list-none space-y-2 mb-4">
@@ -135,18 +182,18 @@ const JobDetail = () => {
                     <span className="text-gray-700">{benefit}</span>
                   </li>
                 ))}
-              </ul>
+              </ul> */}
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold text-foundit-blue mb-4">
+              {/* <h2 className="text-xl font-semibold text-foundit-blue mb-4">
                 How to Apply
               </h2>
               <p className="text-gray-700 mb-6">
                 To apply for this position, click the "Apply Now" button and
                 follow the application process. Make sure your profile and
                 resume are up to date before applying.
-              </p>
+              </p> */}
               <a
                 href={
                   job.job_url?.startsWith("http://") ||
