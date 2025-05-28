@@ -8,7 +8,8 @@ class SlotBookingController {
     // Book a slot (service_id, date, time)
     bookSlot = async (req: Request, res: Response): Promise<void> => {
         try {
-            const { service_id, date, time, payment_status } = req.body;
+            console.log(req.body);
+            const { serviceId, date, time,  } = req.body;
             const userId = req.user?.id;
             if (!userId) {
                 res.status(400).json({
@@ -17,7 +18,7 @@ class SlotBookingController {
                 });
                 return;
             }
-            if (!service_id || !date || !time) {
+            if (!serviceId || !date || !time) {
                 res.status(400).json({
                     success: false,
                     message: "Please provide service_id, date, and time"
@@ -27,7 +28,7 @@ class SlotBookingController {
             // Check if slot is already booked (not cancelled)
             const existing = await SessionBooking.findOne({
                 where: {
-                    service_id,
+                    service_id: serviceId,
                     date,
                     time,
                     cancelled: false
@@ -42,11 +43,10 @@ class SlotBookingController {
             }
             const booking = await SessionBooking.create({
                 userId,
-                service_id,
+                service_id: serviceId,
                 date,
                 time,
                 cancelled: false,
-                payment_status
             });
 
             // Optionally send confirmation email here...
