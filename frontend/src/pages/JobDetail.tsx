@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { AppDispatch } from "@/redux/store";
@@ -15,33 +15,48 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { getJobById } from "@/redux/slices/jobSlice";
+import { format } from "date-fns";
+import PremiumPlansModal from "@/components/premium/PremiumPlansModel";
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useDispatch<AppDispatch>(); // Use typed AppDispatch
-  const { job, jobs, loading, error } = useSelector(
-    (state: RootState) => state.job
-  );
+  const dispatch = useDispatch<AppDispatch>();
+  const { job, loading, error } = useSelector((state: RootState) => state.job);
+  const { user } = useSelector((state: RootState) => state.user);
+  const [showPremiumModal, setShowPremiumModal] = useState(true);
 
   useEffect(() => {
     if (id) {
-      dispatch(getJobById(id)); // Dispatch the async thunk action
+      dispatch(getJobById(id));
     }
   }, [dispatch, id]);
-  if (!job) {
+
+  // --- Premium job access logic ---
+  const isPremiumJob =
+    job && job.subscription_type && job.subscription_type !== "regular";
+  const isUserPremium =
+    user &&
+    [
+      "booster",
+      "job",
+      "standard",
+      "basic",
+      "premium",
+      "gold",
+      "gold_plus",
+      "diamond",
+    ].includes(user.subscription_type);
+
+  if (!job || (isPremiumJob && !isUserPremium)) {
     return (
       <Layout>
-        <div className="container py-16 text-center">
-          <h1 className="text-2xl font-bold text-foundit-blue mb-4">
-            Job Not Found
-          </h1>
-          <p className="mb-6 text-gray-600">
-            The job you're looking for doesn't exist or has been removed.
-          </p>
-          <Link to="/jobs" className="btn-primary">
-            Browse All Jobs
-          </Link>
-        </div>
+        <PremiumPlansModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+          title="Unlock Premium Jobs"
+          description="Access one month of all premium jobs for just ₹99"
+          details="Get exclusive access to premium job listings and boost your career opportunities."
+        />
       </Layout>
     );
   }
@@ -75,10 +90,9 @@ const JobDetail = () => {
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link to={job.job_url}><button className="btn-accent">Apply Now</button></Link>
-              <button className="border border-foundit-blue text-foundit-blue hover:bg-foundit-blue hover:text-white px-4 py-2 rounded-md transition-colors duration-200">
+              {/* <button className="border border-foundit-blue text-foundit-blue hover:bg-foundit-blue hover:text-white px-4 py-2 rounded-md transition-colors duration-200">
                 Save Job
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -133,7 +147,19 @@ const JobDetail = () => {
                 follow the application process. Make sure your profile and
                 resume are up to date before applying.
               </p>
-              <button className="btn-accent w-full py-3">Apply Now</button>
+              <a
+                href={
+                  job.job_url?.startsWith("http://") ||
+                  job.job_url?.startsWith("https://")
+                    ? job.job_url
+                    : `https://${job.job_url}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 block text-center rounded-md font-semibold text-white bg-foundit-orange hover:bg-orange-600 transition-colors duration-200"
+              >
+                Apply Now
+              </a>
             </div>
           </div>
 
@@ -143,20 +169,24 @@ const JobDetail = () => {
                 Job Overview
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    <Calendar className="text-foundit-blue w-5 h-5" />
+                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                    <Calendar className="text-orange-500 w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">Date Posted</p>
-                    <p className="font-medium">{job.posted_at.toString()}</p>
+                    <p className="font-medium">
+                      {job.posted_at
+                        ? format(new Date(job.posted_at), "dd MMM yyyy")
+                        : "N/A"}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    <MapPin className="text-foundit-blue w-5 h-5" />
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                    <MapPin className="text-blue-600 w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">Location</p>
@@ -165,8 +195,8 @@ const JobDetail = () => {
                 </div>
 
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    <Briefcase className="text-foundit-blue w-5 h-5" />
+                  <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
+                    <Briefcase className="text-yellow-600 w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">Job Type</p>
@@ -175,8 +205,8 @@ const JobDetail = () => {
                 </div>
 
                 <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                    <DollarSign className="text-green-600 w-5 h-5" />
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                    <DollarSign className="text-green-600 w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">CTC / Stipend</p>
@@ -188,8 +218,8 @@ const JobDetail = () => {
 
                 {job.experience && (
                   <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                      <Briefcase className="text-foundit-blue w-5 h-5" />
+                    <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mr-4">
+                      <Briefcase className="text-pink-600 w-6 h-6" />
                     </div>
                     <div>
                       <p className="text-gray-500 text-sm">Experience Level</p>
@@ -200,8 +230,8 @@ const JobDetail = () => {
 
                 {job.passout_year && (
                   <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
-                      <GraduationCap className="text-purple-600 w-5 h-5" />
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                      <GraduationCap className="text-purple-600 w-6 h-6" />
                     </div>
                     <div>
                       <p className="text-gray-500 text-sm">Target Batch</p>
@@ -209,96 +239,6 @@ const JobDetail = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-              <h2 className="text-xl font-semibold text-foundit-blue mb-4">
-                About Company
-              </h2>
-
-              {/* Remove this image section for companies */}
-              <div className="flex items-center mb-4">
-                {/* <img 
-                  src={job.} 
-                  alt={`${job.company} logo`} 
-                  className="w-16 h-16 object-cover rounded mr-4"
-                /> */}
-                <div>
-                  <h3 className="font-medium text-lg">{job.company_name}</h3>
-                  <a
-                    href={job.job_url}
-                    className="text-foundit-blue-light text-sm hover:underline"
-                  >
-                    View Company Profile
-                  </a>
-                </div>
-              </div>
-
-              <p className="text-gray-700">
-                A leading company in the industry with a focus on innovation and
-                employee growth. Join our team to work on exciting projects in a
-                collaborative environment.
-              </p>
-            </div>
-
-            <div className="bg-foundit-gray p-6 rounded-lg border border-gray-200">
-              <h3 className="font-medium mb-2">Share this job</h3>
-              <div className="flex space-x-3">
-                <a
-                  href="#"
-                  className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" />
-                  </svg>
-                </a>
-                <a
-                  href="#"
-                  className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center text-white"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm6.066 9.645c.183 4.04-2.83 8.544-8.164 8.544-1.622 0-3.131-.476-4.402-1.291 1.524.18 3.045-.244 4.252-1.189-1.256-.023-2.317-.854-2.684-1.995.451.086.895.061 1.298-.049-1.381-.278-2.335-1.522-2.304-2.853.388.215.83.344 1.301.359-1.279-.855-1.641-2.544-.889-3.835 1.416 1.738 3.533 2.881 5.92 3.001-.419-1.796.944-3.527 2.799-3.527.825 0 1.572.349 2.096.907.654-.128 1.27-.368 1.824-.697-.215.671-.67 1.233-1.263 1.589.581-.07 1.135-.224 1.649-.453-.384.578-.87 1.084-1.433 1.489z" />
-                  </svg>
-                </a>
-                <a
-                  href="#"
-                  className="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center text-white"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-2 16h-2v-6h2v6zm-1-6.891c-.607 0-1.1-.496-1.1-1.109 0-.612.492-1.109 1.1-1.109s1.1.497 1.1 1.109c0 .613-.493 1.109-1.1 1.109zm8 6.891h-1.998v-2.861c0-1.881-2.002-1.722-2.002 0v2.861h-2v-6h2v1.093c.872-1.616 4-1.736 4 1.548v3.359z" />
-                  </svg>
-                </a>
-                <a
-                  href="#"
-                  className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                    />
-                  </svg>
-                </a>
               </div>
             </div>
           </div>

@@ -122,12 +122,8 @@ const JobCard = ({
                   <span>{postedDate}</span>
                 </div>
               )}
-              {experience && (
-                <span className="capitalize">{experience}</span>
-              )}
-              {passout_year && (
-                <span>Batch: {passout_year}</span>
-              )}
+              {experience && <span className="capitalize">{experience}</span>}
+              {passout_year && <span>Batch: {passout_year}</span>}
             </div>
 
             {!canAccess && (
@@ -167,7 +163,7 @@ const JobCard = ({
                     to={`/jobs/${id}`}
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
-                    {isPremiumJob && <Crown size={14} className="mr-1" />}
+                    <Crown size={14} className="mr-1" />
                     Apply Now
                   </Link>
                 ) : (
@@ -181,13 +177,24 @@ const JobCard = ({
                   </a>
                 )
               ) : (
-                <Button
-                  size="sm"
-                  onClick={onUnlockJob}
-                  className="text-xs px-3 py-1 h-auto flex items-center"
-                >
-                  Upgrade to Premium
-                </Button>
+                isPremiumJob ? (
+                  <Button
+                    size="sm"
+                    onClick={onUnlockJob}
+                    className="text-xs px-3 py-1 h-auto flex items-center bg-foundit-orange hover:bg-orange-600 text-white"
+                  >
+                    <Crown size={14} className="mr-1" />
+                    Apply Now
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={onUnlockJob}
+                    className="text-xs px-3 py-1 h-auto flex items-center"
+                  >
+                    Apply Now
+                  </Button>
+                )
               )}
             </div>
           </div>
