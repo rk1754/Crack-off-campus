@@ -123,7 +123,7 @@ const App = () => {
                 <Route path="/employers-login" element={<EmployersLogin />} />
                 <Route path="/services" element={<ServicesPage />} />
                 <Route
-                  path="/reset-password/:token"
+                  path="/reset-password"
                   element={<ResetPassword />}
                 ></Route>
                 <Route

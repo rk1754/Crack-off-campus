@@ -15,19 +15,27 @@ class PaymentController {
         });
         return;
       }
+      const user = req.user;
+      if(!user){
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized user",
+        });
+        return;
+      }
       // Cashfree order creation
       const orderPayload = {
         order_amount: amount, // <-- FIXED: do NOT divide by 100
         order_currency: currency,
         customer_details: {
-          customer_id: `user_${req.user?.id || Date.now()}`,
-          customer_email: req.user?.email || "test@example.com",
-          customer_phone: (req.user as { phone_number?: string })?.phone_number || "9999999999",
+          customer_id: `user_${user.id || Date.now()}`,
+          customer_email: user.email || "test@example.com",
+          customer_phone: user.phone_number,
         },
         order_id: `order_${Date.now()}`,
       };
       const order = await cashfree.PGCreateOrder(orderPayload);
-      console.log("Order created:", order);
+      console.log("Order created:");
       
 res.status(201).json({
   success: true,
