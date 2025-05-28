@@ -3,6 +3,8 @@ import { Link, Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/redux/store";
 import { fetchCurrentUser } from "@/redux/slices/userSlice";
+import { getMyExperience } from "@/redux/slices/experienceSlice";
+import { getMyEducation } from "@/redux/slices/educationSlice";
 import Layout from "../components/layout/Layout";
 import ProfileSidebar from "../components/profile/ProfileSidebar";
 import { jobListings } from "../data/mockData";
@@ -29,6 +31,8 @@ const Profile = () => {
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchCurrentUser());
+      dispatch(getMyExperience());
+      dispatch(getMyEducation());
     }
   }, [dispatch, isAuthenticated]);
 
@@ -208,41 +212,33 @@ const Profile = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="border-b pb-6 last:border-b-0 last:pb-0">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
-                    <h3 className="text-lg font-medium">Software Developer</h3>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar size={14} className="mr-1" />
-                      <span>Jan 2023 - Present</span>
+                {experiences && experiences.length > 0 ? (
+                  experiences.map((exp: any) => (
+                    <div
+                      key={exp.id || exp._id}
+                      className="border-b pb-6 last:border-b-0 last:pb-0"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
+                        <h3 className="text-lg font-medium">{exp.job_title}</h3>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar size={14} className="mr-1" />
+                          <span>
+                            {exp.start_date} - {exp.end_date || "Present"}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-foundit-blue mb-2">
+                        {exp.company_name}, {exp.location}
+                      </p>
+                      <p className="text-gray-700">{exp.description}</p>
+                      <p className="text-xs text-gray-500">
+                        {exp.employment_type}
+                      </p>
                     </div>
-                  </div>
-                  <p className="text-foundit-blue mb-2">
-                    Tech Solutions Inc, Mumbai
-                  </p>
-                  <p className="text-gray-700">
-                    Developed and maintained web applications using React and
-                    Node.js. Implemented responsive designs and optimized
-                    application performance.
-                  </p>
-                </div>
-
-                <div className="border-b pb-6 last:border-b-0 last:pb-0">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
-                    <h3 className="text-lg font-medium">Junior Developer</h3>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar size={14} className="mr-1" />
-                      <span>Jun 2021 - Dec 2022</span>
-                    </div>
-                  </div>
-                  <p className="text-foundit-blue mb-2">
-                    Digital Innovations, Bangalore
-                  </p>
-                  <p className="text-gray-700">
-                    Assisted in front-end development using HTML, CSS, and
-                    JavaScript. Participated in UI/UX improvements and bug
-                    fixing.
-                  </p>
-                </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No experience added yet.</p>
+                )}
               </div>
             </div>
 
@@ -261,18 +257,29 @@ const Profile = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="border-b pb-6 last:border-b-0 last:pb-0">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
-                    <h3 className="text-lg font-medium">
-                      B.Tech in Computer Science
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar size={14} className="mr-1" />
-                      <span>2017 - 2021</span>
+                {educationList && educationList.length > 0 ? (
+                  educationList.map((edu: any) => (
+                    <div
+                      key={edu.id || edu._id}
+                      className="border-b pb-6 last:border-b-0 last:pb-0"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
+                        <h3 className="text-lg font-medium">
+                          {edu.education}{" "}
+                          {edu.specialization && `(${edu.specialization})`}
+                        </h3>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Calendar size={14} className="mr-1" />
+                          <span>
+                            {edu.start_year} - {edu.end_year}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-foundit-blue">Mumbai University, Mumbai</p>
-                </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No education added yet.</p>
+                )}
               </div>
             </div>
 
