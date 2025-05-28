@@ -32,7 +32,7 @@ const ResetPassword = () => {
     try {
       await axios.post(`${BACKEND_URL}/auth/reset-password`, {
         token,
-        password,
+        newPassword: password,
       });
       toast.success("Password reset successful! You can now log in.");
       setPassword("");
