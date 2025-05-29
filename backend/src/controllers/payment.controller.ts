@@ -4,7 +4,8 @@ import { cashfree } from "../config/cashfree";
 import User from "../models/user.model";
 import { PaymentRequestBody, SubscriptionMap } from "../types/payment.types";
 import logger from "../utils/logger";
-
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/config";
 class PaymentController {
   createPaymentOrder = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -140,6 +141,68 @@ res.status(201).json({
         error: err,
       });
       return;
+    }
+  };
+
+  updateUserSubscription = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId, subscription_type, order_id } = req.body;
+      if (!userId || !subscription_type) {
+        res.status(400).json({
+          success: false,
+          message: "userId and subscription_type are required",
+        });
+        return;
+      }
+      // Set expiry to 30 days from now
+      const subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      await User.update(
+        {
+          subscription_type,
+          subscription_expiry: subscriptionExpiry,
+          is_premium: true,
+        },
+        { where: { id: userId } }
+      );
+      const user = await User.findByPk(userId);
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+        return;
+      }
+      res.clearCookie("token");
+      const token = jwt.sign(
+              {
+                id: user.id,
+                email: user.email,
+                subscription_type: user.subscription_type,
+                phone_number: user.phone_number,
+              },
+              JWT_SECRET,
+              {
+                expiresIn: "2d",
+              }
+            );
+      
+            res.cookie("token", token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+      res.status(200).json({
+        success: true,
+        message: "Subscription updated successfully",
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update subscription",
+        error: err,
+      });
     }
   };
 }

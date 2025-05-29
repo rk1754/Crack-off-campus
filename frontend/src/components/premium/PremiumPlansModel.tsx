@@ -205,7 +205,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       };
 
       console.log("Initiating Cashfree checkout with options:", checkoutOptions);
-      cashfree.checkout(checkoutOptions).then((result) => {
+      cashfree.checkout(checkoutOptions).then(async (result) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
           console.error("Checkout error:", result.error);
@@ -213,6 +213,21 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         } else if (result.redirect) {
           console.log("Redirecting to Cashfree checkout page");
           toast.info("Redirecting to Cashfree payment gateway...");
+        }  else if (result && (result as any).status && ((result as any).status === "SUCCESS" || (result as any).status === "COMPLETED")) {
+          // Call backend to update user subscription after successful payment
+          try {
+            await axios.post("/payment/update-subscription", {
+              userId: user.id,
+              subscription_type: planName.toLowerCase(),
+              order_id,
+            });
+            toast.success("Premium subscription activated!");
+            // Optionally, refresh user data here
+          } catch (err) {
+            toast.error("Payment succeeded but failed to update subscription. Please contact support.");
+          }
+          setLoading(false);
+          onClose();
         }
       });
     } catch (err: any) {
