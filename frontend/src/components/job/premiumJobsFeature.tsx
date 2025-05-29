@@ -111,7 +111,7 @@ const PremiumJobsFeature: React.FC = () => {
           setIsUnlockModalOpen(false);
         } else if (result.redirect) {
           toast.info("Redirecting to Cashfree payment gateway...");
-        } else if (result.status === "SUCCESS" || result.status === "COMPLETED") {
+        } else if (result && (result as any).status && ((result as any).status === "SUCCESS" || (result as any).status === "COMPLETED")) {
           // Call backend to update user subscription after successful payment
           try {
             await axios.post("/payment/update-subscription", {

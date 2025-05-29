@@ -4,7 +4,8 @@ import { cashfree } from "../config/cashfree";
 import User from "../models/user.model";
 import { PaymentRequestBody, SubscriptionMap } from "../types/payment.types";
 import logger from "../utils/logger";
-
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config/config";
 class PaymentController {
   createPaymentOrder = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -164,6 +165,33 @@ res.status(201).json({
         },
         { where: { id: userId } }
       );
+      const user = await User.findByPk(userId);
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+        return;
+      }
+      res.clearCookie("token");
+      const token = jwt.sign(
+              {
+                id: user.id,
+                email: user.email,
+                subscription_type: user.subscription_type,
+                phone_number: user.phone_number,
+              },
+              JWT_SECRET,
+              {
+                expiresIn: "2d",
+              }
+            );
+      
+            res.cookie("token", token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
       res.status(200).json({
         success: true,
         message: "Subscription updated successfully",
