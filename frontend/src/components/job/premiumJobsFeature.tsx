@@ -105,12 +105,26 @@ const PremiumJobsFeature: React.FC = () => {
         redirectTarget: "_blank" as "_blank",
       };
 
-      cashfree.checkout(checkoutOptions).then((result: any) => {
+      cashfree.checkout(checkoutOptions).then(async (result: any) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
           setIsUnlockModalOpen(false);
         } else if (result.redirect) {
           toast.info("Redirecting to Cashfree payment gateway...");
+        } else if (result.status === "SUCCESS" || result.status === "COMPLETED") {
+          // Call backend to update user subscription after successful payment
+          try {
+            await axios.post("/payment/update-subscription", {
+              userId: user.id,
+              subscription_type: "premium",
+              order_id,
+            });
+            toast.success("Premium subscription activated!");
+            // Optionally, refresh user data here
+          } catch (err) {
+            toast.error("Payment succeeded but failed to update subscription. Please contact support.");
+          }
+          setIsUnlockModalOpen(false);
         }
       });
     } catch (err: any) {

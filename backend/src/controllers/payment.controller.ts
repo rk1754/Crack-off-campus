@@ -142,6 +142,41 @@ res.status(201).json({
       return;
     }
   };
+
+  updateUserSubscription = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId, subscription_type, order_id } = req.body;
+      if (!userId || !subscription_type) {
+        res.status(400).json({
+          success: false,
+          message: "userId and subscription_type are required",
+        });
+        return;
+      }
+      // Set expiry to 30 days from now
+      const subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      await User.update(
+        {
+          subscription_type,
+          subscription_expiry: subscriptionExpiry,
+          is_premium: true,
+        },
+        { where: { id: userId } }
+      );
+      res.status(200).json({
+        success: true,
+        message: "Subscription updated successfully",
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update subscription",
+        error: err,
+      });
+    }
+  };
 }
 
 export default PaymentController;
