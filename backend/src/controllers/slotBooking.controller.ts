@@ -12,7 +12,7 @@ class SlotBookingController {
   bookSlot = async (req: Request, res: Response): Promise<void> => {
     try {
       console.log(req.body);
-      const { serviceId, date,service_name, time } = req.body;
+      const { serviceId, date, service_name, time } = req.body;
       const userId = req.user?.id;
       if (!userId) {
         res.status(400).json({
@@ -47,7 +47,7 @@ class SlotBookingController {
       const booking = await SessionBooking.create({
         userId,
         service_id: serviceId,
-        service_name : service_name,
+        service_name: service_name,
         date,
         time,
         cancelled: false,
@@ -77,7 +77,7 @@ class SlotBookingController {
         <p>Thank you for choosing our services.</p>
         <p>Best regards,</p>
         <p>Team Crack-Off-Campus</p>
-                `
+                `;
       // Optionally send confirmation email here...
       console.log("User HTML: ", userHtml);
       await transporter.sendMail({
@@ -97,9 +97,9 @@ class SlotBookingController {
         <p>Thank you.</p>
         <p>Best regards,</p>
         <p>Team Crack-Off-Campus</p>
-                `
+                `;
 
-                console.log("Admin HTML: ", adminHTML);
+      console.log("Admin HTML: ", adminHTML);
       await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: "crackoffcampus63@gmail.com",

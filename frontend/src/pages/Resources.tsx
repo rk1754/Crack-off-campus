@@ -88,9 +88,9 @@ const ResourcesPage = () => {
 
     let amountInPaise = 0;
     if (requiredSubscriptionType === "resume") {
-      amountInPaise = 7900; // ₹79
+      amountInPaise = 79; // ₹79
     } else if (requiredSubscriptionType === "other_templates") {
-      amountInPaise = 4900; // ₹49
+      amountInPaise = 49; // ₹49
     } else {
       return;
     }

@@ -9,7 +9,8 @@ router.post('/create', authMiddleware, experienceController.addExperience);
 
 router.get('/my/experience',authMiddleware, experienceController.findExperienceByUser);
 
-router.put('/update',authMiddleware, experienceController.updateExperience);
+// Change update to accept :id param
+router.put('/update/:id',authMiddleware, experienceController.updateExperience);
 
 router.get('/:id',authMiddleware, experienceController.findExperienceById);
 

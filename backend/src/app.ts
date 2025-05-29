@@ -105,7 +105,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 app.listen(PORT, async () => {
-  // await sequelize.sync({force : true});
+  // await sequelize.sync({force : false});
   logger.info(`Server is running on port ${PORT}`);
   console.log(`Server is running on port ${PORT}`);
 });

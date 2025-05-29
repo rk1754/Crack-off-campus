@@ -9,9 +9,9 @@ router.post('/add',authMiddleware, educationController.addEducation);
 
 router.get('/my/education',authMiddleware, educationController.fetchUserEducation);
 
-router.put('/update',authMiddleware, educationController.updateEducation);
+router.put('/update/:id',authMiddleware, educationController.updateEducation);
 
-router.delete('/remove',authMiddleware, educationController.removeEducation);
+router.delete('/remove/:id',authMiddleware, educationController.removeEducation);
 
 router.get('/:id',authMiddleware, educationController.findEducationById);
 
