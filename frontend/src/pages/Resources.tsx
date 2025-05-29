@@ -186,7 +186,7 @@ const ResourcesPage = () => {
       description:
         "Start applying with a well-structured resume template. It helps you stand out to recruiters and boosts your chances of landing your job.\n\nWhat you get:\n A Editable ATS Friendly resume template",
       buttonText: "Get a Resume Template",
-      imagePath: "/lovable-Uploads/Resume Template.png",
+      imagePath: "/lovable-uploads/Resume Template.png",
       imageAlt: "Resume Template",
       action: () => requireLogin(() => dispatch(downloadResumeTemplate())),
       requiredSubscription: "resume",
@@ -197,7 +197,7 @@ const ResourcesPage = () => {
       description:
         "Reach out the right way with a clear referral template. It increases your chances of getting noticed and referred for the job you want.\n\nWhat you get:\n A Editable referral template.",
       buttonText: "Get a Referral Template",
-      imagePath: "/lovable-Uploads/refralTemplate.png",
+      imagePath: "/lovable-uploads/refralTemplate.png",
       imageAlt: "Referral Template",
       action: () => requireLogin(() => dispatch(downloadReferralTemplate())),
       requiredSubscription: "other_templates",
@@ -208,7 +208,7 @@ const ResourcesPage = () => {
       description:
         "Make a strong first impression with a clear cold email template — increase your chances of getting replies and landing the opportunities you're aiming for.\n\nWhat you get:\nA Editable cold email template.",
       buttonText: "Get a Cold Email Template",
-      imagePath: "/lovable-Uploads/ColdEmail.png",
+      imagePath: "/lovable-uploads/ColdEmail.png",
       imageAlt: "Cold Email Template",
       action: () => requireLogin(() => dispatch(downloadColdMailTemplate())),
       requiredSubscription: "other_templates",
@@ -219,7 +219,7 @@ const ResourcesPage = () => {
       description:
         "Start your job application with a clear cover letter — it adds a personal touch and increases your chances of getting shortlisted.\n\nWhat you get:\n A Editable cover letter template.",
       buttonText: "Get a Cover Letter",
-      imagePath: "/lovable-Uploads/cover_letter-removebg-preview.png",
+      imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
       action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate())),
       requiredSubscription: "other_templates",
@@ -230,7 +230,7 @@ const ResourcesPage = () => {
       description:
         "Start building meaningful connections with a trusted HR emails sheet — get noticed and improve your chances of landing interviews.\n\nWhat you get:\n 9000+ verified HR emails Sheet.",
       buttonText: "Get Verified HR Emails",
-      imagePath: "/lovable-Uploads/hr_contants-removebg-preview.png",
+      imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
       action: () => requireLogin(() => dispatch(downloadHrEmailTemplate())),
       requiredSubscription: "other_templates",
@@ -241,7 +241,7 @@ const ResourcesPage = () => {
       description:
         "Start networking smart with a well-optimized LinkedIn profile — it improves your chances of getting seen, approached, and hired.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-Uploads/LinkedinProfile.png",
+      imagePath: "/lovable-uploads/LinkedinProfile.png",
       imageAlt: "LinkedIn Profile Optimization",
     },
     {
@@ -250,7 +250,7 @@ const ResourcesPage = () => {
       description:
         " Start applying with a well-structured CV template it helps you stand out to recruiters and boosts your chances of landing your job.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-Uploads/CV Template.png",
+      imagePath: "/lovable-uploads/CV Template.png",
       imageAlt: "HR Contact Directory",
     },
     {
@@ -259,7 +259,7 @@ const ResourcesPage = () => {
       description:
         " Career roadmaps to help you navigate your professional journey with confidence.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-Uploads/Roadmap-removebg-preview.png",
+      imagePath: "/lovable-uploads/Roadmap-removebg-preview.png",
       imageAlt: "Career Roadmaps",
     },
     {
@@ -268,7 +268,7 @@ const ResourcesPage = () => {
       description:
         "Get inspired with project ideas that will enhance your portfolio and showcase your skills to potential employers.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-Uploads/Project Ideation.png",
+      imagePath: "/lovable-uploads/Project Ideation.png",
       imageAlt: "Projects Ideation",
     },
     {
@@ -277,7 +277,7 @@ const ResourcesPage = () => {
       description:
         " Comprehensive interview preparation resources to help you ace your interviews and land your dream job.",
       buttonText: "Coming Soon",
-      imagePath: "/lovable-Uploads/Interview_pre-removebg-preview.png",
+      imagePath: "/lovable-uploads/Interview_pre-removebg-preview.png",
       imageAlt: "Interview Preparation",
     },
   ];
