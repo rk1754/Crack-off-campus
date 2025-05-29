@@ -110,10 +110,10 @@ const Profile = () => {
                   </p>
 
                   <div className="flex flex-col md:flex-row flex-wrap gap-y-2 text-sm text-gray-600">
-                    <div className="flex items-center mr-4">
+                    {/* <div className="flex items-center mr-4">
                       <MapPin size={16} className="mr-1" />
                       <span>Mumbai, India</span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center mr-4">
                       <Mail size={16} className="mr-1" />
                       <span>{user?.email}</span>
@@ -126,25 +126,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t">
-                <Button
-                  variant="default"
-                  className="flex items-center"
-                  onClick={() => toast.info("Resume download coming soon")}
-                >
-                  <Download size={16} className="mr-2" />
-                  Download Resume
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex items-center"
-                  onClick={() => toast.info("Resume update coming soon")}
-                >
-                  <Edit size={16} className="mr-2" />
-                  Update Resume
-                </Button>
-              </div>
-            </div>
+             </div>
 
             {/* About Section */}
             <div className="bg-white rounded-lg shadow p-6">
@@ -280,51 +262,6 @@ const Profile = () => {
                 ) : (
                   <p className="text-gray-500">No education added yet.</p>
                 )}
-              </div>
-            </div>
-
-            {/* Applied Jobs Preview */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-foundit-blue">
-                  Recently Applied Jobs
-                </h2>
-                <Link
-                  to="/profile/applied-jobs"
-                  className="text-sm text-foundit-orange hover:text-orange-700"
-                >
-                  View All
-                </Link>
-              </div>
-
-              <div className="space-y-4">
-                {appliedJobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="border-b pb-4 last:border-b-0 last:pb-0"
-                  >
-                    <div className="flex items-start">
-                      <img
-                        src={job.logo}
-                        alt={`${job.company} logo`}
-                        className="w-12 h-12 object-cover rounded mr-4"
-                      />
-                      <div>
-                        <Link
-                          to={`/jobs/${job.id}`}
-                          className="text-lg font-medium text-foundit-blue hover:text-foundit-blue-light"
-                        >
-                          {job.title}
-                        </Link>
-                        <p className="text-gray-600 mb-1">{job.company}</p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          <span>{job.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>

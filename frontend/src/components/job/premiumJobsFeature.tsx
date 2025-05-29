@@ -128,29 +128,28 @@ const PremiumJobsFeature: React.FC = () => {
         className="w-full mx-auto rounded-xl text-white shadow-lg"
         style={{ backgroundColor: "rgb(186, 175, 220)" }}
       >
-       <div className="container mx-auto px-4 py-6">
-  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-    <div>
-      <p className="text-sm md:text-base text-black">
-        Struggling with getting shortlist after applying from career
-        portal of company
-      </p>
-      <h2 className="text-2xl md:text-3xl font-bold mt-1 text-black">
-        Need Premium jobs Access
-      </h2>
-      <p className="text-sm md:text-base mt-1 text-black">
-        You will get multiple features to apply job opportunities
-      </p>
-    </div>
-    <button
-      type="button"
-      onClick={handleOpenUnlockModal}
-      className="mt-4 md:mt-0 bg-orange-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors shadow hover:shadow-md"
-    >
-      Unlock Premium Jobs
-    </button>
-  </div>
-
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+            <div>
+              <p className="text-sm md:text-base text-black">
+                Struggling with getting shortlist after applying from career
+                portal of company
+              </p>
+              <h2 className="text-2xl md:text-3xl font-bold mt-1 text-black">
+                Need Premium jobs Access
+              </h2>
+              <p className="text-sm md:text-base mt-1 text-black">
+                You will get multiple features to apply job opportunities
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleOpenUnlockModal}
+              className="mt-4 md:mt-0 bg-orange-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors shadow hover:shadow-md"
+            >
+              Unlock Premium Jobs
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
@@ -210,9 +209,7 @@ const PremiumJobsFeature: React.FC = () => {
               className="bg-[#9b87f5] text-white hover:bg-[#7c66e0]"
               disabled={!sdkLoaded}
             >
-              {!sdkLoaded
-                ? "Loading Gateway..."
-                : "Pay ₹99 & Unlock"}
+              {!sdkLoaded ? "Loading Gateway..." : "Pay ₹99 & Unlock"}
             </Button>
           </DialogFooter>
         </DialogContent>

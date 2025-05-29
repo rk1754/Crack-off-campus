@@ -112,22 +112,22 @@ const JobDetail = () => {
             {isPremiumJob && (
               <div className="bg-[rgb(150,130,209)] border border-orange-200 p-6 rounded-lg shadow-sm mb-6">
                 <div className="flex items-start mb-4">
-                  <AlertCircle className="text-orange-500 w-6 h-6 mr-3 flex-shrink-0 mt-1" />
-                  <h2 className="text-lg font-semibold text-orange-800">
+                  {/* <AlertCircle className="text-orange-500 w-6 h-6 mr-3 flex-shrink-0 mt-1" /> */}
+                  {/* <h2 className="text-lg font-semibold text-orange-800">
                     Premium Job Application Guidelines
-                  </h2>
+                  </h2> */}
                 </div>
 
-                <p className="text-orange-700 mb-4 font-medium">
+                <p className="text-black mb-4 font-bold">
                   Please follow the instructions carefully before applying to
                   premium jobs.
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-start">
-                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
+                    <span className="bg-black-500 text-black rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
                       1
                     </span>
-                    <p className="text-orange-700">
+                    <p className="text-black-700">
                       Premium jobs can help improve your chances of getting an
                       interview call but it does not guarantee a shortlist or
                       response. Shortlisting also depends on the strength of
@@ -136,10 +136,10 @@ const JobDetail = () => {
                     </p>
                   </div>
                   <div className="flex items-start">
-                    <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
+                    <span className="bg-black-500 text-Black rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 flex-shrink-0 mt-1">
                       2
                     </span>
-                    <p className="text-orange-700">
+                    <p className="text-Black-700">
                       Send your resume to the recruiter's email with a brief
                       introduction. Make sure that both the email subject and
                       the resume PDF filename are correctly formatted.

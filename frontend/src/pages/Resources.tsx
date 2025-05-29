@@ -112,7 +112,10 @@ const ResourcesPage = () => {
       }
 
       // Validate payment_session_id
-      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
         console.error("Invalid payment_session_id:", payment_session_id);
         throw new Error("Invalid payment session ID format");
       }
@@ -133,7 +136,10 @@ const ResourcesPage = () => {
         redirectTarget: "_self",
       };
 
-      console.log("Initiating Cashfree checkout with options:", checkoutOptions);
+      console.log(
+        "Initiating Cashfree checkout with options:",
+        checkoutOptions
+      );
       cashfree.checkout(checkoutOptions).then((result) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
@@ -156,7 +162,8 @@ const ResourcesPage = () => {
 
   // Access logic
   const canAccess = (resource: any) => {
-    if (["booster", "standard", "basic"].includes(userSubscription)) return true;
+    if (["booster", "standard", "basic"].includes(userSubscription))
+      return true;
     if (
       resource.requiredSubscription === "resume" &&
       userSubscription === "resume"
@@ -360,15 +367,24 @@ const ResourcesPage = () => {
                       className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
                       size="lg"
                       disabled={
-                        resource.buttonText === "Coming Soon" || loading || !sdkLoaded
+                        resource.buttonText === "Coming Soon" ||
+                        loading ||
+                        !sdkLoaded
                       }
                       onClick={
                         canAccess(resource)
                           ? resource.action
-                          : () => handleUpgradeSubscription(resource.requiredSubscription)
+                          : () =>
+                              handleUpgradeSubscription(
+                                resource.requiredSubscription
+                              )
                       }
                     >
-                      {loading ? "Processing..." : !sdkLoaded ? "Loading..." : resource.buttonText}
+                      {loading
+                        ? "Processing..."
+                        : !sdkLoaded
+                        ? "Loading..."
+                        : resource.buttonText}
                     </Button>
                   </div>
                 </div>
