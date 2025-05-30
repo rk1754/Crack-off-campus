@@ -6,6 +6,8 @@ import { PaymentRequestBody, SubscriptionMap } from "../types/payment.types";
 import logger from "../utils/logger";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/config";
+import sequelize from "../config/db";
+
 class PaymentController {
   createPaymentOrder = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -18,16 +20,15 @@ class PaymentController {
         return;
       }
       const user = req.user;
-      if(!user){
+      if (!user) {
         res.status(401).json({
           success: false,
           message: "Unauthorized user",
         });
         return;
       }
-      // Cashfree order creation
       const orderPayload = {
-        order_amount: amount, // <-- FIXED: do NOT divide by 100
+        order_amount: amount,
         order_currency: currency,
         customer_details: {
           customer_id: `user_${user.id || Date.now()}`,
@@ -37,14 +38,13 @@ class PaymentController {
         order_id: `order_${Date.now()}`,
       };
       const order = await cashfree.PGCreateOrder(orderPayload);
-      console.log("Order created:");
       logger.info("Order created:", order.data);
-res.status(201).json({
-  success: true,
-  order_id: orderPayload.order_id,
-  payment_session_id: order.data.payment_session_id,
-  redirect_url: `https://payments.cashfree.com/pg/checkout?payment_session_id=${order.data.payment_session_id}`,
-});
+      res.status(201).json({
+        success: true,
+        order_id: orderPayload.order_id,
+        payment_session_id: order.data.payment_session_id,
+        redirect_url: `https://payments.cashfree.com/pg/checkout?payment_session_id=${order.data.payment_session_id}`,
+      });
       return;
     } catch (err) {
       console.error(err);
@@ -62,16 +62,12 @@ res.status(201).json({
     req: Request<{}, {}, PaymentRequestBody>,
     res: Response
   ): Promise<void> => {
-    const {
-      cf_order_id,
-      cf_payment_id,
-      amount,
-      currency,
-      user_id,
-    } = req.body;
+    const { cf_order_id, cf_payment_id, amount, currency, user_id } = req.body;
     try {
-      // Verify payment status from Cashfree
-      const paymentDetails = await cashfree.PGOrderFetchPayment(cf_order_id!, cf_payment_id! );
+      const paymentDetails = await cashfree.PGOrderFetchPayment(
+        cf_order_id!,
+        cf_payment_id!
+      );
       if (!paymentDetails || paymentDetails.data.payment_status !== "SUCCESS") {
         res.status(400).json({
           success: false,
@@ -79,7 +75,6 @@ res.status(201).json({
         });
         return;
       }
-      // Premium User Logic
       const sub: SubscriptionMap = {
         199: "gold",
         299: "gold_plus",
@@ -147,14 +142,39 @@ res.status(201).json({
   updateUserSubscription = async (req: Request, res: Response): Promise<void> => {
     try {
       const { userId, subscription_type, order_id } = req.body;
-      if (!userId || !subscription_type) {
+      if (!userId || !subscription_type || !order_id) {
         res.status(400).json({
           success: false,
-          message: "userId and subscription_type are required",
+          message: "userId, subscription_type, and order_id are required",
         });
         return;
       }
-      // Set expiry to 30 days from now
+      const validTypes = [
+        "basic",
+        "standard",
+        "booster",
+        "regular",
+        "job",
+        "resume",
+        "other_templates",
+      ];
+      if (!validTypes.includes(subscription_type)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid subscription_type. Must be one of: ${validTypes.join(
+            ", "
+          )}`,
+        });
+        return;
+      }
+      const orderDetails = await cashfree.PGFetchOrder(order_id);
+      if (!orderDetails || orderDetails.data.order_status !== "PAID") {
+        res.status(400).json({
+          success: false,
+          message: "Payment not verified",
+        });
+        return;
+      }
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
       await User.update(
@@ -175,34 +195,124 @@ res.status(201).json({
       }
       res.clearCookie("token");
       const token = jwt.sign(
-              {
-                id: user.id,
-                email: user.email,
-                subscription_type: user.subscription_type,
-                phone_number: user.phone_number,
-              },
-              JWT_SECRET,
-              {
-                expiresIn: "2d",
-              }
-            );
-      
-            res.cookie("token", token, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              maxAge: 7 * 24 * 60 * 60 * 1000,
-            });
+        {
+          id: user.id,
+          email: user.email,
+          subscription_type: user.subscription_type,
+          phone_number: user.phone_number,
+        },
+        JWT_SECRET,
+        {
+          expiresIn: "2d",
+        }
+      );
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       res.status(200).json({
         success: true,
         message: "Subscription updated successfully",
       });
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Subscription update error:", err);
+      logger.error("Subscription update error:", err);
       res.status(500).json({
         success: false,
         message: "Failed to update subscription",
-        error: err,
+        error: err.message,
       });
+    }
+  };
+
+  verifyPayment = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { order_id } = req.query;
+      if (!order_id) {
+        return res.redirect(
+          "/jobs?payment=error&message=order_id_missing"
+        );
+      }
+      // Fetch order details from Cashfree
+      const orderDetails = await cashfree.PGFetchOrder(order_id as string);
+      if (!orderDetails || orderDetails.data.order_status !== "PAID") {
+        return res.redirect("/jobs?payment=failed");
+      }
+      // Fetch payment details to get cf_payment_id
+      const paymentDetails = await cashfree.PGOrderFetchPayments(
+        order_id as string
+      );
+      const successfulPayment = paymentDetails.data.find(
+        (payment: any) => payment.payment_status === "SUCCESS"
+      );
+      if (!successfulPayment) {
+        return res.redirect("/jobs?payment=failed");
+      }
+      const user = req.user;
+      if (!user) {
+        return res.redirect("/jobs?payment=error&message=unauthorized");
+      }
+      // Map amount to subscription type
+      const subscriptionMap: SubscriptionMap = {
+        199: "gold",
+        299: "gold_plus",
+        699: "diamond",
+        99: "job",
+      };
+      const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
+      if (!subscriptionType) {
+        return res.redirect("/jobs?payment=error&message=invalid_amount");
+      }
+      const subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      // Update user subscription and store transaction atomically
+      await sequelize.transaction(async (t:any) => {
+        await User.update(
+          {
+            subscription_type: subscriptionType,
+            subscription_expiry: subscriptionExpiry,
+            is_premium: true,
+          },
+          { where: { id: user.id }, transaction: t }
+        );
+        await Transactions.create(
+          {
+            user_id: user.id,
+            cf_order_id: order_id as string,
+            cf_payment_id: successfulPayment.cf_payment_id || "unknown",
+            amount: orderDetails.data.order_amount as number,
+            currency: orderDetails.data.order_currency as string,
+            captured: true,
+            status: "success",
+            method: "cashfree",
+          },
+          { transaction: t }
+        );
+      });
+      // Update JWT token
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          subscription_type: subscriptionType,
+          phone_number: user.phone_number,
+        },
+        JWT_SECRET,
+        { expiresIn: "2d" }
+      );
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.redirect("/jobs?payment=success");
+    } catch (err: any) {
+      console.error("Payment verification error:", err);
+      logger.error("Payment verification error:", err);
+      res.redirect(
+        `/jobs?payment=error&message=${encodeURIComponent(err.message || "server_error")}`
+      );
     }
   };
 }
