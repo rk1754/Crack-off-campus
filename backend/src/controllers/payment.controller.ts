@@ -57,6 +57,111 @@ class PaymentController {
       return;
     }
   };
+verifyPaymentAPI = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { order_id } = req.body;
+    if (!order_id) {
+      res.status(400).json({ success: false, message: "order_id is required" });
+      return;
+    }
+
+    // Fetch order details from Cashfree
+    const orderDetails = await cashfree.PGFetchOrder(order_id as string);
+    if (!orderDetails || orderDetails.data.order_status !== "PAID") {
+      res.status(400).json({ success: false, message: "Payment not verified" });
+      return;
+    }
+
+    // Fetch payment details to get cf_payment_id
+    const paymentDetails = await cashfree.PGOrderFetchPayments(order_id as string);
+    const successfulPayment = paymentDetails.data.find(
+      (payment: any) => payment.payment_status === "SUCCESS"
+    );
+    if (!successfulPayment) {
+      res.status(400).json({ success: false, message: "No successful payment found" });
+      return;
+    }
+
+    // Get user from token/session
+    const user = req.user;
+    if (!user) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    // Map amount to subscription type
+    const subscriptionMap: SubscriptionMap = {
+      199: "gold",
+      299: "gold_plus",
+      699: "diamond",
+      99: "job",
+    };
+    const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
+    if (!subscriptionType) {
+      res.status(400).json({ success: false, message: "Invalid subscription amount" });
+      return;
+    }
+
+    const subscriptionExpiry = new Date();
+    subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+
+    // Update user subscription and store transaction atomically
+    await sequelize.transaction(async (t: any) => {
+      await User.update(
+        {
+          subscription_type: subscriptionType,
+          subscription_expiry: subscriptionExpiry,
+          is_premium: true,
+        },
+        { where: { id: user.id }, transaction: t }
+      );
+      await Transactions.create(
+        {
+          user_id: user.id,
+          cf_order_id: order_id as string,
+          cf_payment_id: successfulPayment.cf_payment_id || "unknown",
+          amount: orderDetails.data.order_amount as number,
+          currency: orderDetails.data.order_currency as string,
+          captured: true,
+          status: "success",
+          method: "cashfree",
+        },
+        { transaction: t }
+      );
+    });
+
+    // Update JWT token
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        subscription_type: subscriptionType,
+        phone_number: user.phone_number,
+      },
+      JWT_SECRET,
+      { expiresIn: "2d" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Payment verified and subscription updated",
+      subscription_type: subscriptionType,
+      subscription_expiry: subscriptionExpiry,
+    });
+  } catch (err: any) {
+    console.error("Payment verification error:", err);
+    logger.error("Payment verification error:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message || "Server error",
+    });
+  }
+};
 
   verifyAndStorePayment = async (
     req: Request<{}, {}, PaymentRequestBody>,

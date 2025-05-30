@@ -6,7 +6,7 @@ const router = express.Router();
 const paymentController = new PaymentController();
 router.post('/create-order',authMiddleware, paymentController.createPaymentOrder);
 
-router.post('/verify',authMiddleware, paymentController.verifyAndStorePayment);
+router.post('/verify',authMiddleware, paymentController.verifyPaymentAPI);
 
 router.post('/update-subscription', authMiddleware, paymentController.updateUserSubscription);
 
