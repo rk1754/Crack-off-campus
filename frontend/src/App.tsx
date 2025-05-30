@@ -43,6 +43,7 @@ import SuccessPage from "./components/Services/SucessPage";
 // Set up axios defaults
 import axios from "axios";
 import { BACKEND_URL } from "./redux/config";
+import PaymentVerify from "./pages/PaymentVerify";
 
 // Configure axios
 axios.defaults.baseURL = BACKEND_URL;
@@ -121,6 +122,7 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/employers-login" element={<EmployersLogin />} />
+                <Route path="/payment/verify" element={<PaymentVerify />} />
                 <Route path="/services" element={<ServicesPage />} />
                 <Route
                   path="/reset-password"

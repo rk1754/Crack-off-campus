@@ -76,9 +76,9 @@ class PaymentController {
         return;
       }
       const sub: SubscriptionMap = {
-        199: "gold",
-        299: "gold_plus",
-        699: "diamond",
+        199: "basic",
+        1: "standard",
+        699: "booster",
         99: "job",
       };
       if (!(amount in sub)) {
