@@ -9,6 +9,8 @@ class Transactions extends Model<PaymentTransactionAttributes, PaymentTransactio
     public razorpay_payment_id!: string;
     public razorpay_order_id! : string;
     public razorpay_signature!: string;
+    public cf_order_id?: string; // <-- add this
+    public cf_payment_id?: string;
     public amount !:  number;
     public currency !: string;
     public status!: string;
@@ -35,6 +37,14 @@ Transactions.init({
         status : {
             type : DataTypes.STRING,
             allowNull : true,
+        },
+        cf_order_id: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        cf_payment_id: {
+            type: DataTypes.STRING,
+            allowNull: true,
         },
         method: {
             type : DataTypes.STRING,
