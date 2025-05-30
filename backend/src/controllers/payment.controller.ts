@@ -95,7 +95,7 @@ class PaymentController {
         res.status(401).json({ success: false, message: "Unauthorized" });
         return;
       }
-
+      logger.info("User found for payment verification", { user_id: user.id });
       // Map amount to subscription type
       const subscriptionMap: SubscriptionMap = {
         199: "basic",
@@ -109,7 +109,7 @@ class PaymentController {
         res.status(400).json({ success: false, message: "Invalid subscription amount" });
         return;
       }
-
+      
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
 
@@ -133,6 +133,10 @@ class PaymentController {
             captured: true,
             status: "success",
             method: "cashfree",
+            // Add dummy values for required Razorpay fields to avoid NOT NULL error
+            razorpay_order_id: "cashfree_dummy_order",
+            razorpay_payment_id: "cashfree_dummy_payment",
+            razorpay_signature: "cashfree_dummy_signature",
           },
           { transaction: t }
         );
