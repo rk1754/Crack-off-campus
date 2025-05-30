@@ -116,7 +116,7 @@ const PremiumJobsFeature: React.FC = () => {
           try {
             await axios.post("/payment/update-subscription", {
               userId: user.id,
-              subscription_type: "premium",
+              subscription_type: "job",
               order_id,
             });
             toast.success("Premium subscription activated!");
