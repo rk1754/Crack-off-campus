@@ -25,6 +25,14 @@ Transactions.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    cf_order_id: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    cf_payment_id: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
     method: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,

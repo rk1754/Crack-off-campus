@@ -95,7 +95,7 @@ class PaymentController {
         res.status(401).json({ success: false, message: "Unauthorized" });
         return;
       }
-
+      logger.info("User found for payment verification", { user_id: user.id });
       // Map amount to subscription type
       const subscriptionMap: SubscriptionMap = {
         199: "basic",
@@ -109,7 +109,7 @@ class PaymentController {
         res.status(400).json({ success: false, message: "Invalid subscription amount" });
         return;
       }
-
+      
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
 
@@ -128,11 +128,15 @@ class PaymentController {
             user_id: user.id,
             cf_order_id: order_id as string,
             cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: orderDetails.data.order_amount as number,
+            amount: String(orderDetails.data.order_amount),
             currency: orderDetails.data.order_currency as string,
             captured: true,
             status: "success",
             method: "cashfree",
+            // Add dummy values for required Razorpay fields to avoid NOT NULL error
+            razorpay_order_id: "cashfree_dummy_order",
+            razorpay_payment_id: "cashfree_dummy_payment",
+            razorpay_signature: "cashfree_dummy_signature",
           },
           { transaction: t }
         );
@@ -207,7 +211,7 @@ class PaymentController {
         user_id,
         cf_order_id,
         cf_payment_id,
-        amount,
+        amount: amount.toString(),
         currency,
         captured: true,
         status: "success",
@@ -395,7 +399,7 @@ class PaymentController {
             user_id: user.id,
             cf_order_id: order_id as string,
             cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: orderDetails.data.order_amount as number,
+            amount: orderDetails.data.order_amount?.toString() || "0",
             currency: orderDetails.data.order_currency as string,
             captured: true,
             status: "success",

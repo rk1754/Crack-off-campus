@@ -11,9 +11,11 @@ const auth_middleware_1 = __importDefault(require("../middleware/auth.middleware
 const router = express_1.default.Router();
 const authController = new auth_controller_1.default();
 router.get("/all", admin_middleware_1.default, authController.findAllUser);
-router.get('/set_user_premium', auth_middleware_1.default, authController.setUserPremium);
+router.get("/set_user_premium", auth_middleware_1.default, authController.setUserPremium);
 router.post("/login", authController.login);
 router.post("/register", authController.signup);
+router.put('/update-resume', auth_middleware_1.default, upload_middleware_1.upload.single('resume'), authController.updateResume);
+router.get('/resume', auth_middleware_1.default, authController.downloadResume);
 router.post("/forgot-password", auth_middleware_1.default, authController.forgotPassword);
 router.post("/reset-password", auth_middleware_1.default, authController.resetPassword);
 router.get("/me", auth_middleware_1.default, authController.fetchMe);

@@ -11,7 +11,7 @@ class Transactions extends Model<PaymentTransactionAttributes, PaymentTransactio
     public razorpay_signature!: string;
     public cf_order_id?: string; // <-- add this
     public cf_payment_id?: string;
-    public amount !:  number;
+    public amount !:  string;
     public currency !: string;
     public status!: string;
     public method !: string;

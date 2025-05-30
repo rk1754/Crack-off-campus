@@ -1,5 +1,5 @@
 import { createLogger, format, transports } from "winston";
-
+import path from "path";
 const logger = createLogger({
   level: "info",
   format: format.combine(
@@ -9,8 +9,8 @@ const logger = createLogger({
     format.json()
   ),
   transports: [
-    new transports.File({ filename: "logs/error.log", level: "error" }),
-    new transports.File({ filename: "logs/combined.log" }),
+new transports.File({ filename: path.join(__dirname, "../../logs/error.log"), level: "error" }),
+new transports.File({ filename: path.join(__dirname, "../../logs/combined.log") }),
   ],
 });
 

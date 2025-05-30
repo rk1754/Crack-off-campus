@@ -6,4 +6,4 @@ const isProduction = process.env.NODE_ENV === "production";
 //   ? "http://82.25.105.109:5454/api/v1"
 //   : "http://api.crackoffcampus.com:5454/api/v1";
 
-export const BACKEND_URL = "http://localhost:5454/api/v1";
+export const BACKEND_URL = "https://api.crackoffcampus.com/api/v1";

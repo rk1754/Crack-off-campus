@@ -23,6 +23,10 @@ SessionBooking.init({
         },
         allowNull: false,
     },
+    service_name: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+    },
     service_id: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
