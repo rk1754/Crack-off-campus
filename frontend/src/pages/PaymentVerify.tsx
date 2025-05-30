@@ -18,7 +18,7 @@ const PaymentVerify = () => {
 
       if (!order_id) {
         toast.error("Order ID missing in payment verification.");
-        navigate("/profile");
+        navigate("/services");
         return;
       }
 
@@ -32,14 +32,14 @@ const PaymentVerify = () => {
           navigate("/profile");
         } else {
           toast.error(res.data.message || "Payment verification failed.");
-          navigate("/profile");
+          navigate("/faq");
         }
       } catch (err: any) {
         toast.error(
           err?.response?.data?.message ||
             "Payment verification failed. Please contact support."
         );
-        navigate("/profile");
+        navigate("/privacy-policy");
       }
     };
 
