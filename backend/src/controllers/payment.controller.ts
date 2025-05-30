@@ -100,7 +100,7 @@ class PaymentController {
       const subscriptionMap: SubscriptionMap = {
         199: "basic",
         299: "standard",
-        1: "booster",
+        699: "booster",
         99: "job",
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
