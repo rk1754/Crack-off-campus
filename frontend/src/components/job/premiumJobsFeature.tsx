@@ -9,16 +9,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
+import { updateUser } from "@/redux/slices/userSlice"; // Assuming this action exists
 
 const PremiumJobsFeature: React.FC = () => {
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector((state: RootState) => state.user);
 
   const handleOpenUnlockModal = () => {
@@ -48,7 +51,7 @@ const PremiumJobsFeature: React.FC = () => {
     script.onload = () => setSdkLoaded(true);
     script.onerror = () => {
       setSdkLoaded(false);
-      toast.error("Failed to load Cashfree SDK. Please try again.");
+      toast.error("Failed to load payment gateway. Please try again or contact support@crackoffcampus.com.");
       console.error("Failed to load Cashfree SDK for PremiumJobsFeature");
     };
     document.body.appendChild(script);
@@ -62,17 +65,53 @@ const PremiumJobsFeature: React.FC = () => {
     };
   }, []);
 
+  // Handle redirect after payment
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const paymentStatus = urlParams.get("payment");
+    const message = urlParams.get("message");
+
+    if (paymentStatus === "success") {
+      toast.success("Payment successful! Verifying subscription...");
+      axios
+        .get("/user/profile")
+        .then((response) => {
+          dispatch(updateUser(response.data));
+          if (response.data.subscription_type === "job") {
+            toast.success("Premium job subscription activated!");
+          } else {
+            toast.error(
+              "Subscription not updated. Please contact support@crackoffcampus.com."
+            );
+          }
+        })
+        .catch(() => {
+          toast.error(
+            "Failed to fetch user data. Please contact support@crackoffcampus.com."
+          );
+        });
+    } else if (paymentStatus === "failed") {
+      toast.error("Payment failed. Please try again.");
+    } else if (paymentStatus === "error") {
+      toast.error(
+        `Payment error: ${message || "Unknown error"}. Please contact support@crackoffcampus.com.`
+      );
+    }
+  }, [dispatch, location]);
+
   const handleCashfreePayment = async () => {
     if (!user) {
       navigate("/login?redirect=/jobs");
       return;
     }
     if (!sdkLoaded || !window.Cashfree) {
-      toast.error("Payment gateway is not available. Please try again later.");
+      toast.error(
+        "Payment gateway is not available. Please try again or contact support@crackoffcampus.com."
+      );
       return;
     }
+    setIsPaying(true);
     try {
-      // Amount in INR
       const amount = 99;
       const orderRes = await axios.post("/payment/create-order", {
         amount,
@@ -96,7 +135,7 @@ const PremiumJobsFeature: React.FC = () => {
       }
 
       const cashfree = new window.Cashfree({
-        mode: "production",
+        mode: "production", // Use "sandbox" for testing
       });
 
       const checkoutOptions = {
@@ -105,34 +144,26 @@ const PremiumJobsFeature: React.FC = () => {
         redirectTarget: "_blank" as "_blank",
       };
 
-      cashfree.checkout(checkoutOptions).then(async (result: any) => {
-        if (result.error) {
-          toast.error(`Payment error: ${result.error.message}`);
+      cashfree
+        .checkout(checkoutOptions)
+        .then(() => {
+          toast.info("Redirecting to payment gateway...");
           setIsUnlockModalOpen(false);
-        } else if (result.redirect) {
-          toast.info("Redirecting to Cashfree payment gateway...");
-        } else if (result && (result as any).status && ((result as any).status === "SUCCESS" || (result as any).status === "COMPLETED")) {
-          // Call backend to update user subscription after successful payment
-          try {
-            await axios.post("/payment/update-subscription", {
-              userId: user.id,
-              subscription_type: "job",
-              order_id,
-            });
-            toast.success("Premium subscription activated!");
-            // Optionally, refresh user data here
-          } catch (err) {
-            toast.error("Payment succeeded but failed to update subscription. Please contact support.");
-          }
+        })
+        .catch((error: any) => {
+          toast.error(
+            `Payment error: ${error.message || "Unknown error"}. Please contact support@crackoffcampus.com.`
+          );
           setIsUnlockModalOpen(false);
-        }
-      });
+        });
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
-          "Could not initiate payment. Please try again."
+          "Could not initiate payment. Please try again or contact support@crackoffcampus.com."
       );
       console.error("Payment initiation error:", err);
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -150,7 +181,7 @@ const PremiumJobsFeature: React.FC = () => {
                 portal of company
               </p>
               <h2 className="text-2xl md:text-3xl font-bold mt-1 text-black">
-                Need Premium jobs Access
+                Need Premium Jobs Access
               </h2>
               <p className="text-sm md:text-base mt-1 text-black">
                 You will get multiple features to apply job opportunities
@@ -221,9 +252,13 @@ const PremiumJobsFeature: React.FC = () => {
             <Button
               onClick={handleCashfreePayment}
               className="bg-[#9b87f5] text-white hover:bg-[#7c66e0]"
-              disabled={!sdkLoaded}
+              disabled={!sdkLoaded || isPaying}
             >
-              {!sdkLoaded ? "Loading Gateway..." : "Pay ₹99 & Unlock"}
+              {isPaying
+                ? "Processing..."
+                : !sdkLoaded
+                ? "Loading Gateway..."
+                : "Pay ₹99 & Unlock"}
             </Button>
           </DialogFooter>
         </DialogContent>
