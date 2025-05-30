@@ -70,7 +70,9 @@ interface JobFormData {
 const JobManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { jobs, loading, error } = useSelector((state: RootState) => state.job);
-  const admin = useSelector((state: RootState) => state.admin as { admin: boolean }).admin;
+  const admin = useSelector(
+    (state: RootState) => state.admin as { admin: boolean }
+  ).admin;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddJobDialogOpen, setIsAddJobDialogOpen] = useState(false);
@@ -519,7 +521,7 @@ Remote work options"
               />
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <Switch
                 id="remote"
                 checked={currentJob.remote}
@@ -528,7 +530,7 @@ Remote work options"
                 }
               />
               <Label htmlFor="remote">Remote Job</Label>
-            </div>
+            </div> */}
 
             <div className="space-y-2">
               <Label htmlFor="status">Job Status</Label>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -107,7 +106,7 @@ const ApplicationLinksManagement = () => {
       // In production, this would be:
       // const response = await axios.get(`${BACKEND_URL}/links`);
       // setLinks(response.data);
-      
+
       // For development, we'll use mock data
       setTimeout(() => {
         setLinks(mockLinks);
@@ -131,14 +130,14 @@ const ApplicationLinksManagement = () => {
     try {
       // In production, this would be:
       // await axios.post(`${BACKEND_URL}/links`, currentLink);
-      
+
       // For development, simulate API call
       const newLink = {
         ...currentLink,
         id: Math.random().toString(36).substring(2, 9),
         created_at: new Date().toISOString(),
       };
-      
+
       setLinks((prev) => [...prev, newLink]);
       toast.success("Link added successfully");
       setIsAddLinkDialogOpen(false);
@@ -155,14 +154,14 @@ const ApplicationLinksManagement = () => {
     try {
       // In production, this would be:
       // await axios.put(`${BACKEND_URL}/links/${currentLink.id}`, currentLink);
-      
+
       // For development, update local state
       setLinks((prev) =>
         prev.map((link) =>
           link.id === currentLink.id ? { ...currentLink } : link
         )
       );
-      
+
       toast.success("Link updated successfully");
       setIsEditLinkDialogOpen(false);
     } catch (error) {
@@ -177,10 +176,10 @@ const ApplicationLinksManagement = () => {
     try {
       // In production, this would be:
       // await axios.delete(`${BACKEND_URL}/links/${currentLink.id}`);
-      
+
       // For development, update local state
       setLinks((prev) => prev.filter((link) => link.id !== currentLink.id));
-      
+
       toast.success("Link deleted successfully");
       setIsDeleteDialogOpen(false);
     } catch (error) {
@@ -210,9 +209,7 @@ const ApplicationLinksManagement = () => {
     });
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCurrentLink((prev) => ({ ...prev, [name]: value }));
   };
@@ -284,10 +281,14 @@ const ApplicationLinksManagement = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(link)}>
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(link)}
+                          >
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openDeleteDialog(link)}>
+                          <DropdownMenuItem
+                            onClick={() => openDeleteDialog(link)}
+                          >
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -355,21 +356,25 @@ const ApplicationLinksManagement = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              resetLinkForm();
-              setIsAddLinkDialogOpen(false);
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                resetLinkForm();
+                setIsAddLinkDialogOpen(false);
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddLink}>
-              Add Link
-            </Button>
+            <Button onClick={handleAddLink}>Add Link</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Link Dialog */}
-      <Dialog open={isEditLinkDialogOpen} onOpenChange={setIsEditLinkDialogOpen}>
+      <Dialog
+        open={isEditLinkDialogOpen}
+        onOpenChange={setIsEditLinkDialogOpen}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Application Link</DialogTitle>
@@ -420,12 +425,13 @@ const ApplicationLinksManagement = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditLinkDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditLinkDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleEditLink}>
-              Save Changes
-            </Button>
+            <Button onClick={handleEditLink}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -443,7 +449,10 @@ const ApplicationLinksManagement = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteLink}>

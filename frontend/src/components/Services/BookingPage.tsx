@@ -271,7 +271,9 @@ export default function BookingPage() {
           date: selectedDate,
           time: selectedTime,
         });
-        toast.success("Service booked successfully with your Booster subscription!");
+        toast.success(
+          "Service booked successfully with your Booster subscription!"
+        );
         navigate("/services/booking-success");
       } catch (err: any) {
         toast.error(
@@ -306,7 +308,10 @@ export default function BookingPage() {
       }
 
       // Validate payment_session_id
-      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
         console.error("Invalid payment_session_id:", payment_session_id);
         throw new Error("Invalid payment session ID format");
       }
@@ -323,11 +328,16 @@ export default function BookingPage() {
         redirectTarget?: "_self" | "_blank";
       } = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}&serviceId=${serviceId}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(
+          selectedDate
+        )}&time=${encodeURIComponent(selectedTime)}&serviceId=${serviceId}`,
         redirectTarget: "_self",
       };
 
-      console.log("Initiating Cashfree checkout with options:", checkoutOptions);
+      console.log(
+        "Initiating Cashfree checkout with options:",
+        checkoutOptions
+      );
       cashfree.checkout(checkoutOptions).then((result) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
@@ -511,7 +521,11 @@ export default function BookingPage() {
               onClick={handleConfirmSlots}
               disabled={loading || !sdkLoaded}
             >
-              {loading ? "Processing..." : !sdkLoaded ? "Loading..." : "Confirm and Pay"}
+              {loading
+                ? "Processing..."
+                : !sdkLoaded
+                ? "Loading..."
+                : "Starts Fromm 15 June"}
             </Button>
           </div>
         </div>

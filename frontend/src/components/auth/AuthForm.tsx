@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+"use client";
+
+import type React from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { User, UserPlus, LogIn } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,7 +14,6 @@ import { login as adminLogin } from "@/redux/slices/adminSlice"; // Ensure this 
 import { toast } from "sonner";
 import axios from "axios";
 import { BACKEND_URL } from "@/redux/config";
-import { AppDispatch } from "@/redux/store";
 
 interface AuthFormProps {
   type: "login" | "register" | "employer";
@@ -24,7 +26,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState(""); // For registration
-  const [confirmPassword, setConfirmPassword] = useState(""); // Add this line
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,16 +43,16 @@ const AuthForm = ({ type }: AuthFormProps) => {
       footerText: "Don't have an account?",
       footerLink: `/register${location.search}`, // Preserve redirect query param
       footerLinkText: "Sign up",
-      icon : <LogIn className="h-5 w-5 mr-2" />,
+      icon: <LogIn className="h-5 w-5 mr-2" />,
     },
     register: {
       title: "Create Your Account",
       buttonText: "Register",
-      fields: ["name", "email", "password", "phone number"],
+      fields: ["name", "email", "password", "confirmPassword", "phone number"],
       footerText: "Already have an account?",
       footerLink: `/login${location.search}`, // Preserve redirect query param
       footerLinkText: "Log in",
-      icon : <UserPlus className="h-5 w-5 mr-2" />,
+      icon: <UserPlus className="h-5 w-5 mr-2" />,
     },
     employer: {
       title: "Employer / Admin Login",
@@ -59,7 +61,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
       footerText: "Not an employer?",
       footerLink: "/login",
       footerLinkText: "User Login",
-      icon : <User className="h-5 w-5 mr-2" />,
+      icon: <User className="h-5 w-5 mr-2" />,
     },
   };
 
@@ -70,20 +72,28 @@ const AuthForm = ({ type }: AuthFormProps) => {
     setLoading(true);
     setError(null);
 
+    // Validate password confirmation for registration
+    if (type === "register" && password !== confirmPassword) {
+      setError("Passwords do not match");
+      toast.error("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
     try {
       if (type === "register") {
         const response = await axios.post(`${BACKEND_URL}/auth/register`, {
           name,
           email,
           password,
-          phone_number : phoneNumber, // Add a proper phone input if needed
+          phone_number: phoneNumber,
         });
 
         dispatch(
           userLogin({ user: response.data.user, token: response.data.token })
         );
         toast.success("Registration successful!");
-        navigate(redirectPath === "/profile" ? "/" : redirectPath); // Redirect to home or specified redirect
+        navigate(redirectPath === "/profile" ? "/" : redirectPath);
       } else if (type === "login") {
         const response = await axios.post(`${BACKEND_URL}/auth/login`, {
           email,
@@ -94,12 +104,8 @@ const AuthForm = ({ type }: AuthFormProps) => {
           userLogin({ user: response.data.user, token: response.data.token })
         );
         toast.success("Login successful!");
-        navigate(redirectPath === "/profile" ? "/" : redirectPath); // MODIFIED: Redirect to home or specified redirect
+        navigate(redirectPath === "/profile" ? "/" : redirectPath);
       } else if (type === "employer") {
-        // Check if this is the admin login
-        // The special admin login check (email === "admin@gmail.com" && password === "admin123")
-        // should ideally be handled by the backend for security.
-        // Assuming backend handles admin authentication properly.
         try {
           const response = await axios.post(`${BACKEND_URL}/admin/login`, {
             email,
@@ -110,9 +116,9 @@ const AuthForm = ({ type }: AuthFormProps) => {
               admin: response.data.admin,
               token: response.data.token,
             })
-          ); // Assuming admin login also returns a token
+          );
           toast.success("Employer login successful!");
-          navigate("/admin"); // Admin always goes to /admin
+          navigate("/admin");
         } catch (err) {
           console.error("Employer login error:", err);
           throw new Error("Authentication failed for employer/admin");
@@ -132,8 +138,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
 
   const handleGoogleAuth = () => {
     toast.info("Google OAuth coming soon");
-    // Add real logic later
-    // Example: window.location.href = `${BACKEND_URL}/auth/google`;
   };
 
   // Check if this is an admin login attempt (visual cue, actual auth is backend)
@@ -219,26 +223,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
               htmlFor="confirmPassword"
               className="text-sm font-medium text-gray-700"
             >
-              Phone Number
-            </Label>
-            <Input
-              type="text"
-              id="phone_number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full mt-1"
-              required
-              placeholder="Enter your phone number"
-            />
-          </div>
-        )}
-
-        {type === "register" && (
-          <div>
-            <Label
-              htmlFor="confirmPassword"
-              className="text-sm font-medium text-gray-700"
-            >
               Confirm Password
             </Label>
             <Input
@@ -249,6 +233,26 @@ const AuthForm = ({ type }: AuthFormProps) => {
               className="w-full mt-1"
               required
               placeholder="Confirm your password"
+            />
+          </div>
+        )}
+
+        {type === "register" && (
+          <div>
+            <Label
+              htmlFor="phoneNumber"
+              className="text-sm font-medium text-gray-700"
+            >
+              Phone Number
+            </Label>
+            <Input
+              type="tel"
+              id="phoneNumber"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full mt-1"
+              required
+              placeholder="Enter your phone number"
             />
           </div>
         )}
@@ -282,16 +286,14 @@ const AuthForm = ({ type }: AuthFormProps) => {
           className="w-full py-2 px-4 bg-[#F97316] hover:bg-orange-600 text-white rounded-md transition-colors flex items-center justify-center"
           disabled={(type === "register" && !termsAccepted) || loading}
         >
-          {loading
-            ? "Processing..."
-            : isAdminLogin
-            ? "Login as Admin"
-            : formConfig[type].icon}
-          {loading
-            ? ""
-            : isAdminLogin
-            ? "Login as Admin"
-            : formConfig[type].buttonText}
+          {loading ? (
+            "Processing..."
+          ) : (
+            <>
+              {isAdminLogin ? null : formConfig[type].icon}
+              {isAdminLogin ? "Login as Admin" : formConfig[type].buttonText}
+            </>
+          )}
         </Button>
 
         {!isAdminLogin && (
