@@ -66,6 +66,10 @@ User.init({
         type: sequelize_1.DataTypes.ENUM('basic', 'standard', 'booster', 'regular', 'job', "resume", "other_templates"),
         defaultValue: 'regular'
     },
+    subscription_type_2: {
+        type: sequelize_1.DataTypes.ENUM('basic', 'standard', 'booster', 'regular', 'job', "resume", "other_templates"),
+        defaultValue: 'regular'
+    },
     subscription_expiry: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,

@@ -13,13 +13,36 @@ const SUBSCRIPTION_RESUME = 'resume';
 const SUBSCRIPTION_TEMPLATES = 'other_templates';
 // Helper to check subscription
 function hasSubscription(user, requiredType) {
-    if (!user?.subscription_type) {
+    // Check all possible subscription columns
+    const types = [
+        user?.subscription_type,
+        user?.subscription_type_2,
+    ].filter(Boolean);
+    if (types.length === 0) {
         return false; // Handle case where user or subscription_type is undefined
     }
     if (requiredType === SUBSCRIPTION_RESUME) {
-        return ['resume', 'booster', 'standard', 'basic'].includes(user.subscription_type);
+        return types.includes('resume') ||
+            types.includes('booster') ||
+            types.includes('standard');
     }
-    return ['other_templates', 'booster', 'standard', 'basic'].includes(user.subscription_type);
+    return types.includes('other_templates') ||
+        types.includes('booster') ||
+        types.includes('standard');
+}
+function hasBasicSubscription(user, requiredType) {
+    // Check both subscription_type and subscription_type_2
+    const types = [
+        user?.subscription_type,
+        user?.subscription_type_2,
+    ].filter(Boolean);
+    if (types.length === 0) {
+        return false; // Handle case where user or subscription_type is undefined
+    }
+    if (requiredType === SUBSCRIPTION_RESUME) {
+        return types.some((type) => ['resume', 'booster', 'standard', 'basic'].includes(type));
+    }
+    return types.some((type) => ['other_templates', 'booster', 'standard', 'basic'].includes(type));
 }
 // Download Resume Template
 const downloadResumeTemplate = (req, res) => {
@@ -29,6 +52,7 @@ const downloadResumeTemplate = (req, res) => {
         return;
     }
     if (!hasSubscription(user, SUBSCRIPTION_RESUME)) {
+        console.log(user.subscription_type, user.subscription_type_2);
         res.status(403).json({ error: 'Resume template requires resume subscription (99 rs).' });
         return;
     }
@@ -53,7 +77,7 @@ exports.downloadResumeTemplate = downloadResumeTemplate;
 // Download HR Email Template
 const downloadHrEmailTemplate = (req, res) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
+    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
         res.status(403).json({ error: 'HR email template requires templates subscription (49 rs).' });
         return;
     }
@@ -103,7 +127,7 @@ exports.downloadReferralTemplate = downloadReferralTemplate;
 // Download Cold Mail Template
 const downloadColdMailTemplate = (req, res) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
+    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
         res.status(403).json({ error: 'Cold mail template requires templates subscription (49 rs).' });
         return;
     }
@@ -128,7 +152,7 @@ exports.downloadColdMailTemplate = downloadColdMailTemplate;
 // Download Cover Letter Template
 const downloadCoverLetterTemplate = (req, res) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
+    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
         res.status(403).json({ error: 'Cover letter template requires templates subscription (49 rs).' });
         return;
     }
