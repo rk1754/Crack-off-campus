@@ -16,6 +16,7 @@ interface User {
   cover_image?: string;
   provider?: "manual" | "google";
   subscription_type?: string;
+  subscription_type_2?:string;
   subscription_expiry?: Date;
   is_premium?: boolean;
   skills?: string[];

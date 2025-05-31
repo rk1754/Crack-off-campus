@@ -162,16 +162,22 @@ const ResourcesPage = () => {
 
   // Access logic
   const canAccess = (resource: any) => {
-    if (["booster", "standard"].includes(userSubscription))
+    // Check both subscription_type and subscription_type_2
+    const userSubscriptionTypes = [
+      user?.subscription_type,
+      user?.subscription_type_2,
+    ].filter(Boolean);
+
+    if (userSubscriptionTypes.some((type) => ["booster", "standard"].includes(type)))
       return true;
     if (
       resource.requiredSubscription === "resume" &&
-      userSubscription === "resume"
+      userSubscriptionTypes.some((type) => type === "resume")
     )
       return true;
     if (
       resource.requiredSubscription === "other_templates" &&
-      userSubscription === "other_templates"
+      userSubscriptionTypes.some((type) => type === "other_templates")
     )
       return true;
     return false;
