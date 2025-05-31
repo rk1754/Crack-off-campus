@@ -10,6 +10,7 @@ import store from "./redux/store";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { HelmetProvider } from "react-helmet-async";
 
 import ForgotPassword from "./pages/ForgetPassword";
 
@@ -86,110 +87,112 @@ const App = () => {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/jobs" element={<JobListings />} />
-                <Route path="/jobs/:id" element={<JobDetail />} />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile/edit"
-                  element={
-                    <ProtectedRoute>
-                      <EditProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/employers-login" element={<EmployersLogin />} />
-                <Route path="/payment/verify" element={<PaymentVerify />} />
-                <Route path="/services" element={<ServicesPage />} />
-                <Route
-                  path="/reset-password"
-                  element={<ResetPassword />}
-                ></Route>
-                <Route
-                  path="/premium"
-                  element={
-                    <PremiumPage
-                      isOpen={isPremiumModalOpen}
-                      onClose={() => setIsPremiumModalOpen(false)}
-                    />
-                  }
-                />
-                <Route path="/our-crackers" element={<OurCrackers />} />
-                <Route path="/resources" element={<ResourcesPage />} />
-                <Route
-                  path="/terms-and-conditions"
-                  element={<TermsAndConditionsPage />}
-                />{" "}
-                {/* Add this route */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute adminOnly={true}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                <Route path="/faq" element={<FaqPage />} /> {/* Added */}
-                <Route
-                  path="/refund-policy"
-                  element={<RefundPolicyPage />}
-                />{" "}
-                {/* Added */}
-                <Route path="*" element={<NotFound />} />
-                {/* <Route path="/services" element={<ServicesPage />} /> */}
-                <Route
-                  path="/services/:serviceId"
-                  element={<BookingPage></BookingPage>}
-                />
-                <Route
-                  path="/services/:serviceId/booking"
-                  element={<BookingPage />}
-                />
-                <Route
-                  path="/services/:serviceId/form"
-                  element={<FormPage />}
-                />
-                <Route
-                  path="/services/:serviceId/payment"
-                  element={<PaymentPage />}
-                />
-                <Route
-                  path="/services/:serviceId/success"
-                  element={<SuccessPage />}
-                />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-              </Routes>
-              <Toaster />
-              <Sonner />
-            </BrowserRouter>
-          </TooltipProvider>
-        </QueryClientProvider>
-      </PersistGate>
-    </Provider>
+    <HelmetProvider>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/jobs" element={<JobListings />} />
+                  <Route path="/jobs/:id" element={<JobDetail />} />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile/edit"
+                    element={
+                      <ProtectedRoute>
+                        <EditProfile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/employers-login" element={<EmployersLogin />} />
+                  <Route path="/payment/verify" element={<PaymentVerify />} />
+                  <Route path="/services" element={<ServicesPage />} />
+                  <Route
+                    path="/reset-password"
+                    element={<ResetPassword />}
+                  ></Route>
+                  <Route
+                    path="/premium"
+                    element={
+                      <PremiumPage
+                        isOpen={isPremiumModalOpen}
+                        onClose={() => setIsPremiumModalOpen(false)}
+                      />
+                    }
+                  />
+                  <Route path="/our-crackers" element={<OurCrackers />} />
+                  <Route path="/resources" element={<ResourcesPage />} />
+                  <Route
+                    path="/terms-and-conditions"
+                    element={<TermsAndConditionsPage />}
+                  />{" "}
+                  {/* Add this route */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute adminOnly={true}>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="/faq" element={<FaqPage />} /> {/* Added */}
+                  <Route
+                    path="/refund-policy"
+                    element={<RefundPolicyPage />}
+                  />{" "}
+                  {/* Added */}
+                  <Route path="*" element={<NotFound />} />
+                  {/* <Route path="/services" element={<ServicesPage />} /> */}
+                  <Route
+                    path="/services/:serviceId"
+                    element={<BookingPage></BookingPage>}
+                  />
+                  <Route
+                    path="/services/:serviceId/booking"
+                    element={<BookingPage />}
+                  />
+                  <Route
+                    path="/services/:serviceId/form"
+                    element={<FormPage />}
+                  />
+                  <Route
+                    path="/services/:serviceId/payment"
+                    element={<PaymentPage />}
+                  />
+                  <Route
+                    path="/services/:serviceId/success"
+                    element={<SuccessPage />}
+                  />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                </Routes>
+                <Toaster />
+                <Sonner />
+              </BrowserRouter>
+            </TooltipProvider>
+          </QueryClientProvider>
+        </PersistGate>
+      </Provider>
+    </HelmetProvider>
   );
 };
 
