@@ -125,8 +125,7 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-
-             </div>
+            </div>
 
             {/* About Section */}
             <div className="bg-white rounded-lg shadow p-6">
