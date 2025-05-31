@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Calendar, Star } from "lucide-react";
 import Navbar from "../layout/Navbar";
@@ -10,6 +10,8 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
+import axios from "axios";
+import { toast } from "sonner";
 
 interface ServiceDetails {
   id: number;
@@ -37,6 +39,7 @@ export default function FormPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
 
   const BACKEND_URL = "http://localhost:5454";
 
@@ -79,76 +82,33 @@ export default function FormPage() {
     }
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (
-  //     !formData.name ||
-  //     !formData.phone ||
-  //     !formData.email ||
-  //     !formData.resume ||
-  //     !formData.state
-  //   ) {
-  //     setError("Please fill all required fields.");
-  //     return;
-  //   }
-  //   if (!date || !time) {
-  //     setError("Please select a slot before proceeding.");
-  //     return;
-  //   }
-  //   setIsSubmitting(true);
-  //   setError(null);
-
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     console.log(token);
-
-  //     // Book the slot (send to backend)
-  //     const bookingData = new FormData();
-  //     bookingData.append("service_id", serviceId || "");
-  //     bookingData.append("date", date);
-  //     bookingData.append("time", time);
-  //     bookingData.append("name", formData.name);
-  //     bookingData.append("phone", formData.phone);
-  //     bookingData.append("email", formData.email);
-  //     if (formData.resume) {
-  //       bookingData.append("resume", formData.resume);
-  //     }
-  //     bookingData.append("state", formData.state);
-  //     bookingData.append("targetRole", formData.targetRole);
-  //     bookingData.append("language", formData.language);
-  //     console.log(bookingData);
-
-  //     const response = await fetch(`${BACKEND_URL}/api/v1/session/booking/book`, {
-  //       method: "POST",
-  //       body: bookingData,
-  //       credentials : "include"
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json().catch(() => ({}));
-  //       throw new Error(
-  //         errorData.message ||
-  //           `Failed to book slot (Status: ${response.status})`
-  //       );
-  //     }
-
-  //     // Success: go to payment page
-  //     navigate(`/services/${serviceId}/payment`);
-  //   } catch (error: any) {
-  //     if (error.message.includes("Slot already booked")) {
-  //       setError("This slot has just been booked by someone else. Please select another slot.");
-  //     } else if (error.message.includes("Failed to fetch")) {
-  //       setError(
-  //         "Cannot connect to the backend server. Please ensure the server is running on port 5454."
-  //       );
-  //     } else {
-  //       setError(
-  //         error.message || "An error occurred while booking the slot."
-  //       );
-  //     }
-  //     setIsSubmitting(false);
-  //   }
-  // };
+  // Load Cashfree SDK on mount
+  useEffect(() => {
+    const loadCashfreeSDK = async () => {
+      if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+        setSdkLoaded(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.id = "cashfree-sdk";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      script.onload = () => setSdkLoaded(true);
+      script.onerror = () => {
+        setSdkLoaded(false);
+        toast.error("Failed to load Cashfree SDK. Please try again.");
+      };
+      document.body.appendChild(script);
+    };
+    loadCashfreeSDK();
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,7 +116,8 @@ export default function FormPage() {
       !formData.name ||
       !formData.phone ||
       !formData.email ||
-      !formData.state
+      !formData.state ||
+      !formData.resume
     ) {
       setError("Please fill all required fields.");
       return;
@@ -165,50 +126,89 @@ export default function FormPage() {
       setError("Please select a slot before proceeding.");
       return;
     }
+    if (!sdkLoaded || !window.Cashfree) {
+      setError("Payment gateway is not available. Please try again later.");
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Only send what backend expects
-      const bookingData = {
-        service_id: serviceId,
-        date,
-        time,
-        payment_status: "pending", // or whatever default you want
-      };
-
-      const response = await fetch(
+      // 1. Book the slot (send to backend with file)
+      const bookingData = new FormData();
+      bookingData.append("serviceId", serviceId || "");
+      bookingData.append("date", date);
+      bookingData.append("time", time);
+      bookingData.append("service_name", formData.name);
+      bookingData.append("phone", formData.phone);
+      bookingData.append("email", formData.email);
+      bookingData.append("state", formData.state);
+      bookingData.append("targetRole", formData.targetRole);
+      bookingData.append("language", formData.language);
+      bookingData.append("payment_status", "pending");
+      if (formData.resume) {
+        bookingData.append("resume", formData.resume);
+      }
+      const bookingRes = await fetch(
         `${BACKEND_URL}/api/v1/session/booking/book`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: "include",
-          body: JSON.stringify(bookingData),
+          body: bookingData,
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+      if (!bookingRes.ok) {
+        const errorData = await bookingRes.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
-            `Failed to book slot (Status: ${response.status})`
+            `Failed to book slot (Status: ${bookingRes.status})`
         );
       }
 
-      // Success: go to payment page
-      navigate(`/services/${serviceId}/payment`);
+      // 2. Create Cashfree order (call your backend endpoint)
+      // You may need to adjust the endpoint and payload as per your backend
+      const paymentOrderRes = await axios.post("/payment/create-order", {
+        amount: 199, // You may want to get the actual amount dynamically
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
+      const { payment_session_id, order_id } = paymentOrderRes.data;
+      if (!payment_session_id) {
+        throw new Error("Payment session ID not found in response");
+      }
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
+        throw new Error("Invalid payment session ID format");
+      }
+
+      // 3. Trigger Cashfree checkout
+      const cashfree = new window.Cashfree({ mode: "production" });
+      const checkoutOptions = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&serviceId=${serviceId}`,
+        redirectTarget: "_self" as "_self",
+      };
+      cashfree.checkout(checkoutOptions).then((result: any) => {
+        if (result.error) {
+          setError(`Payment error: ${result.error.message}`);
+          setIsSubmitting(false);
+        } else if (result.redirect) {
+          // Cashfree will handle redirect
+        }
+      });
     } catch (error: any) {
-      if (error.message.includes("Slot already booked")) {
+      if (error.message && error.message.includes("Slot already booked")) {
         setError(
           "This slot has just been booked by someone else. Please select another slot."
         );
-      } else if (error.message.includes("Failed to fetch")) {
+      } else if (error.message && error.message.includes("Failed to fetch")) {
         setError(
           "Cannot connect to the backend server. Please ensure the server is running on port 5454."
         );
-      } else if (error.message.toLowerCase().includes("unauthorized")) {
+      } else if (error.message && error.message.toLowerCase().includes("unauthorized")) {
         setError("You are not authorized. Please log in again.");
       } else {
         setError(error.message || "An error occurred while booking the slot.");

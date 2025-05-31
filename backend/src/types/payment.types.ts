@@ -10,7 +10,7 @@ export interface PaymentTransactionAttributes {
     // Cashfree fields
     cf_order_id?: string;
     cf_payment_id?: string;
-    amount : number;
+    amount : string;
     currency : string;
     status : string;
     method : string;

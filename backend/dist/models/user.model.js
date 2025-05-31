@@ -82,6 +82,14 @@ User.init({
         type: sequelize_1.DataTypes.DATE,
         allowNull: true,
     },
+    resume_url: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    resume_public_id: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true
+    },
     created_at: {
         type: sequelize_1.DataTypes.DATE,
         defaultValue: sequelize_1.DataTypes.NOW,

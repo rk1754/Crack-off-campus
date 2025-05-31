@@ -61,7 +61,8 @@ Jobs.init({
         allowNull: true,
     },
     subscription_type: {
-        type: sequelize_1.DataTypes.ENUM('gold', 'gold_plus', 'diamond', 'regular'),
+        // Add all possible subscription types for jobs
+        type: sequelize_1.DataTypes.ENUM('gold', 'gold_plus', 'diamond', 'regular', 'job'),
         defaultValue: 'regular'
     },
     requirements: {

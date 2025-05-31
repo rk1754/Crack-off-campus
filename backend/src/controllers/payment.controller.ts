@@ -100,7 +100,7 @@ class PaymentController {
       const subscriptionMap: SubscriptionMap = {
         199: "basic",
         299: "standard",
-        1: "booster",
+        699: "booster",
         99: "job",
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
@@ -128,7 +128,7 @@ class PaymentController {
             user_id: user.id,
             cf_order_id: order_id as string,
             cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: orderDetails.data.order_amount as number,
+            amount: String(orderDetails.data.order_amount),
             currency: orderDetails.data.order_currency as string,
             captured: true,
             status: "success",
@@ -211,7 +211,7 @@ class PaymentController {
         user_id,
         cf_order_id,
         cf_payment_id,
-        amount,
+        amount: amount.toString(),
         currency,
         captured: true,
         status: "success",
@@ -399,7 +399,7 @@ class PaymentController {
             user_id: user.id,
             cf_order_id: order_id as string,
             cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: orderDetails.data.order_amount as number,
+            amount: orderDetails.data.order_amount?.toString() || "0",
             currency: orderDetails.data.order_currency as string,
             captured: true,
             status: "success",

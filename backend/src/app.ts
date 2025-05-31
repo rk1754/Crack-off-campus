@@ -87,7 +87,7 @@ app.use("/api/v1/experience", experienceRoutes);
 app.use("/api/v1/job", jobRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/session", sessionRoutes);
-app.use("/api/v1/services", sessionBookingRoutes);
+app.use("/api/v1/session/booking", sessionBookingRoutes);
 app.use("/api/v1/resume", resumeRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/new/resume", new_resumeRoutes);

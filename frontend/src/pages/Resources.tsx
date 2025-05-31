@@ -162,7 +162,7 @@ const ResourcesPage = () => {
 
   // Access logic
   const canAccess = (resource: any) => {
-    if (["booster", "standard", "basic"].includes(userSubscription))
+    if (["booster", "standard"].includes(userSubscription))
       return true;
     if (
       resource.requiredSubscription === "resume" &&

@@ -3,17 +3,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const axios_1 = __importDefault(require("axios"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 const config_1 = require("../config/config");
+const stream_1 = require("stream");
+const util_1 = require("util");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const cloudinary_1 = __importDefault(require("../config/cloudinary"));
 const mailer_1 = require("../utils/mailer");
+const streamPipeline = (0, util_1.promisify)(stream_1.pipeline);
 class AuthController {
     constructor() {
         this.signup = async (req, res) => {
             const data = req.body;
-            if (!data.email || !data.password || !data.phone_number) {
+            if (!data.email || !data.password || !data.phone_number || data.phone_number === "Not provided") {
                 res.status(400).json({
                     success: false,
                     message: "Please provide complete data to register",
@@ -29,10 +33,20 @@ class AuthController {
                     subscription_type: "regular",
                     provider: "manual",
                 });
+                if (req.file) {
+                    const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+                    const result = await cloudinary_1.default.uploader.upload(base64, {
+                        folder: "job-portal/profiles",
+                    });
+                    user.resume_url = result.secure_url;
+                    user.resume_public_id = result.public_id;
+                    await user.save();
+                }
                 const token = jsonwebtoken_1.default.sign({
                     id: user.id,
                     email: user.email,
                     subscription_type: user.subscription_type,
+                    phone_number: user.phone_number,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
                 });
@@ -83,6 +97,7 @@ class AuthController {
                     id: user.id,
                     email: user.email,
                     subscription_type: user.subscription_type,
+                    phone_number: user.phone_number,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
                 });
@@ -206,6 +221,8 @@ class AuthController {
                     <p>You requested to reset your password. Click the link below to reset it:</p>
                     <a href="${resetLink}">${resetLink}</a>
                     <p>If you did not request this, please ignore this email.</p>
+                    <p> Your token is : ${resetToken}</p>
+                    <p>Thank you!</p>
                 `,
                 });
                 res.status(200).json({
@@ -463,6 +480,19 @@ class AuthController {
                 }
                 await user.update(data);
                 const updatedUser = await user_model_1.default.findByPk(user.id);
+                const token = jsonwebtoken_1.default.sign({
+                    id: user.id,
+                    email: user.email,
+                    subscription_type: user.subscription_type,
+                    phone_number: user.phone_number,
+                }, config_1.JWT_SECRET, {
+                    expiresIn: "2d",
+                });
+                res.cookie("token", token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    maxAge: 7 * 24 * 60 * 60 * 1000,
+                });
                 res.status(200).json({ success: true, user: updatedUser });
             }
             catch (err) {
@@ -522,6 +552,111 @@ class AuthController {
                     success: true,
                     message: "User deleted successfully",
                 });
+                return;
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).json({
+                    success: false,
+                    message: "Something went wrong",
+                });
+                return;
+            }
+        };
+        // ...existing code...
+        this.updateResume = async (req, res) => {
+            try {
+                if (!req.file) {
+                    res.status(400).json({
+                        success: false,
+                        message: "No file uploaded",
+                    });
+                    return;
+                }
+                const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+                const user = req.user;
+                if (!user) {
+                    res.status(403).json({
+                        success: false,
+                        message: "Unauthorized",
+                    });
+                    return;
+                }
+                const u = await user_model_1.default.findByPk(user.id);
+                if (!u) {
+                    res.status(403).json({
+                        success: false,
+                        message: "Please login first",
+                    });
+                    return;
+                }
+                if (u.resume_public_id) {
+                    try {
+                        await cloudinary_1.default.uploader.destroy(u.resume_public_id);
+                    }
+                    catch (e) {
+                        console.warn("Failed to delete old resume from Cloudinary:", e);
+                    }
+                }
+                const result = await cloudinary_1.default.uploader.upload(base64, {
+                    folder: "job-portal/resumes",
+                    resource_type: "auto",
+                });
+                const update = await u.update({
+                    resume_url: result.secure_url,
+                    resume_public_id: result.public_id,
+                });
+                console.log(update);
+                res.status(200).json({
+                    success: true,
+                    message: "Resume updated successfully",
+                    resumeUrl: result.secure_url,
+                });
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).json({
+                    success: false,
+                    message: "Something went wrong",
+                });
+            }
+        };
+        // ...existing code...
+        this.downloadResume = async (req, res) => {
+            try {
+                const user = req.user;
+                if (!user) {
+                    res.status(403).json({
+                        success: false,
+                        message: "Please login first",
+                    });
+                    return;
+                }
+                const u = await user_model_1.default.findByPk(user.id);
+                if (!u) {
+                    res.status(403).json({
+                        success: false,
+                        message: "Please login first",
+                    });
+                    return;
+                }
+                const resumeUrl = u.resume_url;
+                if (!resumeUrl) {
+                    res.status(404).json({
+                        success: false,
+                        message: "Resume not found",
+                    });
+                    return;
+                }
+                const fileName = `resume-${u.name || u.email}.pdf`;
+                const response = await (0, axios_1.default)({
+                    method: "get",
+                    url: resumeUrl,
+                    responseType: "stream",
+                });
+                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+                res.setHeader('Content-Type', response.headers['content-type']);
+                await streamPipeline(response.data, res);
                 return;
             }
             catch (err) {

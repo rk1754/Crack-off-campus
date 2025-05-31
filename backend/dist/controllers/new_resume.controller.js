@@ -33,7 +33,8 @@ const downloadResumeTemplate = (req, res) => {
         return;
     }
     const filePath = path_1.default.join(TEMPLATE_DIR, 'resume_template.pdf');
-    console.log('File path:', filePath);
+    // Remove debug log for production
+    // console.log('File path:', filePath);
     if (!fs_1.default.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found.' });
         return;

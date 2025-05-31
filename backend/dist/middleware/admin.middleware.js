@@ -27,11 +27,11 @@ const adminMiddleware = (req, res, next) => {
         next();
     }
     catch (err) {
-        console.error(err);
         res.status(401).json({
             success: false,
             message: "Invalid or expired token.",
         });
+        next(err);
     }
 };
 exports.default = adminMiddleware;

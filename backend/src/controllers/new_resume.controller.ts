@@ -15,7 +15,7 @@ function hasSubscription(user: any, requiredType: string): boolean {
     return false; // Handle case where user or subscription_type is undefined
   }
   if (requiredType === SUBSCRIPTION_RESUME) {
-    return ['resume', 'booster', 'standard', 'basic'].includes(user.subscription_type);
+    return ['resume', 'booster', 'standard'].includes(user.subscription_type);
   }
   return ['other_templates', 'booster', 'standard', 'basic'].includes(user.subscription_type);
 }
