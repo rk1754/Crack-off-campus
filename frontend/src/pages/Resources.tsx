@@ -129,11 +129,11 @@ const ResourcesPage = () => {
       const checkoutOptions: {
         paymentSessionId: string;
         returnUrl: string;
-        redirectTarget?: "_self" | "_blank";
+        redirectTarget?: "_blank";
       } = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://yourdomain.com/payment/verify?order_id=${order_id}&resourceType=${requiredSubscriptionType}`,
-        redirectTarget: "_self",
+        returnUrl: `https://crackoffcampus.com/payment/verify?order_id=${order_id}&resourceType=${requiredSubscriptionType}`,
+        redirectTarget: "_blank",
       };
 
       console.log(

@@ -102,6 +102,8 @@ class PaymentController {
         299: "standard",
         699: "booster",
         99: "job",
+        79: "resume",
+        49: "other_templates"
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
       if (!subscriptionType) {
@@ -112,9 +114,43 @@ class PaymentController {
       
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-
+      const u = await User.findByPk(user.id);
+      if(!u){
+        res.status(500).json({ success: false, message: "User not found" });
+        return;
+      }
+      if(u.subscription_type !== "regular"){
+        await sequelize.transaction(async (t: any) => {
+        await User.update(
+          {
+            subscription_type_2: subscriptionType,
+            subscription_expiry: subscriptionExpiry,
+            is_premium: true,
+          },
+          { where: { id: user.id }, transaction: t }
+        );
+        await Transactions.create(
+          {
+            user_id: user.id,
+            cf_order_id: order_id as string,
+            cf_payment_id: successfulPayment.cf_payment_id || "unknown",
+            amount: String(orderDetails.data.order_amount),
+            currency: orderDetails.data.order_currency as string,
+            captured: true,
+            status: "success",
+            method: "cashfree",
+            // Add dummy values for required Razorpay fields to avoid NOT NULL error
+            razorpay_order_id: "cashfree_dummy_order",
+            razorpay_payment_id: "cashfree_dummy_payment",
+            razorpay_signature: "cashfree_dummy_signature",
+          },
+          { transaction: t }
+        );
+      });
+      }
       // Update user subscription and store transaction atomically
-      await sequelize.transaction(async (t: any) => {
+      else{
+        await sequelize.transaction(async (t: any) => {
         await User.update(
           {
             subscription_type: subscriptionType,
@@ -141,6 +177,7 @@ class PaymentController {
           { transaction: t }
         );
       });
+      }
 
       // Update JWT token
       const token = jwt.sign(

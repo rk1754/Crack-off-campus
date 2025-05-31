@@ -19,6 +19,7 @@ class User extends Model {
   public resetPasswordToken? : string | null;
   public resetPasswordExpires ? : Date | null;
   public subscription_type!: string;
+  public subscription_type_2!: string;
   public subscription_expiry!: Date;
   public is_premium?: boolean;
   public readonly created_at?: Date;
@@ -82,6 +83,10 @@ User.init(
       defaultValue: "manual",
     },
       subscription_type : {
+        type : DataTypes.ENUM('basic', 'standard', 'booster', 'regular', 'job', "resume", "other_templates"),
+          defaultValue : 'regular'
+      },
+      subscription_type_2 : {
         type : DataTypes.ENUM('basic', 'standard', 'booster', 'regular', 'job', "resume", "other_templates"),
           defaultValue : 'regular'
       },

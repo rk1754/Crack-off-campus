@@ -11,24 +11,43 @@ const SUBSCRIPTION_TEMPLATES = 'other_templates';
 
 // Helper to check subscription
 function hasSubscription(user: any, requiredType: string): boolean {
-  if (!user?.subscription_type) {
+  // Check both subscription_type and subscription_type_2
+  const types = [
+    user?.subscription_type,
+    user?.subscription_type_2,
+  ].filter(Boolean);
+
+  if (types.length === 0) {
     return false; // Handle case where user or subscription_type is undefined
   }
   if (requiredType === SUBSCRIPTION_RESUME) {
-    return ['resume', 'booster', 'standard'].includes(user.subscription_type);
+    return types.some((type) =>
+      ['resume', 'booster', 'standard'].includes(type)
+    );
   }
-  return ['other_templates', 'booster', 'standard'].includes(user.subscription_type);
+  return types.some((type) =>
+    ['other_templates', 'booster', 'standard'].includes(type)
+  );
 }
 
-
 function hasBasicSubscription(user: any, requiredType: string): boolean {
-  if (!user?.subscription_type) {
+  // Check both subscription_type and subscription_type_2
+  const types = [
+    user?.subscription_type,
+    user?.subscription_type_2,
+  ].filter(Boolean);
+
+  if (types.length === 0) {
     return false; // Handle case where user or subscription_type is undefined
   }
   if (requiredType === SUBSCRIPTION_RESUME) {
-    return ['resume', 'booster', 'standard', "basic"].includes(user.subscription_type);
+    return types.some((type) =>
+      ['resume', 'booster', 'standard', 'basic'].includes(type)
+    );
   }
-  return ['other_templates', 'booster', 'standard', 'basic'].includes(user.subscription_type);
+  return types.some((type) =>
+    ['other_templates', 'booster', 'standard', 'basic'].includes(type)
+  );
 }
 
 // Download Resume Template
