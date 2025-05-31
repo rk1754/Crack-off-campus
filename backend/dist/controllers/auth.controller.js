@@ -46,6 +46,7 @@ class AuthController {
                     id: user.id,
                     email: user.email,
                     subscription_type: user.subscription_type,
+                    subscription_type_2: user.subscription_type_2,
                     phone_number: user.phone_number,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
@@ -97,6 +98,7 @@ class AuthController {
                     id: user.id,
                     email: user.email,
                     subscription_type: user.subscription_type,
+                    subscription_type_2: user.subscription_type_2,
                     phone_number: user.phone_number,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
@@ -484,6 +486,7 @@ class AuthController {
                     id: user.id,
                     email: user.email,
                     subscription_type: user.subscription_type,
+                    subscription_type_2: user.subscription_type_2,
                     phone_number: user.phone_number,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",

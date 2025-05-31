@@ -62,7 +62,7 @@ app.use("/api/v1/experience", experience_routes_1.default);
 app.use("/api/v1/job", jobs_route_1.default);
 app.use("/api/v1/analytics", analytics_route_1.default);
 app.use("/api/v1/session", session_route_1.default);
-app.use("/api/v1/services", sessionBooking_route_1.default);
+app.use("/api/v1/session/booking", sessionBooking_route_1.default);
 app.use("/api/v1/resume", resume_route_1.default);
 app.use("/api/v1/payment", payment_routes_1.default);
 app.use("/api/v1/new/resume", new_resume_route_1.default);

@@ -10,11 +10,11 @@ class SlotController {
     constructor() {
         this.createSlot = async (req, res) => {
             try {
-                const { time, title, service_name, description, meeting_duration, price } = req.body;
+                const { time, title, service_name, description, meeting_duration, price, } = req.body;
                 if (!time || !title || !description || !meeting_duration || !price) {
                     res.status(400).json({
                         success: false,
-                        message: "Please provide all the required fields"
+                        message: "Please provide all the required fields",
                     });
                     return;
                 }
@@ -22,14 +22,14 @@ class SlotController {
                 if (!admin) {
                     res.status(401).json({
                         success: false,
-                        message: "Unauthorized"
+                        message: "Unauthorized",
                     });
                     return;
                 }
                 let imageUrl = undefined;
                 if (req.file) {
                     const uploadResult = await cloudinary_1.default.uploader.upload(req.file.path, {
-                        folder: "session_slots"
+                        folder: "session_slots",
                     });
                     imageUrl = uploadResult.secure_url;
                 }
@@ -42,19 +42,19 @@ class SlotController {
                     isBooked: false,
                     ratings: 0,
                     admin_id: admin.id,
-                    image_url: imageUrl
+                    image_url: imageUrl,
                 });
                 res.status(201).json({
                     success: true,
                     message: "Slot created successfully",
-                    session
+                    session,
                 });
             }
             catch (err) {
                 console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
             }
         };
@@ -64,14 +64,14 @@ class SlotController {
                 if (!slots || slots.length === 0) {
                     res.status(404).json({
                         success: false,
-                        message: "No slots found"
+                        message: "No slots found",
                     });
                     return;
                 }
                 res.status(200).json({
                     success: true,
                     message: "Slots fetched successfully",
-                    slots
+                    slots,
                 });
                 return;
             }
@@ -79,7 +79,7 @@ class SlotController {
                 console.log(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
                 return;
             }
@@ -90,26 +90,26 @@ class SlotController {
                 if (!id) {
                     res.status(400).json({
                         success: false,
-                        message: "Please provide a valid id"
+                        message: "Please provide a valid id",
                     });
                     return;
                 }
                 const slot = await session_model_1.default.findOne({
                     where: {
-                        id
-                    }
+                        id,
+                    },
                 });
                 if (!slot) {
                     res.status(404).json({
                         success: false,
-                        message: "Slot not found"
+                        message: "Slot not found",
                     });
                     return;
                 }
                 res.status(200).json({
                     success: true,
                     message: "Slot fetched successfully",
-                    slot
+                    slot,
                 });
                 return;
             }
@@ -117,7 +117,7 @@ class SlotController {
                 console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
                 return;
             }
@@ -129,18 +129,18 @@ class SlotController {
                 if (!id) {
                     res.status(400).json({
                         success: false,
-                        message: "Please provide a valid id"
+                        message: "Please provide a valid id",
                     });
                     return;
                 }
                 await session_model_1.default.update(data, {
                     where: {
-                        id
-                    }
+                        id,
+                    },
                 });
                 res.status(200).json({
                     success: true,
-                    message: "Slot updated successfully"
+                    message: "Slot updated successfully",
                 });
                 return;
             }
@@ -148,7 +148,7 @@ class SlotController {
                 console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
                 return;
             }
@@ -159,16 +159,16 @@ class SlotController {
                 if (!id) {
                     res.status(400).json({
                         success: false,
-                        message: "Please provide a valid id"
+                        message: "Please provide a valid id",
                     });
                     return;
                 }
                 await session_model_1.default.destroy({
-                    where: { id }
+                    where: { id },
                 });
                 res.status(200).json({
                     success: true,
-                    message: "Slot deleted successfully"
+                    message: "Slot deleted successfully",
                 });
                 return;
             }
@@ -176,7 +176,7 @@ class SlotController {
                 console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
                 return;
             }
@@ -187,7 +187,7 @@ class SlotController {
                 if (!title || !description || !meeting_duration || !price) {
                     res.status(400).json({
                         success: false,
-                        message: "Please provide all the required fields"
+                        message: "Please provide all the required fields",
                     });
                     return;
                 }
@@ -195,7 +195,7 @@ class SlotController {
                 if (!admin) {
                     res.status(401).json({
                         success: false,
-                        message: "Unauthorized"
+                        message: "Unauthorized",
                     });
                     return;
                 }
@@ -218,7 +218,7 @@ class SlotController {
                             price,
                             isBooked: false,
                             ratings: 0,
-                            admin_id: req.admin?.id
+                            admin_id: req.admin?.id,
                         });
                     }
                 }
@@ -226,7 +226,7 @@ class SlotController {
                 res.status(201).json({
                     success: true,
                     message: "Slots for the next week created successfully",
-                    slots: createdSlots
+                    slots: createdSlots,
                 });
                 return;
             }
@@ -234,7 +234,7 @@ class SlotController {
                 console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
                 return;
             }
@@ -245,7 +245,7 @@ class SlotController {
                 if (!admin) {
                     res.status(401).json({
                         success: false,
-                        message: "Unauthorized"
+                        message: "Unauthorized",
                     });
                     return;
                 }
@@ -265,7 +265,7 @@ class SlotController {
                 if (!currentWeekSlots || currentWeekSlots.length === 0) {
                     res.status(404).json({
                         success: false,
-                        message: "No slots found for the current week"
+                        message: "No slots found for the current week",
                     });
                     return;
                 }
@@ -284,7 +284,7 @@ class SlotController {
                 res.status(201).json({
                     success: true,
                     message: "Slots for the next week created successfully",
-                    slots: createdSlots
+                    slots: createdSlots,
                 });
                 return;
             }
@@ -292,12 +292,11 @@ class SlotController {
                 console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong"
+                    message: "Something went wrong",
                 });
                 return;
             }
         };
     }
 }
-;
 exports.default = SlotController;

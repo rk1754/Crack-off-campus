@@ -17,7 +17,7 @@ const authMiddleware = async (req, res, next) => {
         }
         const decoded = jsonwebtoken_1.default.verify(token, config_1.JWT_SECRET);
         console.log(decoded);
-        req.user = { id: decoded.id, email: decoded.email, subscription_type: decoded.subscription_type, phone_number: decoded.phone_number };
+        req.user = { id: decoded.id, email: decoded.email, subscription_type: decoded.subscription_type, phone_number: decoded.phone_number, subscription_type_2: decoded.subscription_type_2 };
         next();
     }
     catch (err) {

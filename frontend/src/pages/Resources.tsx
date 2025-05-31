@@ -104,7 +104,7 @@ const ResourcesPage = () => {
     setLoading(true);
     try {
       console.log("Creating Cashfree order for amount:", amountInPaise);
-      const orderRes = await axios.post("/payment/create-order", {
+      const orderRes = await axios.post("https://api.crackoffcampus.com/api/v1/payment/create-order", {
         amount: amountInPaise,
         name: user.name,
         email: user.email,
@@ -392,23 +392,50 @@ const ResourcesPage = () => {
                           user?.subscription_type,
                           user?.subscription_type_2,
                         ].filter(Boolean);
+
+                        // Standard and Booster users get all resources
+                        if (userSubscriptionTypes.some((type) => ["booster", "standard"].includes(type))) {
+                          resource.action();
+                          return;
+                        }
+
+                        // Resume template: only for resume users
                         if (
-                          userSubscriptionTypes.some((type) =>
-                            ["booster", "standard"].includes(type)
-                          ) ||
-                          (resource.requiredSubscription === "resume" &&
-                            userSubscriptionTypes.some((type) => type === "resume")) ||
-                          (resource.requiredSubscription === "other_templates" &&
-                            userSubscriptionTypes.some((type) =>
-                              ["other_templates", "basic"].includes(type)
-                            ))
+                          resource.requiredSubscription === "resume" &&
+                          userSubscriptionTypes.some((type) => type === "resume")
                         ) {
                           setDownloadingId(resource.id);
                           resource.action();
+
+                          return;
+
                           setTimeout(() => setDownloadingId(null), 2000);
                         } else {
                           handleUpgradeSubscription(resource.requiredSubscription);
                         }
+
+                        // Referral template: only for standard/booster (already handled above)
+                        if (
+                          resource.requiredSubscription === "other_templates" &&
+                          resource.title.toLowerCase().includes("referral")
+                        ) {
+                          // Only standard/booster can access, so payment for others
+                          handleUpgradeSubscription(resource.requiredSubscription);
+                          return;
+                        }
+
+                        // Cover Letter, Cold Email, HR Emails: allow basic, standard, booster
+                        if (
+                          resource.requiredSubscription === "other_templates" &&
+                          ["cover letter", "cold email", "hr emails", "hr email"].some((kw) => resource.title.toLowerCase().includes(kw)) &&
+                          userSubscriptionTypes.some((type) => ["basic", "standard", "booster"].includes(type))
+                        ) {
+                          resource.action();
+                          return;
+                        }
+
+                        // Otherwise, redirect to payment
+                        handleUpgradeSubscription(resource.requiredSubscription);
                       }}
                     >
                       {isDownloading
