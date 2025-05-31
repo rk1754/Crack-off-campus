@@ -396,7 +396,9 @@ const ResourcesPage = () => {
                           (resource.requiredSubscription === "resume" &&
                             userSubscriptionTypes.some((type) => type === "resume")) ||
                           (resource.requiredSubscription === "other_templates" &&
-                            userSubscriptionTypes.some((type) => type === "other_templates"))
+                            userSubscriptionTypes.some((type) =>
+                              ["other_templates", "basic"].includes(type)
+                            ))
                         ) {
                           resource.action();
                         } else {
