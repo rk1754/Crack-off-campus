@@ -178,14 +178,19 @@ class PaymentController {
         );
       });
       }
-
+      const us = await User.findByPk(user.id);
+      if(!us){ 
+        res.status(500).json({ success: false, message: "User not found" });
+        return;
+      }
       // Update JWT token
       const token = jwt.sign(
         {
-          id: user.id,
-          email: user.email,
-          subscription_type: subscriptionType,
-          phone_number: user.phone_number,
+          id: us.id,
+          email: us.email,
+          subscription_type: us.subscription_type,
+          subscription_type_2: us.subscription_type_2,
+          phone_number: us.phone_number,
         },
         JWT_SECRET,
         { expiresIn: "2d" }
