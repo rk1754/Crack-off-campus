@@ -415,9 +415,9 @@ class PaymentController {
       }
       // Map amount to subscription type
       const subscriptionMap: SubscriptionMap = {
-        199: "gold",
-        299: "gold_plus",
-        699: "diamond",
+        199: "basic",
+        299: "standard",
+        699: "booster",
         99: "job",
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
