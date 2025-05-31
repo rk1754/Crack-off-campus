@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "../components/layout/Layout";
@@ -8,8 +10,8 @@ import BrowseByCategory from "../components/home/BrowseByCategories";
 import WhyChooseUs from "../components/home/WhyChooseUs";
 import WhyChooseUs2 from "../components/home/WhyChooseUs2";
 import JobSection from "../components/home/jobsSection";
-import { AppDispatch, RootState } from "@/redux/store";
-import { fetchAllJobs, Job } from "@/redux/slices/jobSlice";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { fetchAllJobs, type Job } from "@/redux/slices/jobSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FaPlay } from "react-icons/fa";
@@ -149,7 +151,7 @@ const Home = () => {
         name: "Crack Off-Campus",
         description: "Unlock Premium Job Access (₹99)",
         order_id: orderData.order_id,
-        handler: async function (response: any) {
+        handler: async (response: any) => {
           try {
             await dispatch(
               verifyAndStorePayment({
@@ -181,14 +183,14 @@ const Home = () => {
           color: "#9b87f5",
         },
         modal: {
-          ondismiss: function () {
+          ondismiss: () => {
             console.log("Razorpay modal dismissed");
           },
         },
       };
 
       const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
+      rzp.on("payment.failed", (response: any) => {
         console.error(
           "Razorpay payment failed:",
           response.error.description || response.error.reason
@@ -259,77 +261,111 @@ const Home = () => {
       <Layout>
         <section
           style={{ backgroundColor: "rgb(186, 175, 220)" }}
-          className="py-8 md:py-12"
+          className="py-8 md:py-12 lg:py-16"
         >
-          <div className="container">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="w-full md:w-1/2 mb-6 md:mb-0">
-                <div className="mb-4 md:mb-6">
-                  <h2 className="text-2xl md:text-4xl font-bold mb-2">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+              <div className="w-full lg:w-1/2 space-y-6">
+                <div className="space-y-4">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
                     Don't Just Apply.{" "}
                     <span className="text-[#F97316]">Crack It.</span>
                   </h2>
-                  <p className="text-black mb-4">
+                  <p className="text-black text-base sm:text-lg md:text-xl leading-relaxed">
                     Don't just chase openings — Unlock them. Discover jobs,
-                    referrals, and real prep with <br /> Crack Off-Campus.
+                    referrals, and real prep with Crack Off-Campus.
                   </p>
                 </div>
-                <div className="mt-4 md:mt-6 w-full">
-                  <div className="bg-white rounded-lg md:rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden">
-                    <div className="flex items-center flex-1 p-2 md:p-3 border-b md:border-b-0 md:border-r border-gray-200">
-                      <Search className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
-                      <input
-                        type="text"
-                        placeholder={
-                          isMobile
-                            ? "Skills or Job"
-                            : "Search by Skills"
-                        }
-                        className="w-full px-3 py-1 focus:outline-none text-gray-700 text-sm md:text-base"
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                      />
+
+                {/* Improved Responsive Search Form */}
+                <div className="w-full max-w-4xl">
+                  <div className="bg-white rounded-lg md:rounded-2xl shadow-lg overflow-hidden">
+                    {/* Mobile Layout */}
+                    <div className="block md:hidden">
+                      <div className="flex flex-col">
+                        <div className="flex items-center p-3 border-b border-gray-200">
+                          <Search className="text-gray-400 w-5 h-5 mr-3 flex-shrink-0" />
+                          <input
+                            type="text"
+                            placeholder="Skills or Job"
+                            className="w-full py-2 focus:outline-none text-gray-700 text-base"
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex items-center p-3 border-b border-gray-200">
+                          <MapPin className="text-gray-400 w-5 h-5 mr-3 flex-shrink-0" />
+                          <input
+                            type="text"
+                            placeholder="Location"
+                            className="w-full py-2 focus:outline-none text-gray-700 text-base"
+                            value={searchLocation}
+                            onChange={(e) => setSearchLocation(e.target.value)}
+                          />
+                        </div>
+                        <button
+                          onClick={handleHomePageSearch}
+                          className="w-full bg-[#F97316] hover:bg-orange-600 text-white py-4 font-medium text-base transition-colors"
+                        >
+                          Search Jobs
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center flex-1 p-2 md:p-3 border-b md:border-b-0 md:border-r border-gray-200">
-                      <MapPin className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
-                      <input
-                        type="text"
-                        placeholder="Location"
-                        className="w-full px-3 py-1 focus:outline-none text-gray-700 text-sm md:text-base"
-                        value={searchLocation}
-                        onChange={(e) => setSearchLocation(e.target.value)}
-                      />
-                    </div>
-                    <div className="hidden md:flex items-center flex-1 p-2 md:p-3 border-b md:border-b-0 md:border-r-0 border-gray-200">
-                      <Briefcase className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
-                      <select
-                        className="w-full px-3 py-1 focus:outline-none text-gray-700 bg-transparent text-sm md:text-base appearance-none"
-                        value={searchExperience}
-                        onChange={(e) => setSearchExperience(e.target.value)}
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:flex">
+                      <div className="flex items-center flex-1 p-4 border-r border-gray-200 min-w-0">
+                        <Search className="text-gray-400 w-5 h-5 mr-3 flex-shrink-0" />
+                        <input
+                          type="text"
+                          placeholder="Search by Skills, Job Title, or Company"
+                          className="w-full py-2 focus:outline-none text-gray-700 text-base placeholder:text-gray-500"
+                          value={searchKeyword}
+                          onChange={(e) => setSearchKeyword(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center flex-1 p-4 border-r border-gray-200 min-w-0">
+                        <MapPin className="text-gray-400 w-5 h-5 mr-3 flex-shrink-0" />
+                        <input
+                          type="text"
+                          placeholder="City, State, or Remote"
+                          className="w-full py-2 focus:outline-none text-gray-700 text-base placeholder:text-gray-500"
+                          value={searchLocation}
+                          onChange={(e) => setSearchLocation(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex items-center flex-1 p-4 border-r border-gray-200 min-w-0">
+                        <Briefcase className="text-gray-400 w-5 h-5 mr-3 flex-shrink-0" />
+                        <select
+                          className="w-full py-2 focus:outline-none text-gray-700 bg-transparent text-base appearance-none cursor-pointer"
+                          value={searchExperience}
+                          onChange={(e) => setSearchExperience(e.target.value)}
+                        >
+                          <option value="">Experience Level</option>
+                          <option value="0-1">0-1 Years</option>
+                          <option value="1-3">1-3 Years</option>
+                          <option value="3-5">3-5 Years</option>
+                          <option value="5+">5+ Years</option>
+                        </select>
+                      </div>
+                      <button
+                        onClick={handleHomePageSearch}
+                        className="flex-shrink-0 bg-[#F97316] hover:bg-orange-600 text-white px-8 py-4 font-medium text-base transition-colors whitespace-nowrap"
                       >
-                        <option value="">Experience</option>
-                        <option value="0-1">0-1 Years</option>
-                        <option value="1-3">1-3 Years</option>
-                        <option value="3-5">3-5 Years</option>
-                        <option value="5+">5+ Years</option>
-                      </select>
+                        Search Jobs
+                      </button>
                     </div>
-                    <button
-                      onClick={handleHomePageSearch}
-                      className="flex-shrink-0 w-full md:w-auto bg-[#F97316] hover:bg-orange-600 text-white text-center md:text-left px-4 py-3 md:py-3"
-                    >
-                      Search
-                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 ml-0 md:ml-6 mt-6">
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <Link
                     to="/jobs"
-                    className="bg-purple-800 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-purple-900 transition"
+                    className="bg-purple-800 text-white px-6 py-3 rounded-md text-base font-medium hover:bg-purple-900 transition-colors"
                   >
                     Browse Jobs
                   </Link>
-                  <button className="flex items-center gap-2 text-sm font-medium text-gray-800 hover:text-purple-800 transition">
+                  <button className="flex items-center gap-3 text-base font-medium text-gray-800 hover:text-purple-800 transition-colors">
                     <span className="bg-purple-800 text-white p-2 rounded-full">
                       <FaPlay className="w-3 h-3" />
                     </span>
@@ -337,16 +373,18 @@ const Home = () => {
                   </button>
                 </div>
               </div>
-              <div className="w-full md:w-1/2 flex justify-center md:justify-end mt-6 md:mt-0">
+
+              <div className="w-full lg:w-1/2 flex justify-center lg:justify-end">
                 <img
                   src="/lovable-uploads/img3.png"
                   alt="Professional working"
-                  className="w-full max-w-xs sm:max-w-sm md:max-w-md rounded-lg"
+                  className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg"
                 />
               </div>
             </div>
           </div>
         </section>
+
         <section className="py-8 md:py-12 bg-white">
           <div className="container">
             <div className="flex justify-between items-center mb-6 md:mb-8">
@@ -480,8 +518,8 @@ const Home = () => {
                 <span className="text-[#9b87f5] font-bold">₹99</span>.
               </p>
               <p className="text-gray-600 mb-4 text-sm">
-                This will grant you access to apply to premium jobs, view referral
-                details, and more exclusive features.
+                This will grant you access to apply to premium jobs, view
+                referral details, and more exclusive features.
               </p>
             </div>
             <DialogFooter>
