@@ -157,7 +157,7 @@ const JobListings = () => {
       window.scrollTo(0, 0);
     }
   };
-let userSubscriptionType = "regular";
+  let userSubscriptionType = "regular";
   if (user) {
     // Check both subscription_type and subscription_type_2
     if (
@@ -175,7 +175,8 @@ let userSubscriptionType = "regular";
     ) {
       userSubscriptionType = user.subscription_type_2;
     } else {
-      userSubscriptionType = user.subscription_type || user.subscription_type_2 || "regular";
+      userSubscriptionType =
+        user.subscription_type || user.subscription_type_2 || "regular";
     }
   }
   const handleOpenPremiumModal = () => {
@@ -242,18 +243,21 @@ let userSubscriptionType = "regular";
     }
     try {
       // Create order for ₹99
-      const res = await fetch("http://localhost:5454/api/v1/payment/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials : "include",
-        body: JSON.stringify({
-          amount: 99,
-          name: user.name,
-          email: user.email,
-          phone: user.phone_number || "+919876543210",
-          currency: "INR"
-        }),
-      });
+      const res = await fetch(
+        "https://crackoffcampus.com/api/v1/payment/create-order",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            amount: 99,
+            name: user.name,
+            email: user.email,
+            phone: user.phone_number || "+919876543210",
+            currency: "INR",
+          }),
+        }
+      );
       const data = await res.json();
       const { payment_session_id, order_id } = data;
       if (!payment_session_id) {

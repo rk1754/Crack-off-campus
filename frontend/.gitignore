@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 
+/src/redux/config.ts
 
 # Editor directories and files
 .vscode/*
