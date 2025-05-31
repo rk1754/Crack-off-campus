@@ -1,11 +1,15 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { User, Settings, Calendar, Download, LogOut } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
+import { logout as logoutAction } from "@/redux/slices/userSlice";
+import axios from "axios";
 
 const ProfileSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
 
   const navItems = [
@@ -16,20 +20,28 @@ const ProfileSidebar = () => {
     },
     {
       icon: <Calendar size={18} />,
-      label: "Applied Jobs",
-      path: "/profile/applied-jobs",
+      label: "Bookings",
+      path: "/services",
     },
     {
       icon: <Download size={18} />,
-      label: "Saved Jobs",
-      path: "/profile/saved-jobs",
-    },
-    {
-      icon: <Settings size={18} />,
-      label: "Account Settings",
-      path: "/profile/settings",
+      label: "Resources",
+      path: "/resources",
     },
   ];
+
+  // Logout handler
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post("/auth/logout", {}, { withCredentials: true }); // Adjust endpoint if needed
+    } catch (err) {
+      // Ignore error, proceed to clear state
+    }
+    dispatch(logoutAction());
+    localStorage.clear();
+    navigate("/login");
+  };
 
   return (
     <aside className="w-full md:w-64 p-5 bg-white rounded-lg shadow">
@@ -67,13 +79,13 @@ const ProfileSidebar = () => {
       </nav>
 
       <div className="mt-6 pt-6 border-t">
-        <Link
-          to="/logout"
-          className="flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+        <button
+          onClick={handleLogout}
+          className="flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-md transition-colors w-full text-left"
         >
           <LogOut className="h-5 w-5 mr-3" />
           Logout
-        </Link>
+        </button>
       </div>
     </aside>
   );

@@ -256,6 +256,10 @@ const JobListings = () => {
     }
   };
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // If user is not logged in, show the login/register message
   // if (!user) {
   //   return (

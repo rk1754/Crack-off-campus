@@ -108,7 +108,7 @@ export default function PaymentPage() {
       key: "rzp_test_GBC6wsiyhZIszp", // Replace with your actual Razorpay key
       amount: service.amount * 100, // Amount in paise
       currency: "INR",
-      name: "Engineer Hub",
+      name: "Crack Off-Campus",
       description: `Payment for ${service.title}`,
       image: "https://www.engineerhub.in/logo.png",
       handler: (response: any) => {
@@ -199,7 +199,7 @@ export default function PaymentPage() {
             <div className="space-y-4">
               <div className="flex items-center text-sm text-gray-600">
                 <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                <span>Secure payment powered by Razorpay</span>
+                <span>Secure payment powered by CashFree</span>
               </div>
 
               <div className="flex items-center text-sm text-gray-600">

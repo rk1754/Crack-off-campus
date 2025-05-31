@@ -176,25 +176,23 @@ const JobCard = ({
                     Apply Now
                   </a>
                 )
+              ) : isPremiumJob ? (
+                <Button
+                  size="sm"
+                  onClick={onUnlockJob}
+                  className="text-xs px-3 py-1 h-auto flex items-center bg-foundit-orange hover:bg-orange-600 text-white"
+                >
+                  <Crown size={14} className="mr-1" />
+                  Apply Now
+                </Button>
               ) : (
-                isPremiumJob ? (
-                  <Button
-                    size="sm"
-                    onClick={onUnlockJob}
-                    className="text-xs px-3 py-1 h-auto flex items-center bg-foundit-orange hover:bg-orange-600 text-white"
-                  >
-                    <Crown size={14} className="mr-1" />
-                    Apply Now
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    onClick={onUnlockJob}
-                    className="text-xs px-3 py-1 h-auto flex items-center"
-                  >
-                    Apply Now
-                  </Button>
-                )
+                <Button
+                  size="sm"
+                  onClick={onUnlockJob}
+                  className="text-xs px-3 py-1 h-auto flex items-center"
+                >
+                  Apply Now
+                </Button>
               )}
             </div>
           </div>
