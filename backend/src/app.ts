@@ -59,6 +59,7 @@ declare global {
       id: string;
       email: string;
       subscription_type: string;
+      subscription_type_2: string;
       phone_number: string;
     }
 

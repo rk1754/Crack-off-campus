@@ -27,12 +27,17 @@ const parseDescription = (desc: string) => {
 
 const ResourcesPage = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const userSubscription = useSelector(
-    (state: RootState) => state.user.user?.subscription_type
-  );
   const user = useSelector((state: RootState) => state.user.user);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Log subscription types for debugging
+  useEffect(() => {
+    if (user) {
+      console.log("User subscription_type:", user.subscription_type);
+      console.log("User subscription_type_2:", user.subscription_type_2);
+    }
+  }, [user]);
 
   // Load Cashfree SDK
   useEffect(() => {
@@ -140,7 +145,7 @@ const ResourcesPage = () => {
         "Initiating Cashfree checkout with options:",
         checkoutOptions
       );
-      cashfree.checkout(checkoutOptions).then((result) => {
+      cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
           console.error("Checkout error:", result.error);
@@ -160,9 +165,8 @@ const ResourcesPage = () => {
     }
   };
 
-  // Access logic
+  // Helper to check access
   const canAccess = (resource: any) => {
-    // Check both subscription_type and subscription_type_2
     const userSubscriptionTypes = [
       user?.subscription_type,
       user?.subscription_type_2,
@@ -377,14 +381,29 @@ const ResourcesPage = () => {
                         loading ||
                         !sdkLoaded
                       }
-                      onClick={
-                        canAccess(resource)
-                          ? resource.action
-                          : () =>
-                              handleUpgradeSubscription(
-                                resource.requiredSubscription
-                              )
-                      }
+                      onClick={() => {
+                        // Check access before calling resource.action
+                        const userSubscriptionTypes = [
+                          user?.subscription_type,
+                          user?.subscription_type_2,
+                        ].filter(Boolean);
+
+                        // If user can access, call the action (download)
+                        if (
+                          userSubscriptionTypes.some((type) =>
+                            ["booster", "standard"].includes(type)
+                          ) ||
+                          (resource.requiredSubscription === "resume" &&
+                            userSubscriptionTypes.some((type) => type === "resume")) ||
+                          (resource.requiredSubscription === "other_templates" &&
+                            userSubscriptionTypes.some((type) => type === "other_templates"))
+                        ) {
+                          resource.action();
+                        } else {
+                          // Otherwise, redirect to payment
+                          handleUpgradeSubscription(resource.requiredSubscription);
+                        }
+                      }}
                     >
                       {loading
                         ? "Processing..."

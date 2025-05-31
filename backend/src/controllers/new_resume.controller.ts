@@ -11,7 +11,7 @@ const SUBSCRIPTION_TEMPLATES = 'other_templates';
 
 // Helper to check subscription
 function hasSubscription(user: any, requiredType: string): boolean {
-  // Check both subscription_type and subscription_type_2
+  // Check all possible subscription columns
   const types = [
     user?.subscription_type,
     user?.subscription_type_2,
@@ -21,13 +21,13 @@ function hasSubscription(user: any, requiredType: string): boolean {
     return false; // Handle case where user or subscription_type is undefined
   }
   if (requiredType === SUBSCRIPTION_RESUME) {
-    return types.some((type) =>
-      ['resume', 'booster', 'standard'].includes(type)
-    );
+    return types.includes('resume') ||
+      types.includes('booster') ||
+      types.includes('standard');
   }
-  return types.some((type) =>
-    ['other_templates', 'booster', 'standard'].includes(type)
-  );
+  return types.includes('other_templates') ||
+    types.includes('booster') ||
+    types.includes('standard');
 }
 
 function hasBasicSubscription(user: any, requiredType: string): boolean {
@@ -59,6 +59,7 @@ export const downloadResumeTemplate = (req: Request, res: Response) => {
   }
 
   if (!hasSubscription(user, SUBSCRIPTION_RESUME)) {
+    console.log(user.subscription_type, user.subscription_type_2);
     res.status(403).json({ error: 'Resume template requires resume subscription (99 rs).' });
     return;
   }
