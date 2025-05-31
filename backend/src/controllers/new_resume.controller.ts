@@ -17,6 +17,17 @@ function hasSubscription(user: any, requiredType: string): boolean {
   if (requiredType === SUBSCRIPTION_RESUME) {
     return ['resume', 'booster', 'standard'].includes(user.subscription_type);
   }
+  return ['other_templates', 'booster', 'standard'].includes(user.subscription_type);
+}
+
+
+function hasBasicSubscription(user: any, requiredType: string): boolean {
+  if (!user?.subscription_type) {
+    return false; // Handle case where user or subscription_type is undefined
+  }
+  if (requiredType === SUBSCRIPTION_RESUME) {
+    return ['resume', 'booster', 'standard', "basic"].includes(user.subscription_type);
+  }
   return ['other_templates', 'booster', 'standard', 'basic'].includes(user.subscription_type);
 }
 
@@ -57,7 +68,7 @@ export const downloadResumeTemplate = (req: Request, res: Response) => {
 // Download HR Email Template
 export const downloadHrEmailTemplate = (req: Request, res: Response) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
+    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
         res.status(403).json({ error: 'HR email template requires templates subscription (49 rs).' });
         return;
     }
@@ -115,7 +126,7 @@ export const downloadReferralTemplate = (req: Request, res: Response) => {
 // Download Cold Mail Template
 export const downloadColdMailTemplate = (req: Request, res: Response) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
+    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
         res.status(403).json({ error: 'Cold mail template requires templates subscription (49 rs).' });
         return;
     }
@@ -144,7 +155,7 @@ export const downloadColdMailTemplate = (req: Request, res: Response) => {
 // Download Cover Letter Template
 export const downloadCoverLetterTemplate = (req: Request, res: Response) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
+    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
         res.status(403).json({ error: 'Cover letter template requires templates subscription (49 rs).' });
         return;
     }

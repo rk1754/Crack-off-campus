@@ -52,6 +52,9 @@ const JobListings = () => {
   // Razorpay script loading state
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
 
+  // Cashfree payment SDK loading state
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+
   let userSubscriptionType = "regular";
   if (user) {
     userSubscriptionType = user.subscription_type || "regular";
@@ -189,68 +192,79 @@ const JobListings = () => {
     };
   }, []);
 
-  const handleRazorpayPayment = async () => {
-    if (!isRazorpayReady) {
-      alert(
-        "Payment gateway is still loading. Please wait a moment and try again."
-      );
+  useEffect(() => {
+    const loadCashfreeSDK = async () => {
+      if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+        setSdkLoaded(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.id = "cashfree-sdk";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      script.onload = () => setSdkLoaded(true);
+      script.onerror = () => setSdkLoaded(false);
+      document.body.appendChild(script);
+    };
+    loadCashfreeSDK();
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
+    };
+  }, []);
+
+  const handleCashfreePayment = async () => {
+    if (!sdkLoaded || !window.Cashfree) {
+      alert("Payment gateway is not available. Please try again later.");
       return;
     }
-    if (!RAZORPAY_KEY_ID) {
-      alert("Payment gateway is not configured. Please contact support.");
+    if (!user) {
+      navigate("/login?redirect=/jobs");
       return;
     }
     try {
-      // Create order for ₹99 (amount in paise)
-      const resultAction = await dispatchPayment(createPaymentOrder(99 * 100));
-      const orderData = resultAction.payload;
-
-      if (!orderData || !orderData.order_id) {
-        alert("Failed to create payment order. Please try again.");
-        return;
-      }
-
-      const options = {
-        key: RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        currency: "INR",
-        name: "Premium Jobs Access",
-        description: "Unlock all premium jobs for ₹99",
-        order_id: orderData.order_id,
-        handler: async function (response: any) {
-          try {
-            await dispatchPayment(
-              verifyAndStorePayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                amount: orderData.amount,
-                currency: orderData.currency,
-                user_id: user.id,
-              })
-            );
-            setIsPremiumModalOpen(false);
-            window.location.reload();
-          } catch (e) {
-            alert("Payment verification failed. Please contact support.");
-          }
-        },
-        prefill: {
+      // Create order for ₹99
+      const res = await fetch("http://localhost:5454/api/v1/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials : "include",
+        body: JSON.stringify({
+          amount: 99,
           name: user.name,
           email: user.email,
-        },
-        theme: {
-          color: "#9b87f5",
-        },
-        modal: {
-          ondismiss: () => {
-            // Optionally handle modal dismiss
-          },
-        },
+          phone: user.phone_number || "+919876543210",
+          currency: "INR"
+        }),
+      });
+      const data = await res.json();
+      const { payment_session_id, order_id } = data;
+      if (!payment_session_id) {
+        alert("Payment session ID not found in response");
+        return;
+      }
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
+        alert("Invalid payment session ID format");
+        return;
+      }
+      const cashfree = new window.Cashfree({ mode: "production" });
+      const checkoutOptions = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        redirectTarget: "_self" as "_self",
       };
-
-      const razorpay = new (window as any).Razorpay(options);
-      razorpay.open();
+      cashfree.checkout(checkoutOptions).then((result: any) => {
+        if (result.error) {
+          alert(`Payment error: ${result.error.message}`);
+        } else if (result.redirect) {
+          // Cashfree will handle redirect
+        }
+      });
     } catch (err) {
       alert("Payment failed to start. Please try again.");
     }
@@ -477,11 +491,11 @@ const JobListings = () => {
               Cancel
             </Button>
             <Button
-              onClick={handleRazorpayPayment}
+              onClick={handleCashfreePayment}
               className="bg-[#9b87f5] text-white hover:bg-[#7c66e0]"
-              disabled={paymentState.loading || !isRazorpayReady}
+              disabled={paymentState.loading || !sdkLoaded}
             >
-              {!isRazorpayReady && !paymentState.loading
+              {!sdkLoaded && !paymentState.loading
                 ? "Loading Payment Gateway..."
                 : paymentState.loading
                 ? "Processing..."
