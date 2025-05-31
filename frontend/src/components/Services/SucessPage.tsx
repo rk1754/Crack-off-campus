@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useParams, useNavigate, useLocation } from "react-router-dom"
-import { CheckCircle, Calendar } from "lucide-react"
-import Navbar from "../layout/Navbar"
-import Footer from "../layout/Footer"
-import {Button} from "../../components/ui/button"
-import { useEffect, useState } from "react"
-import axios from "axios"
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { CheckCircle, Calendar } from "lucide-react";
+import Navbar from "../layout/Navbar";
+import Footer from "../layout/Footer";
+import { Button } from "../../components/ui/button";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 interface Session {
   id: string;
@@ -15,30 +15,30 @@ interface Session {
 }
 
 export default function SuccessPage() {
-  const navigate = useNavigate()
-  const { serviceId } = useParams<{ serviceId: string }>()
+  const navigate = useNavigate();
+  const { serviceId } = useParams<{ serviceId: string }>();
 
-  const location = useLocation()
-  const [session, setSession] = useState<Session | null>(null)
+  const location = useLocation();
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     // Try to get session from location state, else fetch from backend
     if (location.state && location.state.session) {
-      setSession(location.state.session)
+      setSession(location.state.session);
     } else if (serviceId) {
-      axios.get(`/api/session/getById/${serviceId}`).then(res => {
-        setSession(res.data.slot)
-      })
+      axios.get(`/api/session/getById/${serviceId}`).then((res) => {
+        setSession(res.data.slot);
+      });
     }
-  }, [serviceId, location.state])
+  }, [serviceId, location.state]);
 
   const handleGoToHome = () => {
-    navigate("/")
-  }
+    navigate("/");
+  };
 
   const handleViewBooking = () => {
-    navigate("/dashboard/bookings")
-  }
+    navigate("/dashboard/bookings");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -70,7 +70,8 @@ export default function SuccessPage() {
             </div>
 
             <p className="text-sm text-gray-600">
-              We've sent a confirmation email with all the details to your registered email address.
+              We've sent a confirmation email with all the details to your
+              registered email address.
             </p>
           </div>
 
@@ -83,7 +84,10 @@ export default function SuccessPage() {
               View My Booking
             </Button>
 
-            <Button onClick={handleGoToHome} className="bg-[rgb(150,130,209)] hover:bg-[rgb(160,140,220)] text-white">
+            <Button
+              onClick={handleGoToHome}
+              className="bg-[rgb(150,130,209)] hover:bg-[rgb(160,140,220)] text-white"
+            >
               Return to Home
             </Button>
           </div>
@@ -92,5 +96,5 @@ export default function SuccessPage() {
 
       <Footer />
     </div>
-  )
+  );
 }

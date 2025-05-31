@@ -50,7 +50,9 @@ const PaymentVerify = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
       <div className="text-xl font-bold mb-2">Verifying Payment...</div>
-      <div className="text-gray-500">Please wait while we confirm your subscription.</div>
+      <div className="text-gray-500">
+        Please wait while we confirm your subscription.
+      </div>
     </div>
   );
 };
