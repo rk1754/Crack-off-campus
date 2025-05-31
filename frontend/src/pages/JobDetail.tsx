@@ -90,10 +90,10 @@ const JobDetail = () => {
                   <Briefcase size={16} className="mr-1" />
                   {job.employment_type}
                 </span>
-                <span className="flex items-center mb-2 md:mb-0">
+                {/* <span className="flex items-center mb-2 md:mb-0">
                   <Calendar size={16} className="mr-1" />
                   Posted {job.posted_at.toString()}
-                </span>
+                </span> */}
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
