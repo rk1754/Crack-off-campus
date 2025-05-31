@@ -116,7 +116,8 @@ export default function FormPage() {
       !formData.name ||
       !formData.phone ||
       !formData.email ||
-      !formData.state
+      !formData.state ||
+      !formData.resume
     ) {
       setError("Please fill all required fields.");
       return;
@@ -133,28 +134,27 @@ export default function FormPage() {
     setError(null);
 
     try {
-      // 1. Book the slot (send to backend)
-      const bookingData = {
-        serviceId: serviceId,
-        date,
-        time,
-        service_name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        state: formData.state,
-        targetRole: formData.targetRole,
-        language: formData.language,
-        payment_status: "pending",
-      };
+      // 1. Book the slot (send to backend with file)
+      const bookingData = new FormData();
+      bookingData.append("serviceId", serviceId || "");
+      bookingData.append("date", date);
+      bookingData.append("time", time);
+      bookingData.append("service_name", formData.name);
+      bookingData.append("phone", formData.phone);
+      bookingData.append("email", formData.email);
+      bookingData.append("state", formData.state);
+      bookingData.append("targetRole", formData.targetRole);
+      bookingData.append("language", formData.language);
+      bookingData.append("payment_status", "pending");
+      if (formData.resume) {
+        bookingData.append("resume", formData.resume);
+      }
       const bookingRes = await fetch(
         `${BACKEND_URL}/api/v1/session/booking/book`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
           credentials: "include",
-          body: JSON.stringify(bookingData),
+          body: bookingData,
         }
       );
       if (!bookingRes.ok) {

@@ -100,11 +100,20 @@ class SlotBookingController {
                 `;
 
       console.log("Admin HTML: ", adminHTML);
+      // Attach resume if uploaded
+      const attachments = [];
+      if (req.file) {
+        attachments.push({
+          filename: req.file.originalname,
+          path: req.file.path,
+        });
+      }
       await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: "crackoffcampus63@gmail.com",
         subject: "New Slot Booking",
         html: adminHTML,
+        attachments,
       });
       logger.info(
         `Notification email sent to admin about new booking by ${user.email}`
