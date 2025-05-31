@@ -30,6 +30,7 @@ const ResourcesPage = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   // Log subscription types for debugging
   useEffect(() => {
@@ -188,11 +189,12 @@ const ResourcesPage = () => {
   };
 
   // Helper for login check
-  const requireLogin = (action: () => void) => {
+  const requireLogin = (action: () => void, resourceId?: number) => {
     if (!user) {
       toast.error("Please login to access this resource.");
       return;
     }
+    if (resourceId) setDownloadingId(resourceId);
     action();
   };
 
@@ -321,6 +323,7 @@ const ResourcesPage = () => {
           <div className="space-y-16 md:space-y-24">
             {resources.map((resource, index) => {
               const { main, points } = parseDescription(resource.description);
+              const isDownloading = downloadingId === resource.id;
               return (
                 <div
                   key={resource.id}
@@ -374,21 +377,21 @@ const ResourcesPage = () => {
                       )}
                     </div>
                     <Button
-                      className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                      className={`mt-2 bg-orange-500 hover:bg-orange-600 text-white${
+                        isDownloading ? " blur-sm" : ""
+                      }`}
                       size="lg"
                       disabled={
                         resource.buttonText === "Coming Soon" ||
                         loading ||
-                        !sdkLoaded
+                        !sdkLoaded ||
+                        isDownloading
                       }
                       onClick={() => {
-                        // Check access before calling resource.action
                         const userSubscriptionTypes = [
                           user?.subscription_type,
                           user?.subscription_type_2,
                         ].filter(Boolean);
-
-                        // If user can access, call the action (download)
                         if (
                           userSubscriptionTypes.some((type) =>
                             ["booster", "standard"].includes(type)
@@ -400,14 +403,17 @@ const ResourcesPage = () => {
                               ["other_templates", "basic"].includes(type)
                             ))
                         ) {
+                          setDownloadingId(resource.id);
                           resource.action();
+                          setTimeout(() => setDownloadingId(null), 2000);
                         } else {
-                          // Otherwise, redirect to payment
                           handleUpgradeSubscription(resource.requiredSubscription);
                         }
                       }}
                     >
-                      {loading
+                      {isDownloading
+                        ? "Downloading..."
+                        : loading
                         ? "Processing..."
                         : !sdkLoaded
                         ? "Loading..."
