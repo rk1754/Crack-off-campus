@@ -1,3 +1,4 @@
 node_modules
 frontend/src/redux/config.ts
 backend/.env
+backend/logs/combined.log
