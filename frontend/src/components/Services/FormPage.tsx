@@ -189,7 +189,7 @@ export default function FormPage() {
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
         returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&serviceId=${serviceId}`,
-        redirectTarget: "_self" as "_self",
+        redirectTarget: "_blank" as "_blank",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {
