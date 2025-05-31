@@ -254,108 +254,15 @@ export default function BookingPage() {
     }
 
     if (!user) {
-      toast.error("Please log in to proceed with payment.");
+      toast.error("Please log in to proceed.");
       navigate("/login");
       return;
     }
 
-    // Check for booster subscription and skip payment if true
-    if (user.subscription_type === "booster") {
-      setLoading(true);
-      try {
-        // Directly book the service for booster users
-        await axios.post("/services/book", {
-          userId: user.id,
-          service_name: service.title,
-          serviceId,
-          date: selectedDate,
-          time: selectedTime,
-        });
-        toast.success(
-          "Service booked successfully with your Booster subscription!"
-        );
-        navigate("/services/booking-success");
-      } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message ||
-            "Could not book the service. Please try again."
-        );
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (!sdkLoaded || !window.Cashfree) {
-      toast.error("Payment gateway is not available. Please try again later.");
-      console.error("Cashfree SDK not loaded");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log("Creating Cashfree order for amount:", service.amount);
-      const orderRes = await axios.post("/payment/create-order", {
-        amount: service.amount,
-        name: user.name,
-        email: user.email,
-        phone: user.phone_number || "+919876543210",
-      });
-      console.log("Order response:", orderRes.data);
-      const { payment_session_id, order_id } = orderRes.data;
-
-      if (!payment_session_id) {
-        throw new Error("Payment session ID not found in response");
-      }
-
-      // Validate payment_session_id
-      if (
-        !payment_session_id.startsWith("session_") ||
-        /[^a-zA-Z0-9_-]/.test(payment_session_id)
-      ) {
-        console.error("Invalid payment_session_id:", payment_session_id);
-        throw new Error("Invalid payment session ID format");
-      }
-
-      // Initialize Cashfree SDK
-      const cashfree = new window.Cashfree({
-        mode: "production",
-      });
-
-      // Define checkout options with explicit typing
-      const checkoutOptions: {
-        paymentSessionId: string;
-        returnUrl: string;
-        redirectTarget?: "_self" | "_blank";
-      } = {
-        paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(
-          selectedDate
-        )}&time=${encodeURIComponent(selectedTime)}&serviceId=${serviceId}`,
-        redirectTarget: "_self",
-      };
-
-      console.log(
-        "Initiating Cashfree checkout with options:",
-        checkoutOptions
-      );
-      cashfree.checkout(checkoutOptions).then((result) => {
-        if (result.error) {
-          toast.error(`Payment error: ${result.error.message}`);
-          console.error("Checkout error:", result.error);
-          setLoading(false);
-        } else if (result.redirect) {
-          console.log("Redirecting to Cashfree checkout page");
-          toast.info("Redirecting to Cashfree payment gateway...");
-        }
-      });
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-          "Could not initiate payment. Please try again."
-      );
-      console.error("Payment initiation error:", err);
-      setLoading(false);
-    }
+    // Redirect to the form page with slot info
+    navigate(`/services/${serviceId}/form`, {
+      state: { date: selectedDate, time: selectedTime },
+    });
   };
 
   const getDates = () => {
