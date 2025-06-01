@@ -55,11 +55,6 @@ const JobListings = () => {
   // Cashfree payment SDK loading state
   const [sdkLoaded, setSdkLoaded] = useState(false);
 
-  let userSubscriptionType = "regular";
-  if (user) {
-    userSubscriptionType = user.subscription_type || "regular";
-  }
-
   useEffect(() => {
     dispatch(fetchCurrentUser());
     // eslint-disable-next-line
@@ -162,7 +157,28 @@ const JobListings = () => {
       window.scrollTo(0, 0);
     }
   };
-
+  let userSubscriptionType = "regular";
+  if (user) {
+    // Check both subscription_type and subscription_type_2
+    if (
+      user.subscription_type === "premium" ||
+      user.subscription_type === "booster" ||
+      user.subscription_type === "standard" ||
+      user.subscription_type === "basic"
+    ) {
+      userSubscriptionType = user.subscription_type;
+    } else if (
+      user.subscription_type_2 === "premium" ||
+      user.subscription_type_2 === "booster" ||
+      user.subscription_type_2 === "standard" ||
+      user.subscription_type_2 === "basic"
+    ) {
+      userSubscriptionType = user.subscription_type_2;
+    } else {
+      userSubscriptionType =
+        user.subscription_type || user.subscription_type_2 || "regular";
+    }
+  }
   const handleOpenPremiumModal = () => {
     if (!user) {
       navigate("/login?redirect=/jobs");
@@ -228,7 +244,7 @@ const JobListings = () => {
     try {
       // Create order for ₹99
       const res = await fetch(
-        "http://localhost:5454/api/v1/payment/create-order",
+        "https://crackoffcampus.com/api/v1/payment/create-order",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
