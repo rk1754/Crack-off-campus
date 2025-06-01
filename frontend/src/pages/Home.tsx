@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "../components/layout/Layout";
@@ -10,12 +8,12 @@ import BrowseByCategory from "../components/home/BrowseByCategories";
 import WhyChooseUs from "../components/home/WhyChooseUs";
 import WhyChooseUs2 from "../components/home/WhyChooseUs2";
 import JobSection from "../components/home/jobsSection";
-import type { AppDispatch, RootState } from "@/redux/store";
-import { fetchAllJobs, type Job } from "@/redux/slices/jobSlice";
+import { AppDispatch, RootState } from "@/redux/store";
+import { fetchAllJobs, Job } from "@/redux/slices/jobSlice";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FaPlay } from "react-icons/fa";
-import { Search, MapPin, Briefcase, ChevronDown } from "lucide-react";
+import { Search, MapPin, Briefcase } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -151,7 +149,7 @@ const Home = () => {
         name: "Crack Off-Campus",
         description: "Unlock Premium Job Access (₹99)",
         order_id: orderData.order_id,
-        handler: async (response: any) => {
+        handler: async function (response: any) {
           try {
             await dispatch(
               verifyAndStorePayment({
@@ -183,14 +181,14 @@ const Home = () => {
           color: "#9b87f5",
         },
         modal: {
-          ondismiss: () => {
+          ondismiss: function () {
             console.log("Razorpay modal dismissed");
           },
         },
       };
 
       const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", (response: any) => {
+      rzp.on("payment.failed", function (response: any) {
         console.error(
           "Razorpay payment failed:",
           response.error.description || response.error.reason
@@ -261,188 +259,77 @@ const Home = () => {
       <Layout>
         <section
           style={{ backgroundColor: "rgb(186, 175, 220)" }}
-          className="py-8 md:py-12 lg:py-16"
+          className="py-8 md:py-12"
         >
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
-              <div className="w-full lg:w-1/2 space-y-6">
-                <div className="space-y-4">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+          <div className="container">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="w-full md:w-1/2 mb-6 md:mb-0">
+                <div className="mb-4 md:mb-6">
+                  <h2 className="text-2xl md:text-4xl font-bold mb-2">
                     Don't Just Apply.{" "}
                     <span className="text-[#F97316]">Crack It.</span>
                   </h2>
-                  <p className="text-black text-base sm:text-lg md:text-xl leading-relaxed">
+                  <p className="text-black mb-4">
                     Don't just chase openings — Unlock them. Discover jobs,
-                    referrals, and real prep with Crack Off-Campus.
+                    referrals, and real prep with <br /> Crack Off-Campus.
                   </p>
                 </div>
-
-                {/* Enhanced Responsive Search Form */}
-                <div className="w-full">
-                  <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-                    {/* Mobile Layout */}
-                    <div className="block lg:hidden">
-                      <div className="p-1">
-                        <div className="space-y-1">
-                          {/* Search Input */}
-                          <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                              <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[#F97316] transition-colors" />
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Search by Skills, Job Title, or Company"
-                              className="w-full pl-12 pr-4 py-4 text-gray-900 placeholder-gray-500 bg-gray-50 rounded-lg border-0 focus:bg-white focus:ring-2 focus:ring-[#F97316] focus:ring-opacity-50 transition-all duration-200 text-base"
-                              value={searchKeyword}
-                              onChange={(e) => setSearchKeyword(e.target.value)}
-                            />
-                          </div>
-
-                          {/* Location Input */}
-                          <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                              <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-[#F97316] transition-colors" />
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="City, State, or Remote"
-                              className="w-full pl-12 pr-4 py-4 text-gray-900 placeholder-gray-500 bg-gray-50 rounded-lg border-0 focus:bg-white focus:ring-2 focus:ring-[#F97316] focus:ring-opacity-50 transition-all duration-200 text-base"
-                              value={searchLocation}
-                              onChange={(e) =>
-                                setSearchLocation(e.target.value)
-                              }
-                            />
-                          </div>
-
-                          {/* Experience Select */}
-                          <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                              <Briefcase className="h-5 w-5 text-gray-400 group-focus-within:text-[#F97316] transition-colors" />
-                            </div>
-                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                              <ChevronDown className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <select
-                              className="w-full pl-12 pr-12 py-4 text-gray-900 bg-gray-50 rounded-lg border-0 focus:bg-white focus:ring-2 focus:ring-[#F97316] focus:ring-opacity-50 transition-all duration-200 text-base appearance-none cursor-pointer"
-                              value={searchExperience}
-                              onChange={(e) =>
-                                setSearchExperience(e.target.value)
-                              }
-                            >
-                              <option value="">Experience Level</option>
-                              <option value="0-1">0-1 Years</option>
-                              <option value="1-3">1-3 Years</option>
-                              <option value="3-5">3-5 Years</option>
-                              <option value="5+">5+ Years</option>
-                            </select>
-                          </div>
-
-                          {/* Search Button */}
-                          <button
-                            onClick={handleHomePageSearch}
-                            className="w-full bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:from-[#ea580c] hover:to-[#dc2626] text-white py-4 px-6 rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
-                          >
-                            <Search className="h-5 w-5" />
-                            Search Jobs
-                          </button>
-                        </div>
-                      </div>
+                <div className="mt-4 md:mt-6 w-full">
+                  <div className="bg-white rounded-lg md:rounded-2xl shadow-lg flex flex-col md:flex-row overflow-hidden">
+                    <div className="flex items-center flex-1 p-2 md:p-3 border-b md:border-b-0 md:border-r border-gray-200">
+                      <Search className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
+                      <input
+                        type="text"
+                        placeholder={
+                          isMobile
+                            ? "Skills or Job"
+                            : "Search by Skills"
+                        }
+                        className="w-full px-3 py-1 focus:outline-none text-gray-700 text-sm md:text-base"
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                      />
                     </div>
-
-                    {/* Desktop Layout */}
-                    <div className="hidden lg:block">
-                      <div className="flex items-stretch">
-                        {/* Search Input */}
-                        <div className="flex-1 relative group">
-                          <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[#F97316] transition-colors" />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Search by Skills, Job Title, or Company"
-                            className="w-full h-16 pl-14 pr-6 text-gray-900 placeholder-gray-500 bg-white border-0 border-r border-gray-200 focus:bg-gray-50 focus:outline-none focus:ring-0 transition-all duration-200 text-base"
-                            value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
-                          />
-                        </div>
-
-                        {/* Location Input */}
-                        <div className="flex-1 relative group">
-                          <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                            <MapPin className="h-5 w-5 text-gray-400 group-focus-within:text-[#F97316] transition-colors" />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="City, State, or Remote"
-                            className="w-full h-16 pl-14 pr-6 text-gray-900 placeholder-gray-500 bg-white border-0 border-r border-gray-200 focus:bg-gray-50 focus:outline-none focus:ring-0 transition-all duration-200 text-base"
-                            value={searchLocation}
-                            onChange={(e) => setSearchLocation(e.target.value)}
-                          />
-                        </div>
-
-                        {/* Experience Select */}
-                        <div className="flex-1 relative group">
-                          <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                            <Briefcase className="h-5 w-5 text-gray-400 group-focus-within:text-[#F97316] transition-colors" />
-                          </div>
-                          <div className="absolute inset-y-0 right-0 pr-6 flex items-center pointer-events-none">
-                            <ChevronDown className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <select
-                            className="w-full h-16 pl-14 pr-14 text-gray-900 bg-white border-0 border-r border-gray-200 focus:bg-gray-50 focus:outline-none focus:ring-0 transition-all duration-200 text-base appearance-none cursor-pointer"
-                            value={searchExperience}
-                            onChange={(e) =>
-                              setSearchExperience(e.target.value)
-                            }
-                          >
-                            <option value="">Experience Level</option>
-                            <option value="0-1">0-1 Years</option>
-                            <option value="1-3">1-3 Years</option>
-                            <option value="3-5">3-5 Years</option>
-                            <option value="5+">5+ Years</option>
-                          </select>
-                        </div>
-
-                        {/* Search Button */}
-                        <button
-                          onClick={handleHomePageSearch}
-                          className="flex-shrink-0 bg-gradient-to-r from-[#F97316] to-[#ea580c] hover:from-[#ea580c] hover:to-[#dc2626] text-white px-8 py-4 font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
-                        >
-                          <Search className="h-5 w-5" />
-                          Search Jobs
-                        </button>
-                      </div>
+                    <div className="flex items-center flex-1 p-2 md:p-3 border-b md:border-b-0 md:border-r border-gray-200">
+                      <MapPin className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="Location"
+                        className="w-full px-3 py-1 focus:outline-none text-gray-700 text-sm md:text-base"
+                        value={searchLocation}
+                        onChange={(e) => setSearchLocation(e.target.value)}
+                      />
                     </div>
-                  </div>
-
-                  {/* Search suggestions or popular searches */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    <span className="text-sm text-gray-600">Popular:</span>
-                    {[
-                      "React Developer",
-                      "Python",
-                      "Data Analyst",
-                      "UI/UX Designer",
-                    ].map((term) => (
-                      <button
-                        key={term}
-                        onClick={() => setSearchKeyword(term)}
-                        className="text-sm bg-white/80 hover:bg-white text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-[#F97316] transition-colors"
+                    <div className="hidden md:flex items-center flex-1 p-2 md:p-3 border-b md:border-b-0 md:border-r-0 border-gray-200">
+                      <Briefcase className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
+                      <select
+                        className="w-full px-3 py-1 focus:outline-none text-gray-700 bg-transparent text-sm md:text-base appearance-none"
+                        value={searchExperience}
+                        onChange={(e) => setSearchExperience(e.target.value)}
                       >
-                        {term}
-                      </button>
-                    ))}
+                        <option value="">Experience</option>
+                        <option value="0-1">0-1 Years</option>
+                        <option value="1-3">1-3 Years</option>
+                        <option value="3-5">3-5 Years</option>
+                        <option value="5+">5+ Years</option>
+                      </select>
+                    </div>
+                    <button
+                      onClick={handleHomePageSearch}
+                      className="flex-shrink-0 w-full md:w-auto bg-[#F97316] hover:bg-orange-600 text-white text-center md:text-left px-4 py-3 md:py-3"
+                    >
+                      Search
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-4 ml-0 md:ml-6 mt-6">
                   <Link
                     to="/jobs"
-                    className="bg-purple-800 text-white px-6 py-3 rounded-md text-base font-medium hover:bg-purple-900 transition-colors"
+                    className="bg-purple-800 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-purple-900 transition"
                   >
                     Browse Jobs
                   </Link>
-                  <button className="flex items-center gap-3 text-base font-medium text-gray-800 hover:text-purple-800 transition-colors">
+                  <button className="flex items-center gap-2 text-sm font-medium text-gray-800 hover:text-purple-800 transition">
                     <span className="bg-purple-800 text-white p-2 rounded-full">
                       <FaPlay className="w-3 h-3" />
                     </span>
@@ -450,18 +337,16 @@ const Home = () => {
                   </button>
                 </div>
               </div>
-
-              <div className="w-full lg:w-1/2 flex justify-center lg:justify-end">
+              <div className="w-full md:w-1/2 flex justify-center md:justify-end mt-6 md:mt-0">
                 <img
                   src="/lovable-uploads/img3.png"
                   alt="Professional working"
-                  className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg"
+                  className="w-full max-w-xs sm:max-w-sm md:max-w-md rounded-lg"
                 />
               </div>
             </div>
           </div>
         </section>
-
         <section className="py-8 md:py-12 bg-white">
           <div className="container">
             <div className="flex justify-between items-center mb-6 md:mb-8">
@@ -595,8 +480,8 @@ const Home = () => {
                 <span className="text-[#9b87f5] font-bold">₹99</span>.
               </p>
               <p className="text-gray-600 mb-4 text-sm">
-                This will grant you access to apply to premium jobs, view
-                referral details, and more exclusive features.
+                This will grant you access to apply to premium jobs, view referral
+                details, and more exclusive features.
               </p>
             </div>
             <DialogFooter>
