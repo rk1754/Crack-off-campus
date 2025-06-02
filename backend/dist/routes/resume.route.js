@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const resume_controller_1 = __importDefault(require("../controllers/resume.controller"));
+const upload_middleware_1 = require("../middleware/upload.middleware");
+const admin_middleware_1 = __importDefault(require("../middleware/admin.middleware"));
+const auth_middleware_1 = __importDefault(require("../middleware/auth.middleware"));
+const router = express_1.default.Router();
+const resumeController = new resume_controller_1.default();
+router.post('/new', admin_middleware_1.default, upload_middleware_1.upload.single("file"), resumeController.uploadResume);
+router.get('/type/:type', resumeController.getTemplatesByType);
+router.get('/all', auth_middleware_1.default, resumeController.getAllTemplates);
+router.get('/admin/all', admin_middleware_1.default, resumeController.getAllTemplatesAdmin);
+router.get('/:id', auth_middleware_1.default, resumeController.downloadTemplate);
+router.put('/:id', admin_middleware_1.default, upload_middleware_1.upload.single("file"), resumeController.updateTemplateUpload);
+router.delete('/:id', admin_middleware_1.default, resumeController.deleteTemplate);
+router.get('/user/all', auth_middleware_1.default, resumeController.downloadAllTemplates);
+router.get('/admin/all', admin_middleware_1.default, resumeController.downloadAllTemplates);
+router.get('/admin/:id', admin_middleware_1.default, resumeController.downloadTemplateAdmin);
+exports.default = router;
