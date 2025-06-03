@@ -26,6 +26,15 @@ class AuthController {
     }
 
     try {
+      // Check if user already exists
+      const existingUser = await User.findOne({ where: { email: data.email } });
+      if (existingUser) {
+        res.status(409).json({
+          success: false,
+          message: "This email is already registered. Please login instead.",
+        });
+        return;
+      }
       
       const hashedPassword = await bcrypt.hash(data.password, BCRYPT_SALT);
       data.password = hashedPassword;
