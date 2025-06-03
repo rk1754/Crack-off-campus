@@ -319,7 +319,7 @@ export default function BookingPage() {
     "10:00 PM",
     "10:30 PM",
     "11:30 PM",
-    "12:30 PM",
+    "12:30 AM",
   ];
 
   return (
