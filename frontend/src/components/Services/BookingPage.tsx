@@ -459,7 +459,7 @@ export default function BookingPage() {
                 ? "Processing..."
                 : !sdkLoaded
                 ? "Loading..."
-                : "Starts Fromm 15 June"}
+                : "Book Now"}
             </Button>
           </div>
         </div>
