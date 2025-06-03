@@ -68,16 +68,28 @@ class SlotBookingController {
         });
         return;
       }
+      // Format date and time to Indian Standard Time (IST)
+      const istDateObj = new Date(date + "T" + time);
+      const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "Asia/Kolkata",
+      };
+      const istDateTime = istDateObj.toLocaleString("en-IN", options);
       // Fetch service details
       const serviceName = booking.service_name;
       const userHtml = `
         <p>Dear ${user.name},</p>
-        <p>Your slot has been booked successfully for <b>${serviceName}</b> on ${date} at ${time}.</p>
+        <p>Your slot has been booked successfully for <b>${serviceName}</b> on <b>${istDateTime}</b>.</p>
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best regards,</p>
         <p>Team Crack-Off-Campus</p>
-                `;
+      `;
       // Optionally send confirmation email here...
       console.log("User HTML: ", userHtml);
       await transporter.sendMail({
@@ -87,17 +99,17 @@ class SlotBookingController {
         html: userHtml,
       });
       logger.info(
-        `Slot booked successfully for user ${user.name} (${user.email}) on ${date} at ${time}`
+        `Slot booked successfully for user ${user.name} (${user.email}) on ${istDateTime}`
       );
       logger.info(`Notification email sent to user ${user.email}`);
       const adminHTML = `
         <p>Dear Admin,</p>
-        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on ${date} at ${time}.</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on <b>${istDateTime}</b>.</p>
         <p> User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best regards,</p>
         <p>Team Crack Off-Campus</p>
-                `;
+      `;
 
       console.log("Admin HTML: ", adminHTML);
       // Attach resume if uploaded
