@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { FRONTEND_URL, FRONTEND_URL_2, PORT } from "./config/config";
+import { FRONTEND_URL, FRONTEND_URL_2, FRONTEND_URL_3, PORT } from "./config/config";
 import authRoutes from "./routes/auth.routes";
 import adminRoutes from "./routes/admin.route";
 import educationRoutes from "./routes/education.route";
@@ -22,7 +22,8 @@ const app = express();
 // Use environment variable for CORS origin, fallback to localhost
 const allowedOrigins = [
   FRONTEND_URL,
-  FRONTEND_URL_2
+  FRONTEND_URL_2,
+  FRONTEND_URL_3
 ]
 
 const corsOptions: cors.CorsOptions = {

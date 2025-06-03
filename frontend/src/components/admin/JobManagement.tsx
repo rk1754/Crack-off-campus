@@ -96,6 +96,13 @@ const JobManagement = () => {
     skills: [],
   });
 
+<<<<<<< HEAD
+=======
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10; // Jobs per page
+
+>>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
   // Fetch jobs on component mount
   useEffect(() => {
     if (admin) {
@@ -110,6 +117,25 @@ const JobManagement = () => {
       job.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+<<<<<<< HEAD
+=======
+  // Pagination logic
+  const totalPages = Math.ceil(filteredJobs.length / pageSize);
+  const pagedJobs = filteredJobs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+
+  // Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+>>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
   const handleAddJob = async () => {
     try {
       console.log("Adding job:", currentJob);
@@ -276,6 +302,7 @@ const JobManagement = () => {
           Error loading jobs: {error}
         </div>
       ) : (
+<<<<<<< HEAD
         <div className="border rounded-md">
           <Table>
             <TableHeader>
@@ -354,6 +381,110 @@ const JobManagement = () => {
             </TableBody>
           </Table>
         </div>
+=======
+        <>
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[250px]">Job Title</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Posted Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pagedJobs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      No jobs found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pagedJobs.map((job) => (
+                    <TableRow key={job.id}>
+                      <TableCell className="font-medium">{job.title}</TableCell>
+                      <TableCell>{job.company_name}</TableCell>
+                      <TableCell>
+                        {job.posted_at ? formatDateTime(job.posted_at) : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            job.status === "open"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {job.status === "open" ? "Active" : "Closed"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => openEditDialog(job)}
+                            >
+                              <Edit3 className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => openDeleteDialog(job)}
+                              className="text-red-600 hover:!text-red-600 dark:text-red-500 dark:hover:!text-red-500"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                            {job.job_url && (
+                              <DropdownMenuItem asChild>
+                                <a
+                                  href={job.job_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Posting
+                                </a>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center mt-4 gap-4">
+            <button
+              className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              className="px-3 py-1 rounded bg-gray-200 disabled:opacity-50"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Next
+            </button>
+          </div>
+        </>
+>>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
       )}
 
       {/* Add Job Dialog */}

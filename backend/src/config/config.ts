@@ -45,6 +45,7 @@ export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "";
 export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:8080";
 export const FRONTEND_URL_2 =
   process.env.FRONTEND_URL_2 || "http://crackoffcampus.com";
+export const FRONTEND_URL_3 = process.env.FRONTEND_URL_3 || "http://localhost:8080";
 
 // Cashfree Config
 export const CASHFREE_CLIENT_ID = process.env.CASHFREE_CLIENT_ID;

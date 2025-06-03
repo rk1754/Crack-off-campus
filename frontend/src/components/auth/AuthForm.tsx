@@ -111,9 +111,20 @@ const AuthForm = ({ type }: AuthFormProps) => {
             email,
             password,
           });
+<<<<<<< HEAD
           dispatch(
             adminLogin({
               admin: response.data.admin,
+=======
+          // Ensure admin object has is_admin: true
+          const adminData = {
+            ...response.data.admin,
+            is_admin: true,
+          };
+          dispatch(
+            adminLogin({
+              admin: adminData,
+>>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
               token: response.data.token,
             })
           );

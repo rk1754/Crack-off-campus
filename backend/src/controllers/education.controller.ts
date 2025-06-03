@@ -196,4 +196,8 @@ class EducationController{
     }
 }
 
+<<<<<<< HEAD
 export default EducationController;
+=======
+export default EducationController;
+>>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
