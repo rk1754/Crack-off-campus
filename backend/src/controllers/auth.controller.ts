@@ -2,7 +2,7 @@ import { NextFunction, Request, response, Response } from "express";
 import axios from "axios";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model";
-import { BCRYPT_SALT, JWT_EXPIRES_IN, JWT_SECRET } from "../config/config";
+import { BCRYPT_SALT, JWT_EXPIRES_IN, JWT_SECRET, SMTP_USER } from "../config/config";
 import nodemailer from "nodemailer";
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream';
@@ -15,6 +15,7 @@ import { transporter } from "../utils/mailer";
 const streamPipeline = promisify(pipeline);
 
 class AuthController {
+  FRONTEND_URL = process.env.FRONTEND_URL || "https://www.crackoffcampus.com";
   signup = async (req: Request, res: Response): Promise<void> => {
     const data = req.body;
     if (!data.email || !data.password || !data.phone_number || data.phone_number === "Not provided") {
@@ -230,61 +231,112 @@ class AuthController {
     }
   };
 
-  forgotPassword = async (req: Request, res: Response): Promise<void> => {
-    const { email } = req.body;
+  // forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  //   const { email } = req.body;
 
-    if (!email) {
-      res.status(400).json({
+  //   if (!email) {
+  //     res.status(400).json({
+  //       success: false,
+  //       message: "Please provide an email address",
+  //     });
+  //     return;
+  //   }
+
+  //   try {
+  //     const user = await User.findOne({ where: { email } });
+
+  //     if (!user) {
+  //       res.status(404).json({
+  //         success: false,
+  //         message: "User with this email does not exist",
+  //       });
+  //       return;
+  //     }
+
+  //     const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, {
+  //       expiresIn: "1h",
+  //     });
+
+  //     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      
+
+  //     await transporter.sendMail({
+  //       from: process.env.SMTP_FROM_EMAIL,
+  //       to: user.email,
+  //       subject: "Password Reset Request",
+  //       html: `
+  //                   <p>Hello ${user.name},</p>
+  //                   <p>You requested to reset your password. Click the link below to reset it:</p>
+  //                   <a href="${resetLink}">${resetLink}</a>
+  //                   <p>If you did not request this, please ignore this email.</p>
+  //                   <p> Your token is : ${resetToken}</p>
+  //                   <p>Thank you!</p>
+  //               `,
+  //     });
+
+  //     res.status(200).json({
+  //       success: true,
+  //       message: "Password reset email sent successfully",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.status(500).json({
+  //       success: false,
+  //       message: "Something went wrong while sending the email",
+  //     });
+  //   }
+  // };
+
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400).json({
+      success: false,
+      message: 'Please provide an email address',
+    });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      res.status(404).json({
         success: false,
-        message: "Please provide an email address",
+        message: 'User with this email does not exist',
       });
       return;
     }
 
-    try {
-      const user = await User.findOne({ where: { email } });
+    const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+    const resetLink = `${this.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-      if (!user) {
-        res.status(404).json({
-          success: false,
-          message: "User with this email does not exist",
-        });
-        return;
-      }
+    await transporter.sendMail({
+      from: SMTP_USER,
+      to: user.email,
+      subject: 'Password Reset Request',
+      html: `
+        <p>Hello ${user.name},</p>
+        <p>You requested to reset your password. Click the link below to reset it:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Your token is: ${resetToken}</p>
+        <p>Thank you!</p>
+      `,
+    });
 
-      const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, {
-        expiresIn: "1h",
-      });
-
-      const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-      
-
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM_EMAIL,
-        to: user.email,
-        subject: "Password Reset Request",
-        html: `
-                    <p>Hello ${user.name},</p>
-                    <p>You requested to reset your password. Click the link below to reset it:</p>
-                    <a href="${resetLink}">${resetLink}</a>
-                    <p>If you did not request this, please ignore this email.</p>
-                    <p> Your token is : ${resetToken}</p>
-                    <p>Thank you!</p>
-                `,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: "Password reset email sent successfully",
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({
-        success: false,
-        message: "Something went wrong while sending the email",
-      });
-    }
-  };
+    res.status(200).json({
+      success: true,
+      message: 'Password reset email sent successfully',
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Something went wrong while sending the email',
+    });
+  }
+};
 
   resetPassword = async (req: Request, res: Response): Promise<void> => {
     const { token, newPassword } = req.body;
