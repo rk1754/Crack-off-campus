@@ -1,24 +1,14 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "@/redux/store";
-import { fetchCurrentUser, updateUser } from "@/redux/slices/userSlice";
-import {
-  getMyExperience,
-  addExperience as addExperienceThunk,
-  deleteExperience,
-  updateExperience,
-} from "@/redux/slices/experienceSlice";
-import {
-  getMyEducation,
-  addEducation,
-  deleteEducation,
-  updateMyEducation,
-} from "@/redux/slices/educationSlice";
-import Layout from "../components/layout/Layout";
+import type React from "react"
+import { useEffect, useState } from "react"
+import { Navigate, useNavigate } from "react-router-dom"
+import { useDispatch, useSelector } from "react-redux"
+import type { RootState, AppDispatch } from "@/redux/store"
+import { fetchCurrentUser, updateUser } from "@/redux/slices/userSlice"
+import { getMyExperience, addExperience as addExperienceThunk, updateExperience } from "@/redux/slices/experienceSlice"
+import { getMyEducation, addEducation, updateMyEducation } from "@/redux/slices/educationSlice"
+import Layout from "../components/layout/Layout"
 import {
   Camera,
   Save,
@@ -31,51 +21,57 @@ import {
   Trash2,
   ArrowLeft,
   Upload,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
+  Building,
+  BookOpen,
+  Calendar,
+  MapPin,
+  Clock,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+import { useAuth } from "@/hooks/use-auth"
 
 interface ExperienceItem {
-  id?: string;
-  _id?: string;
-  job_title: string;
-  company_name: string;
-  start_date: string;
-  end_date: string;
-  location: string;
-  description: string;
-  employment_type: string;
+  id?: string
+  _id?: string
+  job_title: string
+  company_name: string
+  start_date: string
+  end_date: string
+  location: string
+  description: string
+  employment_type: string
 }
 
 interface EducationItem {
-  id?: string;
-  _id?: string;
-  education: string;
-  specialization: string;
-  college: string;
-  start_year: string;
-  end_year: string;
+  id?: string
+  _id?: string
+  education: string
+  specialization: string
+  college: string
+  start_year: string
+  end_year: string
+  location?: string
 }
 
 const EditProfile = () => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-  const userState = useSelector((state: RootState) => state.user);
-  const { user, loading, error } = userState || {};
-  const experienceState = useSelector((state: RootState) => state.experience);
-  const { experiences } = experienceState || {};
-  const educationState = useSelector((state: RootState) => state.education);
-  const { educationList } = educationState || {};
-  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const userState = useSelector((state: RootState) => state.user)
+  const { user, loading, error } = userState || {}
+  const experienceState = useSelector((state: RootState) => state.experience)
+  const { experiences } = experienceState || {}
+  const educationState = useSelector((state: RootState) => state.education)
+  const { educationList } = educationState || {}
+  const { isAuthenticated } = useAuth()
 
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false)
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -85,27 +81,23 @@ const EditProfile = () => {
     skills: [] as string[],
     profile_pic: null as File | null,
     cover_image: null as File | null,
-  });
+  })
 
   // Experience and Education states
-  const [experienceItems, setExperienceItems] = useState<ExperienceItem[]>([]);
-  const [educationItems, setEducationItems] = useState<EducationItem[]>([]);
+  const [experienceItems, setExperienceItems] = useState<ExperienceItem[]>([])
+  const [educationItems, setEducationItems] = useState<EducationItem[]>([])
 
-  const [profilePicPreview, setProfilePicPreview] = useState<string | null>(
-    null
-  );
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
-    null
-  );
-  const [skillInput, setSkillInput] = useState("");
+  const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null)
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
+  const [skillInput, setSkillInput] = useState("")
 
   useEffect(() => {
     if (isAuthenticated) {
-      dispatch(fetchCurrentUser());
-      dispatch(getMyExperience());
-      dispatch(getMyEducation());
+      dispatch(fetchCurrentUser())
+      dispatch(getMyExperience())
+      dispatch(getMyEducation())
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated])
 
   useEffect(() => {
     if (user) {
@@ -116,26 +108,26 @@ const EditProfile = () => {
         skills: Array.isArray(user.skills) ? user.skills : [],
         profile_pic: null,
         cover_image: null,
-      });
-      setProfilePicPreview(user.profile_pic || null);
-      setCoverImagePreview(user.cover_image || null);
+      })
+      setProfilePicPreview(user.profile_pic || null)
+      setCoverImagePreview(user.cover_image || null)
     }
-  }, [user]);
+  }, [user])
 
   useEffect(() => {
     if (experiences) {
-      setExperienceItems(experiences);
+      setExperienceItems(experiences)
     }
-  }, [experiences]);
+  }, [experiences])
 
   useEffect(() => {
     if (educationList) {
-      setEducationItems(educationList);
+      setEducationItems(educationList)
     }
-  }, [educationList]);
+  }, [educationList])
 
   if (!isAuthenticated && !loading) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" />
   }
 
   if (loading) {
@@ -144,13 +136,11 @@ const EditProfile = () => {
         <div className="container py-8 text-center">
           <div className="flex flex-col items-center justify-center min-h-[400px]">
             <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-purple-600 font-medium">
-              Loading your profile...
-            </p>
+            <p className="mt-4 text-purple-600 font-medium">Loading your profile...</p>
           </div>
         </div>
       </Layout>
-    );
+    )
   }
 
   if (error) {
@@ -160,47 +150,47 @@ const EditProfile = () => {
           <p>Error loading profile: {error}</p>
         </div>
       </Layout>
-    );
+    )
   }
 
   // Handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
+    const { name, files } = e.target
     if (files && files[0]) {
-      const file = files[0];
-      setProfileData((prev) => ({ ...prev, [name]: file }));
+      const file = files[0]
+      setProfileData((prev) => ({ ...prev, [name]: file }))
       if (name === "profile_pic") {
-        setProfilePicPreview(URL.createObjectURL(file));
+        setProfilePicPreview(URL.createObjectURL(file))
       } else if (name === "cover_image") {
-        setCoverImagePreview(URL.createObjectURL(file));
+        setCoverImagePreview(URL.createObjectURL(file))
       }
     }
-  };
+  }
 
   const addSkill = () => {
-    const trimmedSkill = skillInput.trim();
+    const trimmedSkill = skillInput.trim()
     if (trimmedSkill && !profileData.skills.includes(trimmedSkill)) {
       setProfileData((prev) => ({
         ...prev,
         skills: [...prev.skills, trimmedSkill],
-      }));
-      setSkillInput("");
+      }))
+      setSkillInput("")
     }
-  };
+  }
 
   const removeSkill = (skillToRemove: string) => {
     setProfileData((prev) => ({
       ...prev,
       skills: prev.skills.filter((skill) => skill !== skillToRemove),
-    }));
-  };
+    }))
+  }
 
   const handleSkillInputKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      e.preventDefault();
-      addSkill();
+      e.preventDefault()
+      addSkill()
     }
-  };
+  }
 
   // Add Experience UI handler (renamed to avoid thunk conflict)
   const addExperienceItem = () => {
@@ -212,25 +202,21 @@ const EditProfile = () => {
       location: "",
       description: "",
       employment_type: "full_time",
-    };
-    setExperienceItems([...experienceItems, newExperience]);
-  };
+    }
+    setExperienceItems([...experienceItems, newExperience])
+  }
 
-  const updateExperienceItem = (
-    index: number,
-    field: string,
-    value: string
-  ) => {
-    const updated = [...experienceItems];
-    updated[index] = { ...updated[index], [field]: value };
-    setExperienceItems(updated);
-  };
+  const updateExperienceItem = (index: number, field: string, value: string) => {
+    const updated = [...experienceItems]
+    updated[index] = { ...updated[index], [field]: value }
+    setExperienceItems(updated)
+  }
 
   const removeExperience = (index: number) => {
-    const updated = [...experienceItems];
-    updated.splice(index, 1);
-    setExperienceItems(updated);
-  };
+    const updated = [...experienceItems]
+    updated.splice(index, 1)
+    setExperienceItems(updated)
+  }
 
   const addEducationItem = () => {
     const newEducation: EducationItem = {
@@ -239,24 +225,30 @@ const EditProfile = () => {
       college: "",
       start_year: "",
       end_year: "",
-    };
-    setEducationItems([...educationItems, newEducation]);
-  };
+    }
+    setEducationItems([...educationItems, newEducation])
+  }
 
   const updateEducationItem = (index: number, field: string, value: string) => {
-    const updated = [...educationItems];
-    updated[index] = { ...updated[index], [field]: value };
-    setEducationItems(updated);
-  };
+    const updated = [...educationItems]
+    updated[index] = { ...updated[index], [field]: value }
+    setEducationItems(updated)
+  }
 
   const removeEducationItem = (index: number) => {
-    const updated = [...educationItems];
-    updated.splice(index, 1);
-    setEducationItems(updated);
-  };
+    const updated = [...educationItems]
+    updated.splice(index, 1)
+    setEducationItems(updated)
+  }
+
+  const calculateDuration = (startYear: string, endYear: string) => {
+    if (!startYear || !endYear) return ""
+    const duration = Number.parseInt(endYear) - Number.parseInt(startYear)
+    return `${duration} year${duration !== 1 ? "s" : ""}`
+  }
 
   const handleSaveProfile = async () => {
-    setIsSaving(true);
+    setIsSaving(true)
     try {
       // Save profile data
       const payload: any = {
@@ -264,24 +256,20 @@ const EditProfile = () => {
         phone_number: profileData.phone_number,
         bio: profileData.bio,
         skills: profileData.skills,
-      };
-      if (profileData.profile_pic)
-        payload.profile_pic = profileData.profile_pic;
-      if (profileData.cover_image)
-        payload.cover_image = profileData.cover_image;
+      }
+      if (profileData.profile_pic) payload.profile_pic = profileData.profile_pic
+      if (profileData.cover_image) payload.cover_image = profileData.cover_image
 
-      await dispatch(updateUser({ data: payload })).unwrap();
+      await dispatch(updateUser({ data: payload })).unwrap()
 
       // Save experience items
       for (const exp of experienceItems) {
         if (exp.id || exp._id) {
           // Update existing
-          await dispatch(
-            updateExperience({ ...exp, id: exp.id || exp._id })
-          ).unwrap();
+          await dispatch(updateExperience({ ...exp, id: exp.id || exp._id })).unwrap()
         } else if (exp.job_title && exp.company_name) {
           // Add new
-          await dispatch(addExperienceThunk(exp as any)).unwrap();
+          await dispatch(addExperienceThunk(exp as any)).unwrap()
         }
       }
 
@@ -289,27 +277,24 @@ const EditProfile = () => {
       for (const edu of educationItems) {
         if (edu.id || edu._id) {
           // Update existing
-          await dispatch(
-            updateMyEducation({ ...edu, id: edu.id || edu._id })
-          ).unwrap();
+          await dispatch(updateMyEducation({ ...edu, id: edu.id || edu._id })).unwrap()
         } else if (edu.education) {
           // Add new
-          await dispatch(addEducation(edu as any)).unwrap();
+          await dispatch(addEducation(edu as any)).unwrap()
         }
       }
 
-      toast.success("Profile updated successfully!");
-      navigate("/profile");
+      toast.success("Profile updated successfully!")
+      navigate("/profile")
     } catch (err: any) {
       // Show backend error message if available
-      const backendMsg =
-        err?.response?.data?.message || err?.message || err?.toString();
-      toast.error(`Failed to update profile: ${backendMsg}`);
-      console.error("Profile update error:", err);
+      const backendMsg = err?.response?.data?.message || err?.message || err?.toString()
+      toast.error(`Failed to update profile: ${backendMsg}`)
+      console.error("Profile update error:", err)
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   return (
     <Layout>
@@ -328,12 +313,8 @@ const EditProfile = () => {
                   Back to Profile
                 </Button>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Edit Profile
-                  </h1>
-                  <p className="text-gray-600">
-                    Update your professional information
-                  </p>
+                  <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
+                  <p className="text-gray-600">Update your professional information</p>
                 </div>
               </div>
               <Button
@@ -388,6 +369,7 @@ const EditProfile = () => {
                             profilePicPreview ||
                             user?.profile_pic ||
                             "/placeholder.svg?height=128&width=128" ||
+                            "/placeholder.svg" ||
                             "/placeholder.svg"
                           }
                           alt="Profile"
@@ -407,8 +389,7 @@ const EditProfile = () => {
                     </div>
                     <div className="flex-1 md:mb-4">
                       <p className="text-gray-600 text-sm">
-                        Upload a professional photo and cover image to make your
-                        profile stand out
+                        Upload a professional photo and cover image to make your profile stand out
                       </p>
                     </div>
                   </div>
@@ -428,9 +409,7 @@ const EditProfile = () => {
                 <CardContent className="pt-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label className="text-purple-700 font-medium">
-                        Full Name
-                      </Label>
+                      <Label className="text-purple-700 font-medium">Full Name</Label>
                       <Input
                         value={profileData.name}
                         onChange={(e) =>
@@ -444,9 +423,7 @@ const EditProfile = () => {
                       />
                     </div>
                     <div>
-                      <Label className="text-purple-700 font-medium">
-                        Phone Number
-                      </Label>
+                      <Label className="text-purple-700 font-medium">Phone Number</Label>
                       <Input
                         value={profileData.phone_number}
                         onChange={(e) =>
@@ -461,9 +438,7 @@ const EditProfile = () => {
                     </div>
                   </div>
                   <div>
-                    <Label className="text-purple-700 font-medium">
-                      About Me
-                    </Label>
+                    <Label className="text-purple-700 font-medium">About Me</Label>
                     <Textarea
                       value={profileData.bio}
                       onChange={(e) =>
@@ -552,121 +527,95 @@ const EditProfile = () => {
                     {experienceItems.map((exp, index) => (
                       <div
                         key={index}
-                        className="p-6 border border-purple-200 rounded-xl bg-gradient-to-br from-purple-50 to-white relative"
+                        className="relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
                       >
                         <Button
                           onClick={() => removeExperience(index)}
                           variant="ghost"
                           size="sm"
-                          className="absolute top-4 right-4 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="absolute top-4 right-4 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
                         >
                           <Trash2 size={16} />
                         </Button>
+
+                        {/* Experience Header */}
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Briefcase size={18} className="text-purple-600" />
+                            <span className="text-sm font-medium text-purple-700">Experience #{index + 1}</span>
+                          </div>
+                          <Separator className="bg-purple-100" />
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <User size={14} />
                               Job Title
                             </Label>
                             <Input
                               value={exp.job_title || ""}
-                              onChange={(e) =>
-                                updateExperienceItem(
-                                  index,
-                                  "job_title",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateExperienceItem(index, "job_title", e.target.value)}
                               placeholder="e.g., Senior Software Engineer"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Building size={14} />
                               Company Name
                             </Label>
                             <Input
                               value={exp.company_name || ""}
-                              onChange={(e) =>
-                                updateExperienceItem(
-                                  index,
-                                  "company_name",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateExperienceItem(index, "company_name", e.target.value)}
                               placeholder="e.g., Google Inc."
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Calendar size={14} />
                               Start Date
                             </Label>
                             <Input
                               type="date"
-                              value={
-                                exp.start_date
-                                  ? exp.start_date.slice(0, 10)
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                updateExperienceItem(
-                                  index,
-                                  "start_date",
-                                  e.target.value
-                                )
-                              }
+                              value={exp.start_date ? exp.start_date.slice(0, 10) : ""}
+                              onChange={(e) => updateExperienceItem(index, "start_date", e.target.value)}
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Calendar size={14} />
                               End Date
                             </Label>
                             <Input
                               type="date"
-                              value={
-                                exp.end_date ? exp.end_date.slice(0, 10) : ""
-                              }
-                              onChange={(e) =>
-                                updateExperienceItem(
-                                  index,
-                                  "end_date",
-                                  e.target.value
-                                )
-                              }
+                              value={exp.end_date ? exp.end_date.slice(0, 10) : ""}
+                              onChange={(e) => updateExperienceItem(index, "end_date", e.target.value)}
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <MapPin size={14} />
                               Location
                             </Label>
                             <Input
                               value={exp.location || ""}
-                              onChange={(e) =>
-                                updateExperienceItem(
-                                  index,
-                                  "location",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateExperienceItem(index, "location", e.target.value)}
                               placeholder="e.g., San Francisco, CA"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Clock size={14} />
                               Employment Type
                             </Label>
                             <select
                               value={exp.employment_type}
-                              onChange={(e) =>
-                                updateExperienceItem(
-                                  index,
-                                  "employment_type",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateExperienceItem(index, "employment_type", e.target.value)}
                               className="w-full border border-purple-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                             >
                               <option value="full_time">Full Time</option>
@@ -678,18 +627,10 @@ const EditProfile = () => {
                           </div>
                         </div>
                         <div className="mt-4">
-                          <Label className="text-purple-700 font-medium">
-                            Job Description
-                          </Label>
+                          <Label className="text-purple-700 font-medium">Job Description</Label>
                           <Textarea
                             value={exp.description || ""}
-                            onChange={(e) =>
-                              updateExperienceItem(
-                                index,
-                                "description",
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => updateExperienceItem(index, "description", e.target.value)}
                             placeholder="Describe your role, responsibilities, and key achievements..."
                             rows={3}
                             className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200"
@@ -698,12 +639,9 @@ const EditProfile = () => {
                       </div>
                     ))}
                     {experienceItems.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <Briefcase
-                          size={48}
-                          className="mx-auto text-purple-300 mb-4"
-                        />
-                        <p className="mb-4">No work experience added yet.</p>
+                      <div className="text-center py-8 text-gray-500 bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-100">
+                        <Briefcase size={48} className="mx-auto text-purple-300 mb-4" />
+                        <p className="mb-4 text-lg">No work experience added yet.</p>
                         <Button
                           onClick={addExperienceItem}
                           variant="outline"
@@ -743,116 +681,120 @@ const EditProfile = () => {
                     {educationItems.map((edu, index) => (
                       <div
                         key={index}
-                        className="p-6 border border-purple-200 rounded-xl bg-gradient-to-br from-purple-50 to-white relative"
+                        className="relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
                       >
                         <Button
                           onClick={() => removeEducationItem(index)}
                           variant="ghost"
                           size="sm"
-                          className="absolute top-4 right-4 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="absolute top-4 right-4 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
                         >
                           <Trash2 size={16} />
                         </Button>
+
+                        {/* Education Header */}
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2 mb-2">
+                            <GraduationCap size={18} className="text-purple-600" />
+                            <span className="text-sm font-medium text-purple-700">Education #{index + 1}</span>
+                          </div>
+                          <Separator className="bg-purple-100" />
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <Label className="text-purple-700 font-medium">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Award size={14} />
                               Degree
                             </Label>
                             <Input
                               value={edu.education}
-                              onChange={(e) =>
-                                updateEducationItem(
-                                  index,
-                                  "education",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateEducationItem(index, "education", e.target.value)}
                               placeholder="e.g., Bachelor of Science"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium">
-                              Specialization
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <BookOpen size={14} />
+                              Specialization/Branch
                             </Label>
                             <Input
                               value={edu.specialization}
-                              onChange={(e) =>
-                                updateEducationItem(
-                                  index,
-                                  "specialization",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateEducationItem(index, "specialization", e.target.value)}
                               placeholder="e.g., Computer Science"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
-                          <div>
-                            <Label className="text-purple-700 font-medium">
+                          <div className="md:col-span-2">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Building size={14} />
                               College/University
                             </Label>
                             <Input
                               value={edu.college}
-                              onChange={(e) =>
-                                updateEducationItem(
-                                  index,
-                                  "college",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => updateEducationItem(index, "college", e.target.value)}
                               placeholder="e.g., IIT Bombay"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                             />
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="text-purple-700 font-medium">
-                                Start Year
-                              </Label>
-                              <Input
-                                type="number"
-                                value={edu.start_year}
-                                onChange={(e) =>
-                                  updateEducationItem(
-                                    index,
-                                    "start_year",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="2020"
-                                className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-purple-700 font-medium">
-                                End Year
-                              </Label>
-                              <Input
-                                type="number"
-                                value={edu.end_year}
-                                onChange={(e) =>
-                                  updateEducationItem(
-                                    index,
-                                    "end_year",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="2024"
-                                className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                              />
-                            </div>
+                          <div>
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Calendar size={14} />
+                              Start Year
+                            </Label>
+                            <Input
+                              type="number"
+                              value={edu.start_year}
+                              onChange={(e) => updateEducationItem(index, "start_year", e.target.value)}
+                              placeholder="2020"
+                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <Calendar size={14} />
+                              End Year
+                            </Label>
+                            <Input
+                              type="number"
+                              value={edu.end_year}
+                              onChange={(e) => updateEducationItem(index, "end_year", e.target.value)}
+                              placeholder="2024"
+                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-purple-700 font-medium flex items-center gap-2">
+                              <MapPin size={14} />
+                              Location
+                            </Label>
+                            <Input
+                              value={edu.location}
+                              onChange={(e) => updateEducationItem(index, "location", e.target.value)}
+                              placeholder="e.g., Mumbai, India"
+                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                            />
                           </div>
                         </div>
+
+                        {/* Duration Display */}
+                        {edu.start_year && edu.end_year && (
+                          <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                            <div className="flex items-center gap-2 text-purple-700">
+                              <Clock size={16} />
+                              <span className="font-medium">
+                                Duration: {calculateDuration(edu.start_year, edu.end_year)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                     {educationItems.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <GraduationCap
-                          size={48}
-                          className="mx-auto text-purple-300 mb-4"
-                        />
-                        <p className="mb-4">No education added yet.</p>
+                      <div className="text-center py-8 text-gray-500 bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-100">
+                        <GraduationCap size={48} className="mx-auto text-purple-300 mb-4" />
+                        <p className="mb-4 text-lg">No education added yet.</p>
                         <Button
                           onClick={addEducationItem}
                           variant="outline"
@@ -899,7 +841,7 @@ const EditProfile = () => {
         </div>
       </div>
     </Layout>
-  );
-};
+  )
+}
 
-export default EditProfile;
+export default EditProfile

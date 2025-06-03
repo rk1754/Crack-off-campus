@@ -18,25 +18,7 @@ import {
 } from "@/redux/slices/educationSlice";
 import Layout from "../components/layout/Layout";
 import ProfileSidebar from "../components/profile/ProfileSidebar";
-import {
-  Mail,
-  Phone,
-  Edit,
-  Calendar,
-  Camera,
-  Save,
-  X,
-  Plus,
-  Briefcase,
-  GraduationCap,
-  User,
-  Award,
-  CheckCircle,
-  MapPin,
-  Trash2,
-  Star,
-  Building,
-} from "lucide-react";
+import { Mail, Phone, Edit, Calendar, Camera, Save, X, Plus, Briefcase, GraduationCap, User, Award, CheckCircle, MapPin, Trash2, Star, Building, BookOpen, Clock, Users, TrendingUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,6 +69,7 @@ const Profile = () => {
     college: "",
     start_year: "",
     end_year: "",
+    location: "",
   });
 
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(
@@ -182,6 +165,7 @@ const Profile = () => {
       college: "",
       start_year: "",
       end_year: "",
+      location: "",
     });
     setSkillInput("");
   };
@@ -250,6 +234,7 @@ const Profile = () => {
         college: "",
         start_year: "",
         end_year: "",
+        location: "",
       });
       await dispatch(getMyEducation());
     } catch (err) {
@@ -305,6 +290,25 @@ const Profile = () => {
     }
   };
 
+  const calculateDuration = (startDate: string, endDate: string) => {
+    if (!startDate) return "";
+
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : new Date();
+
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+
+    if (years === 0) {
+      return `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+    } else if (remainingMonths === 0) {
+      return `${years} year${years !== 1 ? 's' : ''}`;
+    } else {
+      return `${years} year${years !== 1 ? 's' : ''} ${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+    }
+  };
+
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
@@ -319,7 +323,7 @@ const Profile = () => {
             <div className="lg:col-span-3 space-y-8">
               {/* Cover Photo & Profile Header */}
               <Card className="overflow-hidden border-none shadow-xl bg-white">
-                <div className="relative h-64 bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600">
+                <div className="relative h-64 bg-white">
                   {coverImagePreview && (
                     <img
                       src={coverImagePreview || "/placeholder.svg"}
@@ -327,7 +331,7 @@ const Profile = () => {
                       className="w-full h-full object-cover"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  <div className="absolute inset-0 bg-white"></div>
                   {editingSection === "profile" && (
                     <label className="absolute top-6 right-6 bg-white/95 hover:bg-white p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl">
                       <Camera size={20} className="text-purple-600" />
@@ -351,7 +355,7 @@ const Profile = () => {
                             profilePicPreview ||
                             user?.profile_pic ||
                             "/placeholder.svg?height=160&width=160"
-                          }
+                            || "/placeholder.svg"}
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
@@ -397,32 +401,23 @@ const Profile = () => {
                           />
                         </div>
                       ) : (
-                        <>
-                          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                            {user?.name || "User"}
-                          </h1>
-                          {user?.name && (
-                            <p className="text-xl text-purple-600 font-semibold mb-4 flex items-center">
-                              <Star
-                                size={20}
-                                className="mr-2 text-yellow-500"
-                              />
-                              {user.name}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-4xl font-bold text-gray-900">
+                              {user?.name || "User"}
+                            </h1>
+                          </div>
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
                               <Mail size={16} className="text-purple-500" />
-                              <span>{user?.email}</span>
+                              <span>{user?.email || "Not provided"}</span>
                             </div>
                             <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
                               <Phone size={16} className="text-purple-500" />
-                              <span>
-                                {user?.phone_number || "Not provided"}
-                              </span>
+                              <span>{user?.phone_number || "Not provided"}</span>
                             </div>
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
 
@@ -820,7 +815,7 @@ const Profile = () => {
                       experiences.map((exp: any, index: number) => (
                         <div
                           key={exp.id || exp._id}
-                          className="group border-l-4 border-purple-600 pl-6 pb-6 hover:bg-gradient-to-r hover:from-purple-50 hover:to-transparent p-4 rounded-r-xl transition-all duration-200 relative"
+                          className="group relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-100 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:border-purple-200"
                         >
                           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <Button
@@ -829,52 +824,75 @@ const Profile = () => {
                               onClick={() =>
                                 handleDeleteExperience(exp.id || exp._id)
                               }
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
                             >
                               <Trash2 size={16} />
                             </Button>
                           </div>
-                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
-                            <h3 className="text-xl font-bold text-gray-900">
-                              {exp.job_title}
-                            </h3>
-                            <div className="flex items-center text-sm text-gray-600 bg-purple-50 px-3 py-1 rounded-full">
-                              <Calendar
-                                size={14}
-                                className="mr-1 text-purple-500"
-                              />
-                              <span>
-                                {exp.start_date
-                                  ? format(
+
+                          {/* Header with Job Title and Duration */}
+                          <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                {exp.job_title}
+                              </h3>
+                              <div className="flex items-center gap-2 text-purple-700 font-semibold mb-3">
+                                <Building size={18} className="text-purple-600" />
+                                <span className="text-lg">{exp.company_name}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <div className="flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full">
+                                <Calendar size={16} className="text-purple-600" />
+                                <span className="text-sm font-medium text-purple-800">
+                                  {exp.start_date
+                                    ? format(
                                       new Date(exp.start_date.slice(0, 10)),
-                                      "dd MMM yyyy"
+                                      "MMM yyyy"
                                     )
-                                  : ""}{" "}
-                                -{" "}
-                                {exp.end_date
-                                  ? format(
+                                    : ""}{" "}
+                                  -{" "}
+                                  {exp.end_date
+                                    ? format(
                                       new Date(exp.end_date.slice(0, 10)),
-                                      "dd MMM yyyy"
+                                      "MMM yyyy"
                                     )
-                                  : "Present"}
-                              </span>
+                                    : "Present"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Clock size={14} className="text-gray-500" />
+                                <span>{calculateDuration(exp.start_date, exp.end_date)}</span>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center text-purple-600 font-semibold mb-3">
-                            <Building size={16} className="mr-2" />
-                            {exp.company_name} • {exp.location}
+
+                          {/* Location and Employment Type */}
+                          <div className="flex flex-wrap gap-3 mb-4">
+                            {exp.location && (
+                              <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+                                <MapPin size={14} className="text-gray-500" />
+                                <span className="text-sm text-gray-700">{exp.location}</span>
+                              </div>
+                            )}
+                            <Badge
+                              variant="outline"
+                              className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 border-purple-200 font-medium px-3 py-1"
+                            >
+                              {(exp.employment_type || "")
+                                .replace("_", " ")
+                                .replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                            </Badge>
                           </div>
-                          <p className="text-gray-700 mb-3 leading-relaxed">
-                            {exp.description}
-                          </p>
-                          <Badge
-                            variant="outline"
-                            className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 border-purple-200 font-medium"
-                          >
-                            {(exp.employment_type || "")
-                              .replace("_", " ")
-                              .toUpperCase()}
-                          </Badge>
+
+                          {/* Description */}
+                          {exp.description && (
+                            <div className="bg-white/70 rounded-lg p-4 border border-purple-100">
+                              <p className="text-gray-700 leading-relaxed">
+                                {exp.description}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -946,7 +964,7 @@ const Profile = () => {
                         </div>
                         <div>
                           <Label className="text-purple-700 font-medium">
-                            Specialization
+                            Specialization/Branch
                           </Label>
                           <Input
                             value={educationForm.specialization}
@@ -976,37 +994,55 @@ const Profile = () => {
                             className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                           />
                         </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Start Year
-                          </Label>
-                          <Input
-                            type="number"
-                            value={educationForm.start_year}
-                            onChange={(e) =>
-                              setEducationForm((prev) => ({
-                                ...prev,
-                                start_year: e.target.value,
-                              }))
-                            }
-                            placeholder="2020"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-purple-700 font-medium">
+                              Start Year
+                            </Label>
+                            <Input
+                              type="number"
+                              value={educationForm.start_year}
+                              onChange={(e) =>
+                                setEducationForm((prev) => ({
+                                  ...prev,
+                                  start_year: e.target.value,
+                                }))
+                              }
+                              placeholder="2020"
+                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-purple-700 font-medium">
+                              End Year
+                            </Label>
+                            <Input
+                              type="number"
+                              value={educationForm.end_year}
+                              onChange={(e) =>
+                                setEducationForm((prev) => ({
+                                  ...prev,
+                                  end_year: e.target.value,
+                                }))
+                              }
+                              placeholder="2024"
+                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                            />
+                          </div>
                         </div>
                         <div>
                           <Label className="text-purple-700 font-medium">
-                            End Year
+                            Location
                           </Label>
                           <Input
-                            type="number"
-                            value={educationForm.end_year}
+                            value={educationForm.location}
                             onChange={(e) =>
                               setEducationForm((prev) => ({
                                 ...prev,
-                                end_year: e.target.value,
+                                location: e.target.value,
                               }))
                             }
-                            placeholder="2024"
+                            placeholder="e.g., Mumbai, India"
                             className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
                           />
                         </div>
@@ -1031,77 +1067,45 @@ const Profile = () => {
                     </div>
                   )}
 
-                  <div className="space-y-6">
+                  <div className="space-y-2">
                     {educationList && educationList.length > 0 ? (
-                      educationList.map((edu: any) => (
-                        <div
-                          key={edu.id || edu._id}
-                          className="group border-l-4 border-purple-600 pl-6 pb-6 hover:bg-gradient-to-r hover:from-purple-50 hover:to-transparent p-4 rounded-r-xl transition-all duration-200 relative"
-                        >
-                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleDeleteEducation(edu.id || edu._id)
-                              }
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
+                      educationList.map((edu: any, idx: number) => (
+                        <div key={edu.id || edu._id || idx} className="mb-4">
+                          <div className="flex items-center gap-2">
+                            <GraduationCap className="w-5 h-5 text-purple-600" />
+                            <span className="font-semibold">Degree:</span>
+                            <span>{edu.education}</span>
                           </div>
-                          <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
-                            <h3 className="text-xl font-bold text-gray-900">
-                              {edu.education}
-                              {edu.specialization && (
-                                <span className="text-gray-600 font-normal">
-                                  {" "}
-                                  in {edu.specialization}
-                                </span>
-                              )}
-                              {edu.college && (
-                                <span className="block text-purple-700 text-base font-medium mt-1">
-                                  {edu.college}
-                                </span>
-                              )}
-                            </h3>
-                            <div className="flex items-center text-sm text-gray-600 bg-purple-50 px-3 py-1 rounded-full">
-                              <Calendar
-                                size={14}
-                                className="mr-1 text-purple-500"
-                              />
-                              <span>
-                                {edu.start_year
-                                  ? format(new Date(edu.start_year), "yyyy")
-                                  : ""}{" "}
-                                -{" "}
-                                {edu.end_year
-                                  ? format(new Date(edu.end_year), "yyyy")
-                                  : ""}
-                              </span>
+                          {edu.specialization && (
+                            <div className="flex items-center gap-2 ml-7">
+                              <BookOpen className="w-4 h-4 text-gray-500" />
+                              <span className="font-semibold">Specialization:</span>
+                              <span>{edu.specialization}</span>
                             </div>
+                          )}
+                          {edu.college && (
+                            <div className="flex items-center gap-2 ml-7">
+                              <Building className="w-4 h-4 text-gray-500" />
+                              <span className="font-semibold">College/University:</span>
+                              <span>{edu.college}</span>
+                            </div>
+                          )}
+                          {edu.location && (
+                            <div className="flex items-center gap-2 ml-7">
+                              <MapPin className="w-4 h-4 text-gray-500" />
+                              <span className="font-semibold">Location:</span>
+                              <span>{edu.location}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 ml-7">
+                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <span className="font-semibold">Year:</span>
+                            <span>{edu.start_year ? new Date(edu.start_year).getFullYear() : ""} to {edu.end_year ? new Date(edu.end_year).getFullYear() : ""}</span>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-12 bg-gradient-to-br from-purple-50 to-white rounded-xl">
-                        <GraduationCap
-                          size={48}
-                          className="mx-auto text-purple-300 mb-4"
-                        />
-                        <p className="text-gray-500 mb-4 text-lg">
-                          No education added yet.
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                          onClick={() => handleEdit("education")}
-                        >
-                          <Plus size={16} className="mr-2" />
-                          Add Your Education
-                        </Button>
-                      </div>
+                      <div className="text-gray-500">No education details added yet.</div>
                     )}
                   </div>
                 </CardContent>
