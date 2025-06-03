@@ -23,6 +23,11 @@ import { useNavigate } from "react-router-dom";
 export interface PremiumPlansModalProps {
   isOpen: boolean;
   onClose: () => void;
+  title: string;
+  description?: string;
+  onContinue?: (planName: string) => void;
+  onCancel?: () => void;
+  details: string;
 }
 
 const planAmountMap: Record<string, number> = {

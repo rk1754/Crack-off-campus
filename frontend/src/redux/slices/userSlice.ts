@@ -4,7 +4,7 @@ import { BACKEND_URL } from "../config";
 import axios from "axios";
 
 // Define the shape of a User object (adjust based on your API response)
-interface User {
+export interface User {
   id: string;
   name?: string;
   email: string;
