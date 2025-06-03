@@ -96,7 +96,7 @@ class SlotBookingController {
         <p> User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best regards,</p>
-        <p>Team Crack-Off-Campus</p>
+        <p>Team Crack Off-Campus</p>
                 `;
 
       console.log("Admin HTML: ", adminHTML);
