@@ -29,7 +29,7 @@ const ResourcesPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user.user);
   const [sdkLoaded, setSdkLoaded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Only for payment
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   // Log subscription types for debugging
@@ -202,11 +202,9 @@ const ResourcesPage = () => {
       return;
     }
     if (resourceId) setDownloadingId(resourceId);
-    setLoading(true);
     try {
       await action();
     } finally {
-      setLoading(false);
       if (resourceId) setDownloadingId(null);
     }
   };
@@ -396,7 +394,7 @@ const ResourcesPage = () => {
                       size="lg"
                       disabled={
                         resource.buttonText === "Coming Soon" ||
-                        loading ||
+                        loading || // disables all buttons only during payment
                         !sdkLoaded ||
                         isDownloading
                       }
@@ -464,9 +462,11 @@ const ResourcesPage = () => {
                         }
 
                         // Otherwise, redirect to payment
-                        handleUpgradeSubscription(
+                        setLoading(true);
+                        await handleUpgradeSubscription(
                           resource.requiredSubscription
                         );
+                        setLoading(false);
                       }}
                     >
                       {isDownloading
