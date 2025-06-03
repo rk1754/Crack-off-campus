@@ -192,7 +192,6 @@ const EditProfile = () => {
     }
   }
 
-  // Add Experience UI handler (renamed to avoid thunk conflict)
   const addExperienceItem = () => {
     const newExperience: ExperienceItem = {
       job_title: "",
@@ -338,16 +337,25 @@ const EditProfile = () => {
 
             <div className="space-y-8">
               {/* Cover Photo & Profile Picture */}
-              <Card className="overflow-hidden border-none shadow-lg bg-white">
-                <div className="relative h-48 bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600">
-                  {coverImagePreview && (
+              <Card className="overflow-hidden border-none shadow-lg bg-gradient-to-br from-gray-100 via-white to-purple-100">
+                <div className="relative h-48">
+                  {coverImagePreview ? (
                     <img
                       src={coverImagePreview || "/placeholder.svg"}
                       alt="Cover"
                       className="w-full h-full object-cover"
                     />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 via-white to-purple-100">
+                      <img
+                        src="/placeholder.svg"
+                        alt="Upload cover"
+                        className="w-20 h-20 opacity-60 mb-2"
+                      />
+                      <span className="text-gray-400 font-medium">Upload Cover Image</span>
+                    </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-white to-purple-200 opacity-70"></div>
                   <label className="absolute top-4 right-4 bg-white/95 hover:bg-white p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl">
                     <Upload size={20} className="text-purple-600" />
                     <input

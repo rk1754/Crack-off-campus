@@ -311,7 +311,7 @@ const Profile = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
+      <div className="min-h-screen bg-white">
         <div className="container mx-auto py-8 px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar - Hidden on mobile */}
@@ -322,19 +322,33 @@ const Profile = () => {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-8">
               {/* Cover Photo & Profile Header */}
-              <Card className="overflow-hidden border-none shadow-xl bg-white">
-                <div className="relative h-64 bg-white">
-                  {coverImagePreview && (
+              <Card className="overflow-hidden bg-gradient-to-br from-gray-100 via-white to-purple-100 shadow-2xl border-none">
+                <div className="relative h-64">
+                  {coverImagePreview ? (
                     <img
                       src={coverImagePreview || "/placeholder.svg"}
                       alt="Cover"
                       className="w-full h-full object-cover"
                     />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 via-white to-purple-100">
+                      <img
+                        src="/placeholder.svg"
+                        alt="Upload cover"
+                        className="w-24 h-24 opacity-60 mb-2"
+                      />
+                      <span className="text-gray-400 font-medium">
+                        Upload Cover Image
+                      </span>
+                    </div>
                   )}
-                  <div className="absolute inset-0 bg-white"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-white to-purple-200 opacity-70"></div>
                   {editingSection === "profile" && (
-                    <label className="absolute top-6 right-6 bg-white/95 hover:bg-white p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl">
-                      <Camera size={20} className="text-purple-600" />
+                    <label className="absolute top-6 right-6 bg-white hover:bg-gray-800 text-white p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2">
+                      <Camera size={20} className="text-purple-500" />
+                      <span className="hidden sm:inline text-purple-700">
+                        Update Cover
+                      </span>
                       <input
                         type="file"
                         name="cover_image"
@@ -349,20 +363,22 @@ const Profile = () => {
                 <CardContent className="relative pt-0 pb-8">
                   <div className="flex flex-col md:flex-row items-start md:items-end gap-6 -mt-20 relative z-10">
                     <div className="relative">
-                      <div className="w-40 h-40 rounded-full border-4 border-white bg-white overflow-hidden shadow-2xl">
+                      <div className="w-40 h-40 rounded-full overflow-hidden shadow-2xl border-4 border-white bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
                         <img
                           src={
                             profilePicPreview ||
                             user?.profile_pic ||
-                            "/placeholder.svg?height=160&width=160"
-                            || "/placeholder.svg"}
+                            "/placeholder.svg?height=160&width=160" ||
+                            "/placeholder.svg"
+                          }
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
                       </div>
                       {editingSection === "profile" && (
-                        <label className="absolute bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl">
-                          <Camera size={18} />
+                        <label className="absolute bottom-4 right-4 bg-gray-300 hover:bg-gray-800 text-black p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2">
+                          <Camera size={18} className="text-black" />
+                          <span className="hidden sm:inline">Update</span>
                           <input
                             type="file"
                             name="profile_pic"
@@ -375,91 +391,23 @@ const Profile = () => {
                     </div>
 
                     <div className="flex-1 md:mb-6 mt-20">
-                      {editingSection === "profile" ? (
-                        <div className="space-y-4">
-                          <Input
-                            value={profileData.name}
-                            onChange={(e) =>
-                              setProfileData((prev) => ({
-                                ...prev,
-                                name: e.target.value,
-                              }))
-                            }
-                            className="text-3xl font-bold border-0 border-b-2 border-gray-300 rounded-none px-0 focus:border-purple-600 bg-transparent"
-                            placeholder="Your Name or Title (e.g., Software Developer)"
-                          />
-                          <Input
-                            value={profileData.phone_number}
-                            onChange={(e) =>
-                              setProfileData((prev) => ({
-                                ...prev,
-                                phone_number: e.target.value,
-                              }))
-                            }
-                            placeholder="Phone Number"
-                            className="text-lg border-0 border-b-2 border-gray-300 rounded-none px-0 focus:border-purple-600 bg-transparent"
-                          />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h1 className="text-4xl font-bold text-gray-900">
+                            {user?.name || "User"}
+                          </h1>
                         </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-4xl font-bold text-gray-900">
-                              {user?.name || "User"}
-                            </h1>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
+                            <Mail size={16} className="text-purple-500" />
+                            <span>{user?.email || "Not provided"}</span>
                           </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
-                              <Mail size={16} className="text-purple-500" />
-                              <span>{user?.email || "Not provided"}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
-                              <Phone size={16} className="text-purple-500" />
-                              <span>{user?.phone_number || "Not provided"}</span>
-                            </div>
+                          <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
+                            <Phone size={16} className="text-purple-500" />
+                            <span>{user?.phone_number || "Not provided"}</span>
                           </div>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3">
-                      {editingSection === "profile" ? (
-                        <>
-                          <Button
-                            onClick={handleSaveProfile}
-                            disabled={isSaving}
-                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl px-6 py-3"
-                          >
-                            {isSaving ? (
-                              <span className="flex items-center">
-                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                                Saving...
-                              </span>
-                            ) : (
-                              <span className="flex items-center">
-                                <Save size={16} className="mr-2" />
-                                Save Changes
-                              </span>
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={handleCancel}
-                            className="border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-200 px-6 py-3"
-                          >
-                            <X size={16} className="mr-2" />
-                            Cancel
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          onClick={() => handleEdit("profile")}
-                          variant="outline"
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-200 px-6 py-3"
-                        >
-                          <Edit size={16} className="mr-2" />
-                          Edit Profile
-                        </Button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -474,66 +422,12 @@ const Profile = () => {
                     </div>
                     About Me
                   </CardTitle>
-                  {editingSection !== "about" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit("about")}
-                      className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg"
-                    >
-                      <Edit size={16} />
-                    </Button>
-                  )}
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {editingSection === "about" ? (
-                    <div className="space-y-4">
-                      <Textarea
-                        value={profileData.bio}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({
-                            ...prev,
-                            bio: e.target.value,
-                          }))
-                        }
-                        placeholder="Tell us about yourself..."
-                        rows={4}
-                        className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                      />
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={handleSaveProfile}
-                          disabled={isSaving}
-                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
-                          {isSaving ? (
-                            <span className="flex items-center">
-                              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                              Saving...
-                            </span>
-                          ) : (
-                            <span className="flex items-center">
-                              <Save size={16} className="mr-2" />
-                              Save
-                            </span>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancel}
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-200"
-                        >
-                          <X size={16} className="mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-gray-700 leading-relaxed text-lg">
-                      {user?.bio ||
-                        "No bio provided yet. Click the edit button to add your bio."}
-                    </p>
-                  )}
+                  <p className="text-gray-700 leading-relaxed text-lg">
+                    {user?.bio ||
+                      "No bio provided yet."}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -546,101 +440,25 @@ const Profile = () => {
                     </div>
                     Skills & Expertise
                   </CardTitle>
-                  {editingSection !== "skills" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit("skills")}
-                      className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg"
-                    >
-                      <Edit size={16} />
-                    </Button>
-                  )}
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {editingSection === "skills" ? (
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <Input
-                          value={skillInput}
-                          onChange={(e) => setSkillInput(e.target.value)}
-                          placeholder="Add a skill (e.g., React, Python, etc.)"
-                          onKeyPress={handleSkillInputKeyPress}
-                          className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                        />
-                        <Button
-                          onClick={addSkill}
-                          type="button"
-                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6"
+                  <div className="flex flex-wrap gap-3">
+                    {(user?.skills || []).length > 0 ? (
+                      (user?.skills || []).map((skill, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 py-2 px-4 text-sm font-medium"
                         >
-                          <Plus size={16} />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-3">
-                        {profileData.skills.map((skill, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="flex items-center gap-2 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 hover:from-purple-200 hover:to-purple-300 transition-all duration-200 py-2 px-4 text-sm font-medium"
-                          >
-                            {skill}
-                            <button
-                              onClick={() => removeSkill(skill)}
-                              className="ml-1 hover:text-red-600 transition-colors"
-                            >
-                              <X size={14} />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={handleSaveProfile}
-                          disabled={isSaving}
-                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
-                          {isSaving ? (
-                            <span className="flex items-center">
-                              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                              Saving...
-                            </span>
-                          ) : (
-                            <span className="flex items-center">
-                              <Save size={16} className="mr-2" />
-                              Save Skills
-                            </span>
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancel}
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-200"
-                        >
-                          <X size={16} className="mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-3">
-                      {(user?.skills || []).length > 0 ? (
-                        (user?.skills || []).map((skill, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 py-2 px-4 text-sm font-medium"
-                          >
-                            {skill}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-gray-500 text-center w-full py-8">
-                          No skills added yet. Click the edit button to showcase
-                          your expertise.
-                        </p>
-                      )}
-                    </div>
-                  )}
+                          {skill}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center w-full py-8">
+                        No skills added yet.
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -653,163 +471,8 @@ const Profile = () => {
                     </div>
                     Work Experience
                   </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit("experience")}
-                    className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Add Experience
-                  </Button>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {editingSection === "experience" && (
-                    <div className="mb-8 p-6 border border-purple-200 rounded-xl bg-gradient-to-br from-purple-50 to-white shadow-sm">
-                      <h4 className="font-semibold mb-6 text-purple-800 flex items-center text-lg">
-                        <Plus size={20} className="mr-2 text-purple-600" />
-                        Add New Experience
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Job Title
-                          </Label>
-                          <Input
-                            value={experienceForm.job_title}
-                            onChange={(e) =>
-                              setExperienceForm((prev) => ({
-                                ...prev,
-                                job_title: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., Senior Software Engineer"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Company Name
-                          </Label>
-                          <Input
-                            value={experienceForm.company_name}
-                            onChange={(e) =>
-                              setExperienceForm((prev) => ({
-                                ...prev,
-                                company_name: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., Google Inc."
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Start Date
-                          </Label>
-                          <Input
-                            type="date"
-                            value={experienceForm.start_date}
-                            onChange={(e) =>
-                              setExperienceForm((prev) => ({
-                                ...prev,
-                                start_date: e.target.value,
-                              }))
-                            }
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            End Date
-                          </Label>
-                          <Input
-                            type="date"
-                            value={experienceForm.end_date}
-                            onChange={(e) =>
-                              setExperienceForm((prev) => ({
-                                ...prev,
-                                end_date: e.target.value,
-                              }))
-                            }
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Location
-                          </Label>
-                          <Input
-                            value={experienceForm.location}
-                            onChange={(e) =>
-                              setExperienceForm((prev) => ({
-                                ...prev,
-                                location: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., San Francisco, CA"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Employment Type
-                          </Label>
-                          <select
-                            value={experienceForm.employment_type}
-                            onChange={(e) =>
-                              setExperienceForm((prev) => ({
-                                ...prev,
-                                employment_type: e.target.value,
-                              }))
-                            }
-                            className="w-full border border-purple-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                          >
-                            <option value="full_time">Full Time</option>
-                            <option value="part_time">Part Time</option>
-                            <option value="contract">Contract</option>
-                            <option value="internship">Internship</option>
-                            <option value="freelance">Freelance</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <Label className="text-purple-700 font-medium">
-                          Job Description
-                        </Label>
-                        <Textarea
-                          value={experienceForm.description}
-                          onChange={(e) =>
-                            setExperienceForm((prev) => ({
-                              ...prev,
-                              description: e.target.value,
-                            }))
-                          }
-                          placeholder="Describe your role, responsibilities, and key achievements..."
-                          rows={4}
-                          className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                        />
-                      </div>
-                      <div className="flex gap-3 mt-6">
-                        <Button
-                          onClick={handleAddExperience}
-                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
-                          <CheckCircle size={16} className="mr-2" />
-                          Add Experience
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancel}
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-200"
-                        >
-                          <X size={16} className="mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="space-y-6">
                     {experiences && experiences.length > 0 ? (
                       experiences.map((exp: any, index: number) => (
@@ -817,19 +480,6 @@ const Profile = () => {
                           key={exp.id || exp._id}
                           className="group relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-100 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 hover:border-purple-200"
                         >
-                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleDeleteExperience(exp.id || exp._id)
-                              }
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </div>
-
                           {/* Header with Job Title and Duration */}
                           <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-4">
                             <div className="flex-1">
@@ -904,15 +554,6 @@ const Profile = () => {
                         <p className="text-gray-500 mb-4 text-lg">
                           No work experience added yet.
                         </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                          onClick={() => handleEdit("experience")}
-                        >
-                          <Plus size={16} className="mr-2" />
-                          Add Your First Experience
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -928,179 +569,41 @@ const Profile = () => {
                     </div>
                     Education
                   </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit("education")}
-                    className="text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Add Education
-                  </Button>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {editingSection === "education" && (
-                    <div className="mb-8 p-6 border border-purple-200 rounded-xl bg-gradient-to-br from-purple-50 to-white shadow-sm">
-                      <h4 className="font-semibold mb-6 text-purple-800 flex items-center text-lg">
-                        <Plus size={20} className="mr-2 text-purple-600" />
-                        Add New Education
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Degree
-                          </Label>
-                          <Input
-                            value={educationForm.education}
-                            onChange={(e) =>
-                              setEducationForm((prev) => ({
-                                ...prev,
-                                education: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., Bachelor of Science"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Specialization/Branch
-                          </Label>
-                          <Input
-                            value={educationForm.specialization}
-                            onChange={(e) =>
-                              setEducationForm((prev) => ({
-                                ...prev,
-                                specialization: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., Computer Science"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            College/University
-                          </Label>
-                          <Input
-                            value={educationForm.college}
-                            onChange={(e) =>
-                              setEducationForm((prev) => ({
-                                ...prev,
-                                college: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., IIT Bombay"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-purple-700 font-medium">
-                              Start Year
-                            </Label>
-                            <Input
-                              type="number"
-                              value={educationForm.start_year}
-                              onChange={(e) =>
-                                setEducationForm((prev) => ({
-                                  ...prev,
-                                  start_year: e.target.value,
-                                }))
-                              }
-                              placeholder="2020"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-purple-700 font-medium">
-                              End Year
-                            </Label>
-                            <Input
-                              type="number"
-                              value={educationForm.end_year}
-                              onChange={(e) =>
-                                setEducationForm((prev) => ({
-                                  ...prev,
-                                  end_year: e.target.value,
-                                }))
-                              }
-                              placeholder="2024"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label className="text-purple-700 font-medium">
-                            Location
-                          </Label>
-                          <Input
-                            value={educationForm.location}
-                            onChange={(e) =>
-                              setEducationForm((prev) => ({
-                                ...prev,
-                                location: e.target.value,
-                              }))
-                            }
-                            placeholder="e.g., Mumbai, India"
-                            className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-3 mt-6">
-                        <Button
-                          onClick={handleAddEducation}
-                          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
-                          <CheckCircle size={16} className="mr-2" />
-                          Add Education
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleCancel}
-                          className="border-purple-200 text-purple-700 hover:bg-purple-50 transition-all duration-200"
-                        >
-                          <X size={16} className="mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="space-y-2">
                     {educationList && educationList.length > 0 ? (
                       educationList.map((edu: any, idx: number) => (
-                        <div key={edu.id || edu._id || idx} className="mb-4">
-                          <div className="flex items-center gap-2">
-                            <GraduationCap className="w-5 h-5 text-purple-600" />
-                            <span className="font-semibold">Degree:</span>
-                            <span>{edu.education}</span>
-                          </div>
-                          {edu.specialization && (
-                            <div className="flex items-center gap-2 ml-7">
-                              <BookOpen className="w-4 h-4 text-gray-500" />
-                              <span className="font-semibold">Specialization:</span>
-                              <span>{edu.specialization}</span>
+                        <div key={edu.id || edu._id || idx} className="mb-4 p-4 rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-100 relative group">
+                          <div className="flex flex-col md:flex-row md:items-center md:gap-8 gap-2">
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <GraduationCap className="w-5 h-5 text-purple-600" />
+                                <span className="font-semibold">Degree:</span>
+                                <span>{edu.education || <span className="text-gray-400">N/A</span>}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <BookOpen className="w-4 h-4 text-gray-500" />
+                                <span className="font-semibold">Specialization:</span>
+                                <span>{edu.specialization || <span className="text-gray-400">N/A</span>}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Building className="w-4 h-4 text-gray-500" />
+                                <span className="font-semibold">College/University:</span>
+                                <span>{(edu.college !== undefined && edu.college !== null && edu.college !== "") ? edu.college : <span className="text-gray-400">N/A</span>}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-gray-500" />
+                                <span className="font-semibold">Location:</span>
+                                <span>{(edu.location !== undefined && edu.location !== null && edu.location !== "") ? edu.location : <span className="text-gray-400">N/A</span>}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-gray-500" />
+                                <span className="font-semibold">Year:</span>
+                                <span>{edu.start_year ? new Date(edu.start_year).getFullYear() : <span className="text-gray-400">N/A</span>} to {edu.end_year ? new Date(edu.end_year).getFullYear() : <span className="text-gray-400">N/A</span>}</span>
+                              </div>
                             </div>
-                          )}
-                          {edu.college && (
-                            <div className="flex items-center gap-2 ml-7">
-                              <Building className="w-4 h-4 text-gray-500" />
-                              <span className="font-semibold">College/University:</span>
-                              <span>{edu.college}</span>
-                            </div>
-                          )}
-                          {edu.location && (
-                            <div className="flex items-center gap-2 ml-7">
-                              <MapPin className="w-4 h-4 text-gray-500" />
-                              <span className="font-semibold">Location:</span>
-                              <span>{edu.location}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2 ml-7">
-                            <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="font-semibold">Year:</span>
-                            <span>{edu.start_year ? new Date(edu.start_year).getFullYear() : ""} to {edu.end_year ? new Date(edu.end_year).getFullYear() : ""}</span>
+                            {/* Removed Delete button for read-only view */}
                           </div>
                         </div>
                       ))
@@ -1119,3 +622,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
