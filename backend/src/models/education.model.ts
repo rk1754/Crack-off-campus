@@ -8,6 +8,7 @@ class Education extends Model{
     public start_year!: Date;
     public end_year!: Date;
     public specialization?: string;
+    public college?: string;
 }
 
 Education.init({
@@ -35,6 +36,14 @@ Education.init({
     end_year : {
         type : DataTypes.DATE,
         allowNull : false
+    },
+    specialization: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    college: {
+        type: DataTypes.STRING,
+        allowNull: true,
     }
 },
 {

@@ -7,6 +7,7 @@ interface Admin {
   name?: string;
   email: string;
   phone_number?: string;
+  is_admin: boolean; // <-- Add this property
 }
 
 interface AdminState {
@@ -23,7 +24,12 @@ const initialState: AdminState = {
 
 export const fetchAdmin = createAsyncThunk("admin/fetchAdmin", async () => {
   const response = await axios.get(`${BACKEND_URL}/admin/me`);
-  return response.data;
+  // Ensure is_admin is present and true
+  const admin =
+    response.data && typeof response.data === "object"
+      ? { ...response.data, is_admin: true }
+      : null;
+  return admin;
 });
 
 export const loginAdmin = createAsyncThunk(
@@ -33,7 +39,12 @@ export const loginAdmin = createAsyncThunk(
       `${BACKEND_URL}/admin/login`,
       credentials
     );
-    return response.data;
+    // Ensure is_admin is present and true
+    const admin =
+      response.data && response.data.admin
+        ? { ...response.data.admin, is_admin: true }
+        : null;
+    return admin;
   }
 );
 
@@ -47,7 +58,8 @@ const adminSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action) => {
-      state.admin = action.payload.admin;
+      // Always set is_admin: true for admin login
+      state.admin = { ...action.payload.admin, is_admin: true };
     },
     logout: (state) => {
       state.admin = null;

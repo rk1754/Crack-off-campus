@@ -1,22 +1,26 @@
 import express from "express";
 import AdminController from "../controllers/admin.controller";
 import authMiddleware from "../middleware/auth.middleware";
+import adminMiddleware from "../middleware/admin.middleware";
 const router = express.Router();
 
 // Use the exported instance, not the class itself
 const adminController = AdminController;
 
-router.post('/register' ,adminController.signUp);
+router.post("/register", adminController.signUp);
 
-router.post('/login', adminController.login);
+router.post("/login", adminController.login);
 
 // Protected admin routes
-router.get('/me', authMiddleware, adminController.getCurrentAdmin);
+router.get("/me", authMiddleware, adminController.getCurrentAdmin);
 
-router.put('/update-me', authMiddleware, adminController.updateMe);
+router.put("/update-me", authMiddleware, adminController.updateMe);
 
-router.delete('/', authMiddleware, adminController.deleteMe);
+router.delete("/", authMiddleware, adminController.deleteMe);
 
-router.get('/logout', authMiddleware, adminController.logout);
+router.get("/logout", authMiddleware, adminController.logout);
+
+// Delete any user by ID (admin only)
+router.delete("/user/:id", adminMiddleware, adminController.deleteUserById);
 
 export default router;

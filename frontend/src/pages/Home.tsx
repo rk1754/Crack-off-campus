@@ -280,11 +280,7 @@ const Home = () => {
                       <Search className="text-gray-400 w-5 h-5 ml-2 flex-shrink-0" />
                       <input
                         type="text"
-                        placeholder={
-                          isMobile
-                            ? "Skills or Job"
-                            : "Search by Skills"
-                        }
+                        placeholder={isMobile ? "Skills or Job" : "Search"}
                         className="w-full px-3 py-1 focus:outline-none text-gray-700 text-sm md:text-base"
                         value={searchKeyword}
                         onChange={(e) => setSearchKeyword(e.target.value)}
@@ -480,8 +476,8 @@ const Home = () => {
                 <span className="text-[#9b87f5] font-bold">₹99</span>.
               </p>
               <p className="text-gray-600 mb-4 text-sm">
-                This will grant you access to apply to premium jobs, view referral
-                details, and more exclusive features.
+                This will grant you access to apply to premium jobs, view
+                referral details, and more exclusive features.
               </p>
             </div>
             <DialogFooter>

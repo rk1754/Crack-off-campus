@@ -16,18 +16,17 @@ interface User {
   cover_image?: string;
   provider?: "manual" | "google";
   subscription_type?: string;
-  subscription_type_2?:string;
+  subscription_type_2?: string;
   subscription_expiry?: Date;
   is_premium?: boolean;
   skills?: string[];
 }
-  
 
 // Define the shape of the user slice state
 interface UserState {
   user: User | null;
   users: User[];
-  token : string | null;
+  token: string | null;
   loading: boolean;
   error: string | null;
   message: string | null;
@@ -37,7 +36,7 @@ interface UserState {
 const initialState: UserState = {
   user: null,
   users: [],
-  token : null,
+  token: null,
   loading: false,
   error: null,
   message: null,
@@ -63,45 +62,42 @@ export const fetchCurrentUser = createAsyncThunk<User>(
   }
 );
 
-export const loginUser = createAsyncThunk<AuthResponse, { email: string; password: string }>(
-  "user/login",
-  async (data) => {
-    const res = await axios.post(`${BACKEND_URL}/auth/login`, data);
-    return res.data;
-  }
-);
+export const loginUser = createAsyncThunk<
+  AuthResponse,
+  { email: string; password: string }
+>("user/login", async (data) => {
+  const res = await axios.post(`${BACKEND_URL}/auth/login`, data);
+  return res.data;
+});
 
-export const registerUser = createAsyncThunk<AuthResponse, { name: string; email: string; password: string; phone_number: string }>(
-  "user/register",
-  async (data) => {
-    const res = await axios.post(`${BACKEND_URL}/auth/register`, data);
-    return res.data;
-  }
-);
+export const registerUser = createAsyncThunk<
+  AuthResponse,
+  { name: string; email: string; password: string; phone_number: string }
+>("user/register", async (data) => {
+  const res = await axios.post(`${BACKEND_URL}/auth/register`, data);
+  return res.data;
+});
 
-export const getAllUsers = createAsyncThunk<User[]>(
-  "user/getAll",
-  async () => {
-    const res = await axios.get(`${BACKEND_URL}/auth/all`);
-    return res.data.users;
-  }
-);
+export const getAllUsers = createAsyncThunk<User[]>("user/getAll", async () => {
+  const res = await axios.get(`${BACKEND_URL}/auth/all`);
+  return res.data.users;
+});
 
-export const forgotPassword = createAsyncThunk<MessageResponse, { email: string }>(
-  "user/forgotPassword",
-  async (data) => {
-    const res = await axios.post(`${BACKEND_URL}/auth/forgot-password`, data);
-    return res.data;
-  }
-);
+export const forgotPassword = createAsyncThunk<
+  MessageResponse,
+  { email: string }
+>("user/forgotPassword", async (data) => {
+  const res = await axios.post(`${BACKEND_URL}/auth/forgot-password`, data);
+  return res.data;
+});
 
-export const resetPassword = createAsyncThunk<MessageResponse, { token: string; password: string }>(
-  "user/resetPassword",
-  async (data) => {
-    const res = await axios.post(`${BACKEND_URL}/auth/reset-password`, data);
-    return res.data;
-  }
-);
+export const resetPassword = createAsyncThunk<
+  MessageResponse,
+  { token: string; password: string }
+>("user/resetPassword", async (data) => {
+  const res = await axios.post(`${BACKEND_URL}/auth/reset-password`, data);
+  return res.data;
+});
 
 export const setProfile = createAsyncThunk<User, { [key: string]: any }>(
   "user/setProfile",
@@ -117,7 +113,7 @@ export const setCoverImage = createAsyncThunk<User, { image: File }>(
   "user/setCoverImage",
   async (data) => {
     const formData = new FormData();
-    formData.append('image', data.image);
+    formData.append("image", data.image);
     const res = await axios.put(`${BACKEND_URL}/auth/cover`, formData);
     return res.data;
   }
@@ -139,16 +135,47 @@ export const fetchUserById = createAsyncThunk<User, string>(
   }
 );
 
-export const updateUser = createAsyncThunk<User, {data: { [key: string]: any}}>(
-  "user/update",
-  async ({ data }) => {
-    console.log("updateUser thunk called", data);
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => formData.append(key, value));
-const res = await axios.put(`${BACKEND_URL}/auth/update-me`, formData);
-    return res.data;
+export const updateUser = createAsyncThunk<
+  User,
+  { data: { [key: string]: any } }
+>("user/update", async ({ data }) => {
+  console.log("updateUser thunk called", data);
+  const formData = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (
+      (key === "profile_pic" || key === "cover_image") &&
+      (!value || typeof value !== "object") // Only append if value is a File
+    ) {
+      return;
+    }
+    // Stringify skills array for backend compatibility
+    if (key === "skills" && Array.isArray(value)) {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
+  const res = await axios.put(`${BACKEND_URL}/auth/update-me`, formData);
+  return res.data;
+});
+
+// Admin: Delete user by ID
+export const deleteUserById = createAsyncThunk<
+  string, // returns deleted user ID
+  string // user ID
+>("user/deleteUserById", async (userId, { rejectWithValue }) => {
+  try {
+    await axios.delete(`${BACKEND_URL}/admin/user/${userId}`, {
+      withCredentials: true,
+    });
+    return userId;
+  } catch (err: any) {
+    return rejectWithValue(
+      err.response?.data?.message || "Failed to delete user"
+    );
   }
-)
+});
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -164,7 +191,7 @@ const userSlice = createSlice({
     },
     login: (state, action) => {
       state.user = action.payload.user;
-    }
+    },
   },
   extraReducers: (builder) => {
     const pending = (state: UserState) => {
@@ -172,18 +199,17 @@ const userSlice = createSlice({
       state.error = null;
       state.message = null;
     };
-    
+
     builder
       .addCase(updateUser.pending, pending)
       .addCase(updateUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
-      }
-    )
-    .addCase(updateUser.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message || "Something went wrong";
-    })
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Something went wrong";
+      })
 
       .addCase(fetchCurrentUser.pending, pending)
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
@@ -200,7 +226,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-        if(action.payload.token){
+        if (action.payload.token) {
           localStorage.setItem("token", action.payload.token);
         }
       })
@@ -213,7 +239,7 @@ const userSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
-        if(action.payload.token){
+        if (action.payload.token) {
           localStorage.setItem("token", action.payload.token);
         }
       })
@@ -290,10 +316,21 @@ const userSlice = createSlice({
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Something went wrong";
+      })
+
+      .addCase(deleteUserById.pending, pending)
+      .addCase(deleteUserById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = state.users.filter((u) => u.id !== action.payload);
+        state.message = "User deleted successfully";
+      })
+      .addCase(deleteUserById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = (action.payload as string) || "Failed to delete user";
       });
   },
 });
 
 export const { clearError, clearMessage, logout, login } = userSlice.actions;
+
 export default userSlice.reducer;
-export type { UserState, User }; // Export types for use in store and components

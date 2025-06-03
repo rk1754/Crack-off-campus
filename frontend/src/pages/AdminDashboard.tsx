@@ -1,6 +1,6 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardHeader from "@/components/admin/DashboardHeader";
 import UserManagement from "@/components/admin/UserManagement";
@@ -11,6 +11,14 @@ import { Briefcase, LayoutDashboard, Users } from "lucide-react";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const admin = useSelector((state: any) => state.admin.admin);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!admin) {
+      navigate("/employers-login");
+    }
+  }, [admin, navigate]);
 
   return (
     <div className="min-h-screen bg-background">

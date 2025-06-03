@@ -3,15 +3,15 @@ import axios from "axios";
 import { BACKEND_URL } from "../config";
 
 export const addExperience = createAsyncThunk(
-  '/experience/create',
+  "/experience/create",
   async (data) => {
     const res = await axios.post(`${BACKEND_URL}/experience/create`, data);
-   return res.data.experience;
+    return res.data.experience;
   }
 );
 
 export const getMyExperience = createAsyncThunk(
-  '/experience/my/experience',
+  "/experience/my/experience",
   async () => {
     const res = await axios.get(`${BACKEND_URL}/experience/my/experience`);
     return res.data;
@@ -19,15 +19,19 @@ export const getMyExperience = createAsyncThunk(
 );
 
 export const updateExperience = createAsyncThunk(
-  '/experience/update',
-  async (data) => {
-    const res = await axios.put(`${BACKEND_URL}/experience/update`, data);
-    return res.data;
+  "/experience/update",
+  async (data: any) => {
+    const id = data.id || data._id;
+    if (!id) throw new Error("Experience ID is required");
+    // Remove id/_id from body
+    const { id: _id, _id: __id, ...body } = data;
+    const res = await axios.put(`${BACKEND_URL}/experience/update/${id}`, body);
+    return res.data.experience || res.data;
   }
 );
 
 export const getExperienceById = createAsyncThunk(
-  '/experience/get/:id',
+  "/experience/get/:id",
   async (id) => {
     const res = await axios.get(`${BACKEND_URL}/experience/${id}`);
     return res.data;
@@ -35,7 +39,7 @@ export const getExperienceById = createAsyncThunk(
 );
 
 export const deleteExperience = createAsyncThunk(
-  '/experience/delete/:id',
+  "/experience/delete/:id",
   async (id) => {
     await axios.delete(`${BACKEND_URL}/experience/${id}`);
     return id; // Return the id to use it in the reducer
@@ -64,9 +68,10 @@ const experienceSlice = createSlice({
       .addCase(addExperience.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
-      })
+      });
 
-      builder.addCase(getMyExperience.pending, (state) => {
+    builder
+      .addCase(getMyExperience.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -77,15 +82,18 @@ const experienceSlice = createSlice({
       .addCase(getMyExperience.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
-      })
+      });
 
-      builder.addCase(updateExperience.pending, (state) => {
+    builder
+      .addCase(updateExperience.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateExperience.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.experiences.findIndex(exp => exp._id === action.payload._id);
+        const index = state.experiences.findIndex(
+          (exp) => exp._id === action.payload._id
+        );
         if (index !== -1) {
           state.experiences[index] = action.payload;
         }
@@ -93,9 +101,10 @@ const experienceSlice = createSlice({
       .addCase(updateExperience.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
-      })
+      });
 
-      builder.addCase(getExperienceById.pending, (state) => {
+    builder
+      .addCase(getExperienceById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -106,9 +115,10 @@ const experienceSlice = createSlice({
       .addCase(getExperienceById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
-      })
+      });
 
-      builder.addCase(deleteExperience.pending, (state) => {
+    builder
+      .addCase(deleteExperience.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -122,7 +132,7 @@ const experienceSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       });
-  }
+  },
 });
 
 export default experienceSlice.reducer;

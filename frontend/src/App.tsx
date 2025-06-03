@@ -33,6 +33,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import FaqPage from "./pages/FaqPage"; // Added
 import RefundPolicyPage from "./pages/RefundPolicyPage"; // Import the new page
 import TermsAndConditionsPage from "./pages/TermsAndConditionsPage"; // Add this import
+import Landing from "./pages/Landing";
 
 // import ServicesPage from "./pages/ServicesPage"
 // import ServiceDetailPage from "./components/Services/ServiceDetailsPage";
@@ -70,10 +71,35 @@ const ProtectedRoute = ({
   adminOnly = false,
 }: ProtectedRouteProps) => {
   const user = useSelector((state: RootState) => state.user.user);
-  const admin = useSelector((state: RootState) => state.admin?.admin);
+  const admin = useSelector((state: RootState) => (state.admin as any)?.admin);
+  const loading = useSelector((state: RootState) => (state.admin as any)?.loading);
+  const [rehydrated, setRehydrated] = useState(false);
 
-  if (adminOnly && !admin) {
-    return <Navigate to="/employers-login" />;
+  // Wait for redux-persist to rehydrate before rendering protected routes
+  useEffect(() => {
+    const unsub = persistor.subscribe(() => {
+      if (persistor.getState().bootstrapped) {
+        setRehydrated(true);
+        unsub();
+      }
+    });
+    if (persistor.getState().bootstrapped) {
+      setRehydrated(true);
+      unsub();
+    }
+    // eslint-disable-next-line
+  }, []);
+
+  if (!rehydrated || loading) {
+    // Optionally show a spinner or nothing while waiting
+    return null;
+  }
+
+  // Only allow if admin is a valid object with a valid id and is_admin true
+  if (adminOnly) {
+    if (!admin || typeof admin !== 'object' || !admin.id || admin.is_admin !== true) {
+      return <Navigate to="/employers-login" replace />;
+    }
   }
 
   if (!adminOnly && !user) {
@@ -86,6 +112,12 @@ const ProtectedRoute = ({
 const App = () => {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
+  // Clear local and session storage on app load
+  useEffect(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  }, []);
+
   return (
     <HelmetProvider>
       <Provider store={store}>
@@ -94,7 +126,7 @@ const App = () => {
             <TooltipProvider>
               <BrowserRouter>
                 <Routes>
-                  <Route path="/" element={<Home />} />
+                  <Route path="/" element={<Home></Home>} />
                   <Route path="/jobs" element={<JobListings />} />
                   <Route path="/jobs/:id" element={<JobDetail />} />
                   <Route

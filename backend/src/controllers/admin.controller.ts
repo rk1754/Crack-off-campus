@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Admin from "../models/admin.model";
+import User from "../models/user.model";
 import bcrypt from "bcrypt";
 import { BCRYPT_SALT, JWT_SECRET } from "../config/config";
 import jwt from "jsonwebtoken";
@@ -207,6 +208,29 @@ class AdminController {
                 message : "Something went wrong"
             });
             return;
+        }
+    }
+
+    /**
+     * Delete any user by ID (admin only)
+     */
+    deleteUserById = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { id } = req.params;
+            if (!id) {
+                res.status(400).json({ success: false, message: "User ID is required" });
+                return;
+            }
+            const user = await User.findByPk(id);
+            if (!user) {
+                res.status(404).json({ success: false, message: "User not found" });
+                return;
+            }
+            await user.destroy();
+            res.status(200).json({ success: true, message: "User deleted successfully" });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, message: "Something went wrong" });
         }
     }
 }
