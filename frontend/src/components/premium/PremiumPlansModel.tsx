@@ -36,6 +36,8 @@ const planAmountMap: Record<string, number> = {
   BOOSTER: 699,
 };
 
+const BACKEND_URL = "https://api.crackoffcampus.com";
+
 const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   isOpen,
   onClose,
@@ -172,12 +174,15 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     try {
       const amount = planAmountMap[planName];
       console.log("Creating Cashfree order for amount:", amount);
-      const orderRes = await axios.post("/payment/create-order", {
-        amount,
-        name: user.name,
-        email: user.email,
-        phone: user.phone_number || "+919876543210",
-      });
+      const orderRes = await axios.post(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          amount,
+          name: user.name,
+          email: user.email,
+          phone: user.phone_number || "+919876543210",
+        }
+      );
       console.log("Order response:", orderRes.data);
       const { payment_session_id, order_id } = orderRes.data;
 

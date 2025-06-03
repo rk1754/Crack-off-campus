@@ -134,45 +134,33 @@ export default function FormPage() {
     setError(null);
 
     try {
-      // 1. Book the slot (send to backend with file)
-      const bookingData = new FormData();
-      bookingData.append("serviceId", serviceId || "");
-      bookingData.append("date", date);
-      bookingData.append("time", time);
-      bookingData.append("service_name", formData.name);
-      bookingData.append("phone", formData.phone);
-      bookingData.append("email", formData.email);
-      bookingData.append("state", formData.state);
-      bookingData.append("targetRole", formData.targetRole);
-      bookingData.append("language", formData.language);
-      bookingData.append("payment_status", "pending");
-      if (formData.resume) {
-        bookingData.append("resume", formData.resume);
-      }
-      const bookingRes = await fetch(
-        `${BACKEND_URL}/api/v1/session/booking/book`,
+      // Store booking form data in sessionStorage for use after payment
+      sessionStorage.setItem(
+        "serviceBookingData",
+        JSON.stringify({
+          serviceId,
+          date,
+          time,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          state: formData.state,
+          targetRole: formData.targetRole,
+          language: formData.language,
+          // Resume file cannot be stored, will be handled after payment if needed
+        })
+      );
+
+      // 1. Create Cashfree order (call your backend endpoint)
+      const paymentOrderRes = await axios.post(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
         {
-          method: "POST",
-          credentials: "include",
-          body: bookingData,
+          amount: 199, // You may want to get the actual amount dynamically
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
         }
       );
-      if (!bookingRes.ok) {
-        const errorData = await bookingRes.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Failed to book slot (Status: ${bookingRes.status})`
-        );
-      }
-
-      // 2. Create Cashfree order (call your backend endpoint)
-      // You may need to adjust the endpoint and payload as per your backend
-      const paymentOrderRes = await axios.post("/payment/create-order", {
-        amount: 199, // You may want to get the actual amount dynamically
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-      });
       const { payment_session_id, order_id } = paymentOrderRes.data;
       if (!payment_session_id) {
         throw new Error("Payment session ID not found in response");
@@ -184,7 +172,7 @@ export default function FormPage() {
         throw new Error("Invalid payment session ID format");
       }
 
-      // 3. Trigger Cashfree checkout
+      // 2. Trigger Cashfree checkout
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
@@ -195,9 +183,8 @@ export default function FormPage() {
         if (result.error) {
           setError(`Payment error: ${result.error.message}`);
           setIsSubmitting(false);
-        } else if (result.redirect) {
-          // Cashfree will handle redirect
         }
+        // No further action here; booking will be handled after payment verification
       });
     } catch (error: any) {
       if (error.message && error.message.includes("Slot already booked")) {
@@ -211,13 +198,14 @@ export default function FormPage() {
       } else if (error.message && error.message.toLowerCase().includes("unauthorized")) {
         setError("You are not authorized. Please log in again.");
       } else {
-        setError(error.message || "An error occurred while booking the slot.");
+        setError(error.message || "An error occurred while processing payment.");
       }
       setIsSubmitting(false);
     }
   };
 
   return (
+
     <div className="min-h-screen bg-[rgb(186,175,220)] text-gray-800">
       <Navbar />
 

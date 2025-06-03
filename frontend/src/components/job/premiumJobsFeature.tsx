@@ -113,12 +113,18 @@ const PremiumJobsFeature: React.FC = () => {
     setIsPaying(true);
     try {
       const amount = 99;
-      const orderRes = await axios.post("/payment/create-order", {
-        amount,
-        name: user.name,
-        email: user.email,
-        phone: user.phone_number || "+919876543210",
-      });
+      // Use absolute backend URL for local testing
+      const BACKEND_URL = "https://api.crackoffcampus.com";
+      const orderRes = await axios.post(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          amount,
+          name: user.name,
+          email: user.email,
+          phone: user.phone_number || "+919876543210",
+          currency: "INR",
+        }
+      );
       const { payment_session_id, order_id } = orderRes.data;
 
       if (!payment_session_id) {
@@ -141,7 +147,7 @@ const PremiumJobsFeature: React.FC = () => {
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
         returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
-        redirectTarget: "_blank" as "_blank",
+        redirectTarget: "_self" as "_self",
       };
 
       cashfree

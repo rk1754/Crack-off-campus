@@ -19,13 +19,26 @@ import type { RootState } from "@/redux/store";
 import { getJobById } from "@/redux/slices/jobSlice";
 import { format } from "date-fns";
 import PremiumPlansModal from "@/components/premium/PremiumPlansModel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+const BACKEND_URL = "https://api.crackoffcampus.com"; // or your prod URL
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
   const { job, loading, error } = useSelector((state: RootState) => state.job);
   const { user } = useSelector((state: RootState) => state.user);
-  const [showPremiumModal, setShowPremiumModal] = useState(true);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -37,6 +50,29 @@ const JobDetail = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Load Cashfree SDK for modal
+  useEffect(() => {
+    if (!showPremiumModal) return;
+    if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+      setSdkLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "cashfree-sdk";
+    script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+    script.async = true;
+    script.onload = () => setSdkLoaded(true);
+    script.onerror = () => setSdkLoaded(false);
+    document.body.appendChild(script);
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
+    };
+  }, [showPremiumModal]);
 
   // --- Premium job access logic ---
   const isPremiumJob =
@@ -54,16 +90,120 @@ const JobDetail = () => {
       "diamond",
     ].includes(user.subscription_type);
 
+  // Show modal if not premium and job is premium
+  useEffect(() => {
+    if (isPremiumJob && !isUserPremium) setShowPremiumModal(true);
+  }, [isPremiumJob, isUserPremium]);
+
+  const handleCashfreePayment = async () => {
+    if (!sdkLoaded || !window.Cashfree) {
+      toast.error("Payment gateway is not available. Please try again later.");
+      return;
+    }
+    if (!user) {
+      toast.error("Please login to continue.");
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      const payload = {
+        amount: 99,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+        currency: "INR",
+      };
+      const res = await fetch(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(
+          data?.message ||
+            "Failed to create payment order. Please try again."
+        );
+        setIsProcessing(false);
+        return;
+      }
+      const { payment_session_id, order_id } = data;
+      if (!payment_session_id) {
+        toast.error("Payment session ID not found in response");
+        setIsProcessing(false);
+        return;
+      }
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
+        toast.error("Invalid payment session ID format");
+        setIsProcessing(false);
+        return;
+      }
+      const cashfree = new window.Cashfree({ mode: "production" });
+      const checkoutOptions = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        redirectTarget: "_self" as "_self",
+      };
+      cashfree.checkout(checkoutOptions).then((result: any) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+        }
+      });
+    } catch (err) {
+      toast.error("Payment failed to start. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (!job || (isPremiumJob && !isUserPremium)) {
     return (
       <Layout>
-        <PremiumPlansModal
-          isOpen={showPremiumModal}
-          onClose={() => setShowPremiumModal(false)}
-          title="Unlock Premium Jobs"
-          description="Access one month of all premium jobs for just ₹99"
-          details="Get exclusive access to premium job listings and boost your career opportunities."
-        />
+        {/* Unlock Premium Jobs Modal */}
+        <Dialog open={showPremiumModal} onOpenChange={setShowPremiumModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Unlock Premium Jobs</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-lg font-medium mb-2">
+                Access one month of all premium jobs for just{" "}
+                <span className="text-[#9b87f5] font-bold">₹99</span>
+              </p>
+              <p className="text-gray-600 mb-4">
+                Get exclusive access to premium job listings and boost your career
+                opportunities.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowPremiumModal(false)}
+                disabled={isProcessing}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCashfreePayment}
+                className="bg-[#9b87f5] text-white hover:bg-[#7c66e0]"
+                disabled={!sdkLoaded || isProcessing}
+              >
+                {!sdkLoaded
+                  ? "Loading Payment Gateway..."
+                  : isProcessing
+                  ? "Processing..."
+                  : "Pay ₹99 & Unlock"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Layout>
     );
   }

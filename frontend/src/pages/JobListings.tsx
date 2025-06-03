@@ -244,7 +244,7 @@ const JobListings = () => {
     try {
       // Create order for ₹99
       const res = await fetch(
-        "https://crackoffcampus.com/api/v1/payment/create-order",
+        "https://api.crackoffcampus.com/api/v1/payment/create-order",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

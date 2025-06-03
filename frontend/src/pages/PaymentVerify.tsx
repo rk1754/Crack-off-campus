@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -10,11 +10,16 @@ const PaymentVerify = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const [bookingInProgress, setBookingInProgress] = useState(false);
 
   useEffect(() => {
     const verifyPayment = async () => {
       const params = new URLSearchParams(location.search);
       const order_id = params.get("order_id");
+      const resourceType = params.get("resourceType");
+      const serviceId = params.get("serviceId");
+      const date = params.get("date");
+      const time = params.get("time");
 
       if (!order_id) {
         toast.error("Order ID missing in payment verification.");
@@ -23,23 +28,115 @@ const PaymentVerify = () => {
       }
 
       try {
-        // Call backend to verify payment and update subscription
+        // Call backend to verify payment and update subscription/resource/service
         const res = await axios.post("/payment/verify", { order_id });
         if (res.data.success) {
-          toast.success("Payment successful! Premium subscription activated.");
+          toast.success(res.data.message || "Payment successful!");
+
           // Optionally refresh user profile in Redux
           dispatch(fetchCurrentUser());
-          navigate("/profile");
+
+          // Redirect based on payment type
+          if (resourceType) {
+            // Resource purchase (e.g., resume, templates)
+            navigate(`/resources?success=1&type=${resourceType}`);
+          } else if (serviceId && date && time) {
+            // Service booking: book the slot after payment
+            setBookingInProgress(true);
+            // Get booking data from sessionStorage
+            const bookingDataRaw = sessionStorage.getItem("serviceBookingData");
+            let bookingData: any = {};
+            if (bookingDataRaw) {
+              bookingData = JSON.parse(bookingDataRaw);
+            }
+            // Compose FormData for booking (resume upload not supported after payment)
+            const formData = new FormData();
+            formData.append("serviceId", serviceId);
+            formData.append("date", date);
+            formData.append("time", time);
+            formData.append("service_name", bookingData.name || "");
+            formData.append("phone", bookingData.phone || "");
+            formData.append("email", bookingData.email || "");
+            formData.append("state", bookingData.state || "");
+            formData.append("targetRole", bookingData.targetRole || "");
+            formData.append("language", bookingData.language || "Hinglish");
+            formData.append("payment_status", "paid");
+            formData.append("order_id", order_id);
+
+            // Note: Resume file cannot be attached after payment unless handled via backend or upload before payment
+
+            try {
+              const bookingRes = await fetch(
+                "https://api.crackoffcampus.com/api/v1/session/booking/book",
+                {
+                  method: "POST",
+                  credentials: "include",
+                  body: formData,
+                }
+              );
+              if (!bookingRes.ok) {
+                const errorData = await bookingRes.json().catch(() => ({}));
+                throw new Error(
+                  errorData.message ||
+                    `Failed to book slot (Status: ${bookingRes.status})`
+                );
+              }
+              // Clear booking data from sessionStorage
+              sessionStorage.removeItem("serviceBookingData");
+              setBookingInProgress(false);
+              navigate(
+                `/services/${serviceId}/booking/confirmation?date=${encodeURIComponent(
+                  date
+                )}&time=${encodeURIComponent(time)}&success=1`
+              );
+            } catch (bookingErr: any) {
+              setBookingInProgress(false);
+              toast.error(
+                bookingErr?.message ||
+                  "Payment succeeded but booking failed. Please contact support."
+              );
+              navigate(
+                `/services/${serviceId}/booking?date=${encodeURIComponent(
+                  date
+                )}&time=${encodeURIComponent(time)}&error=1`
+              );
+            }
+          } else {
+            // Default: premium subscription
+            navigate("/profile");
+          }
         } else {
           toast.error(res.data.message || "Payment verification failed.");
-          navigate("/faq");
+          // Redirect based on context
+          if (resourceType) {
+            navigate(`/resources?error=1&type=${resourceType}`);
+          } else if (serviceId && date && time) {
+            navigate(
+              `/services/${serviceId}/booking?date=${encodeURIComponent(
+                date
+              )}&time=${encodeURIComponent(time)}&error=1`
+            );
+          } else {
+            navigate("/faq");
+          }
         }
       } catch (err: any) {
         toast.error(
           err?.response?.data?.message ||
             "Payment verification failed. Please contact support."
         );
-        navigate("/privacy-policy");
+        // Redirect based on context
+        if (resourceType) {
+          navigate(`/resources?error=1&type=${resourceType}`);
+        } else if (serviceId && date && time) {
+          navigate(
+            `/services/${serviceId}/booking?date=${encodeURIComponent(
+              date
+            )}&time=${encodeURIComponent(time)}&error=1`
+          );
+        } else {
+          navigate("/privacy-policy");
+        }
       }
     };
 
@@ -49,9 +146,13 @@ const PaymentVerify = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <div className="text-xl font-bold mb-2">Verifying Payment...</div>
+      <div className="text-xl font-bold mb-2">
+        {bookingInProgress ? "Booking Your Slot..." : "Verifying Payment..."}
+      </div>
       <div className="text-gray-500">
-        Please wait while we confirm your subscription.
+        {bookingInProgress
+          ? "Please wait while we confirm and book your session."
+          : "Please wait while we confirm your subscription."}
       </div>
     </div>
   );

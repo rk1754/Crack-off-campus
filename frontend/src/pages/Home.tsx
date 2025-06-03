@@ -27,6 +27,9 @@ import {
   verifyAndStorePayment,
 } from "@/redux/slices/paymentSlice";
 import { Helmet } from "react-helmet-async";
+import { toast } from "sonner";
+
+const BACKEND_URL = "https://api.crackoffcampus.com"; // Use localhost for local testing
 
 const Home = () => {
   const navigate = useNavigate();
@@ -43,7 +46,8 @@ const Home = () => {
   const isMobile = useIsMobile();
 
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
-  const [isRazorpayReady, setIsRazorpayReady] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
@@ -77,17 +81,28 @@ const Home = () => {
     }
   }, [allJobs, user]);
 
+  // Load Cashfree SDK
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => setIsRazorpayReady(true);
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+    const loadCashfreeSDK = async () => {
+      if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+        setSdkLoaded(true);
+        return;
       }
+      const script = document.createElement("script");
+      script.id = "cashfree-sdk";
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
+      script.async = true;
+      script.onload = () => setSdkLoaded(true);
+      script.onerror = () => setSdkLoaded(false);
+      document.body.appendChild(script);
+    };
+    loadCashfreeSDK();
+    return () => {
+      const existingScript = document.getElementById("cashfree-sdk");
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
+      }
+      setSdkLoaded(false);
     };
   }, []);
 
@@ -107,99 +122,74 @@ const Home = () => {
     }
   };
 
-  const handleRazorpayPayment = async () => {
+  const handleCashfreePayment = async () => {
+    console.log("handleCashfreePayment called");
+    if (!sdkLoaded || !window.Cashfree) {
+      toast.error("Payment gateway is not available. Please try again later.");
+      return;
+    }
     if (!user) {
-      console.error("Please log in to proceed with the payment.");
       navigate("/login?redirect=/");
       return;
     }
-    if (!isRazorpayReady) {
-      console.error(
-        "Payment gateway is still loading. Please wait a moment and try again."
-      );
-      return;
-    }
+    setIsProcessing(true);
     try {
-      const resultAction = await dispatch(createPaymentOrder(99 * 100));
-      const orderData = resultAction.payload as {
-        order_id: string;
-        amount: number;
-        currency: string;
-        error?: string;
+      // Create order for ₹99 using your backend
+      const payload = {
+        amount: 99,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+        currency: "INR",
       };
-
-      if (
-        !orderData ||
-        orderData.error ||
-        !orderData.order_id ||
-        !orderData.amount
-      ) {
-        console.error(
-          "Order data is invalid or contains an error:",
-          orderData?.error ||
+      const res = await fetch(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("Backend returned error:", data);
+        toast.error(
+          data?.message ||
             "Failed to create payment order. Please try again."
         );
         return;
       }
-
-      const options = {
-        key: "rzp_test_GBC6wsiyhZIszp",
-        amount: orderData.amount,
-        currency: orderData.currency || "INR",
-        name: "Crack Off-Campus",
-        description: "Unlock Premium Job Access (₹99)",
-        order_id: orderData.order_id,
-        handler: async function (response: any) {
-          try {
-            await dispatch(
-              verifyAndStorePayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                amount: orderData.amount,
-                currency: orderData.currency || "INR",
-                user_id: user.id,
-              })
-            ).unwrap();
-            console.log("Payment successful! Premium access unlocked.");
-            setIsPremiumModalOpen(false);
-            window.location.reload();
-          } catch (verificationError: any) {
-            console.error(
-              "Payment verification error:",
-              verificationError?.message ||
-                "Payment verification failed. Please contact support."
-            );
-          }
-        },
-        prefill: {
-          name: user.name || "",
-          email: user.email || "",
-          contact: user.phone_number || "",
-        },
-        theme: {
-          color: "#9b87f5",
-        },
-        modal: {
-          ondismiss: function () {
-            console.log("Razorpay modal dismissed");
-          },
-        },
+      const { payment_session_id, order_id } = data;
+      if (!payment_session_id) {
+        toast.error("Payment session ID not found in response");
+        return;
+      }
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
+        toast.error("Invalid payment session ID format");
+        return;
+      }
+      const cashfree = new window.Cashfree({ mode: "production" });
+      const checkoutOptions = {
+        paymentSessionId: payment_session_id,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        redirectTarget: "_self" as "_self",
       };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        console.error(
-          "Razorpay payment failed:",
-          response.error.description || response.error.reason
-        );
+      cashfree.checkout(checkoutOptions).then((result: any) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+        } else if (result.redirect) {
+          // Cashfree will handle redirect
+        }
       });
-      rzp.open();
-    } catch (paymentError: any) {
-      console.error(
-        "Razorpay payment initiation error:",
-        paymentError?.message || "Payment failed to start. Please try again."
-      );
+    } catch (err) {
+      toast.error("Payment failed to start. Please try again.");
+      console.error("Payment error:", err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -484,17 +474,18 @@ const Home = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsPremiumModalOpen(false)}
+                disabled={isProcessing}
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleRazorpayPayment}
+                onClick={handleCashfreePayment}
                 className="bg-[#9b87f5] text-white hover:bg-[#7c66e0]"
-                disabled={paymentState.loading || !isRazorpayReady}
+                disabled={!sdkLoaded || isProcessing}
               >
-                {!isRazorpayReady && !paymentState.loading
-                  ? "Loading Gateway..."
-                  : paymentState.loading
+                {!sdkLoaded
+                  ? "Loading Payment Gateway..."
+                  : isProcessing
                   ? "Processing..."
                   : "Pay ₹99 & Unlock"}
               </Button>
