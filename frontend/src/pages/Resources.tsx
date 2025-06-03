@@ -196,13 +196,19 @@ const ResourcesPage = () => {
   };
 
   // Helper for login check
-  const requireLogin = (action: () => void, resourceId?: number) => {
+  const requireLogin = async (action: () => Promise<any> | void, resourceId?: number) => {
     if (!user) {
       toast.error("Please login to access this resource.");
       return;
     }
     if (resourceId) setDownloadingId(resourceId);
-    action();
+    setLoading(true);
+    try {
+      await action();
+    } finally {
+      setLoading(false);
+      if (resourceId) setDownloadingId(null);
+    }
   };
 
   const resources = [
@@ -214,7 +220,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Resume Template",
       imagePath: "/lovable-uploads/Resume Template.png",
       imageAlt: "Resume Template",
-      action: () => requireLogin(() => dispatch(downloadResumeTemplate())),
+      action: () => requireLogin(() => dispatch(downloadResumeTemplate()), 1),
       requiredSubscription: "resume",
     },
     {
@@ -225,7 +231,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Referral Template",
       imagePath: "/lovable-uploads/refralTemplate.png",
       imageAlt: "Referral Template",
-      action: () => requireLogin(() => dispatch(downloadReferralTemplate())),
+      action: () => requireLogin(() => dispatch(downloadReferralTemplate()), 2),
       requiredSubscription: "other_templates",
     },
     {
@@ -236,7 +242,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Cold Email Template",
       imagePath: "/lovable-uploads/ColdEmail.png",
       imageAlt: "Cold Email Template",
-      action: () => requireLogin(() => dispatch(downloadColdMailTemplate())),
+      action: () => requireLogin(() => dispatch(downloadColdMailTemplate()), 3),
       requiredSubscription: "other_templates",
     },
     {
@@ -247,7 +253,7 @@ const ResourcesPage = () => {
       buttonText: "Get a Cover Letter",
       imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
-      action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate())),
+      action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate()), 4),
       requiredSubscription: "other_templates",
     },
     {
@@ -258,7 +264,7 @@ const ResourcesPage = () => {
       buttonText: "Get Verified HR Emails",
       imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
-      action: () => requireLogin(() => dispatch(downloadHrEmailTemplate())),
+      action: () => requireLogin(() => dispatch(downloadHrEmailTemplate()), 5),
       requiredSubscription: "other_templates",
     },
     {
@@ -394,7 +400,7 @@ const ResourcesPage = () => {
                         !sdkLoaded ||
                         isDownloading
                       }
-                      onClick={() => {
+                      onClick={async () => {
                         const userSubscriptionTypes = [
                           user?.subscription_type,
                           user?.subscription_type_2,
@@ -406,7 +412,7 @@ const ResourcesPage = () => {
                             ["booster", "standard"].includes(type)
                           )
                         ) {
-                          resource.action();
+                          await resource.action();
                           return;
                         }
 
@@ -417,8 +423,7 @@ const ResourcesPage = () => {
                             (type) => type === "resume"
                           )
                         ) {
-                          setDownloadingId(resource.id);
-                          resource.action();
+                          await resource.action();
                           return;
                         }
 
@@ -430,7 +435,7 @@ const ResourcesPage = () => {
                             (type) => type === "other_templates"
                           )
                         ) {
-                          resource.action();
+                          await resource.action();
                           return;
                         }
 
@@ -454,7 +459,7 @@ const ResourcesPage = () => {
                             ].includes(type)
                           )
                         ) {
-                          resource.action();
+                          await resource.action();
                           return;
                         }
 
