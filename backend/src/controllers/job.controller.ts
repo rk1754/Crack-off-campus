@@ -10,10 +10,9 @@ class JobController {
         !data.description ||
         !data.job_url ||
         !data.company_name
-<<<<<<< HEAD
+
         // ctc_stipend, passout_year, experience are optional
-=======
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
+
       ) {
         res.status(400).json({
           success: false,
@@ -23,11 +22,7 @@ class JobController {
       }
 
       const job = await Jobs.create({
-<<<<<<< HEAD
-        ...data, // includes ctc_stipend, passout_year, experience if provided
-=======
         ...data,
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
         admin_id: req.admin?.id,
         status: data.status ? data.status : "open",
       });

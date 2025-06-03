@@ -34,11 +34,7 @@ const ProfileSidebar = () => {
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
-<<<<<<< HEAD
-      await axios.post("/auth/logout", {}, { withCredentials: true }); // Adjust endpoint if needed
-=======
       await axios.post("/auth/logout", {}, { withCredentials: true });
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
     } catch (err) {
       // Ignore error, proceed to clear state
     }
@@ -48,23 +44,6 @@ const ProfileSidebar = () => {
   };
 
   return (
-<<<<<<< HEAD
-    <aside className="w-full md:w-64 p-5 bg-white rounded-lg shadow">
-      <div className="flex flex-col items-center mb-6 pb-6 border-b">
-        <div className="w-24 h-24 rounded-full bg-foundit-gray mb-3 overflow-hidden">
-          <img
-            src={user?.profile_pic || "/placeholder.svg"}
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <h3 className="text-lg font-medium">{user?.name || "User"}</h3>
-        <p className="text-gray-600 text-sm">Software Developer</p>
-      </div>
-
-      <nav>
-        <ul className="space-y-1">
-=======
     <aside className="hidden lg:block w-full lg:w-80 p-6 bg-white rounded-2xl shadow-lg border border-purple-100">
       <div className="flex flex-col items-center mb-8 pb-6 border-b border-purple-100">
         <div className="relative w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 mb-4 overflow-hidden shadow-lg">
@@ -89,22 +68,10 @@ const ProfileSidebar = () => {
 
       <nav className="mb-8">
         <ul className="space-y-2">
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
           {navItems.map((item) => (
             <li key={item.path}>
               <Link
                 to={item.path}
-<<<<<<< HEAD
-                className={`flex items-center px-4 py-3 rounded-md transition-colors
-                  ${
-                    location.pathname === item.path
-                      ? "bg-foundit-blue text-white"
-                      : "hover:bg-foundit-gray text-gray-700 hover:text-foundit-blue"
-                  }`}
-              >
-                <span className="mr-3">{item.icon}</span>
-                {item.label}
-=======
                 className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group
                   ${
                     location.pathname === item.path
@@ -122,22 +89,12 @@ const ProfileSidebar = () => {
                   {item.icon}
                 </span>
                 <span className="font-medium">{item.label}</span>
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
               </Link>
             </li>
           ))}
         </ul>
       </nav>
 
-<<<<<<< HEAD
-      <div className="mt-6 pt-6 border-t">
-        <button
-          onClick={handleLogout}
-          className="flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-md transition-colors w-full text-left"
-        >
-          <LogOut className="h-5 w-5 mr-3" />
-          Logout
-=======
       <div className="pt-6 border-t border-purple-100">
         <button
           onClick={handleLogout}
@@ -145,7 +102,6 @@ const ProfileSidebar = () => {
         >
           <LogOut className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:scale-110" />
           <span className="font-medium">Logout</span>
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
         </button>
       </div>
     </aside>

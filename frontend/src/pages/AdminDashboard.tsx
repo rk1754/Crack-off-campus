@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-"use client";
-
-import { useState } from "react";
-=======
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardHeader from "@/components/admin/DashboardHeader";
 import UserManagement from "@/components/admin/UserManagement";
@@ -17,8 +11,6 @@ import { Briefcase, LayoutDashboard, Users } from "lucide-react";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-<<<<<<< HEAD
-=======
   const admin = useSelector((state: any) => state.admin.admin);
   const navigate = useNavigate();
 
@@ -27,7 +19,6 @@ const AdminDashboard = () => {
       navigate("/employers-login");
     }
   }, [admin, navigate]);
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
 
   return (
     <div className="min-h-screen bg-background">

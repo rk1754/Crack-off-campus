@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-import React, { useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "@/redux/store";
-import { fetchCurrentUser } from "@/redux/slices/userSlice";
-import { getMyExperience } from "@/redux/slices/experienceSlice";
-import { getMyEducation } from "@/redux/slices/educationSlice";
-import Layout from "../components/layout/Layout";
-import ProfileSidebar from "../components/profile/ProfileSidebar";
-import { jobListings } from "../data/mockData";
-import { MapPin, Mail, Phone, Download, Edit, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useAuth } from "@/hooks/use-auth";
-import { Root } from "react-dom/client";
-=======
 "use client";
 
 import type React from "react";
@@ -63,24 +46,11 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from "date-fns";
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
 
 const Profile = () => {
   const dispatch = useDispatch<AppDispatch>();
   const userState = useSelector((state: RootState) => state.user);
   const { user, loading, error } = userState || {};
-<<<<<<< HEAD
-
-  // Fetch experience state
-  const experienceState = useSelector((state: RootState) => state.experience);
-  const { experiences, currentExperience } = experienceState || {};
-
-  // Fetch education state
-  const educationState = useSelector((state: RootState) => state.education);
-  const { education, educationList } = educationState || {};
-
-  const { isAuthenticated } = useAuth();
-=======
   const experienceState = useSelector((state: RootState) => state.experience);
   const { experiences, currentExperience } = experienceState || {};
   const educationState = useSelector((state: RootState) => state.education);
@@ -127,7 +97,6 @@ const Profile = () => {
   );
   const [skillInput, setSkillInput] = useState("");
 
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchCurrentUser());
@@ -136,9 +105,6 @@ const Profile = () => {
     }
   }, [dispatch, isAuthenticated]);
 
-<<<<<<< HEAD
-  // If not authenticated, redirect to login
-=======
   useEffect(() => {
     if (user) {
       setProfileData({
@@ -154,31 +120,20 @@ const Profile = () => {
     }
   }, [user]);
 
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
   if (!isAuthenticated && !loading) {
     return <Navigate to="/login" />;
   }
 
-<<<<<<< HEAD
-  // Get applied jobs data (would come from backend in production)
-  const appliedJobs = jobListings.slice(0, 2); // Just show 2 for preview
-
-=======
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
   if (loading) {
     return (
       <Layout>
         <div className="container py-8 text-center">
-<<<<<<< HEAD
-          <p>Loading profile data...</p>
-=======
           <div className="flex flex-col items-center justify-center min-h-[400px]">
             <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-4 text-purple-600 font-medium">
               Loading your profile...
             </p>
           </div>
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
         </div>
       </Layout>
     );
@@ -194,206 +149,6 @@ const Profile = () => {
     );
   }
 
-<<<<<<< HEAD
-  // Default empty array for skills if user.skills doesn't exist
-  const userSkills = user?.skills || [];
-
-  return (
-    <Layout>
-      <div className="container py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="md:col-span-1">
-            <ProfileSidebar />
-          </div>
-
-          {/* Main Content */}
-          <div className="md:col-span-2 lg:col-span-3 space-y-8">
-            {/* Profile Header */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-foundit-gray overflow-hidden">
-                  <img
-                    src={user?.profile_pic || "/placeholder.svg"}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-                    <h1 className="text-2xl font-bold text-foundit-blue">
-                      {user?.name || "User"}
-                    </h1>
-                    <div className="mt-2 md:mt-0">
-                      <Link
-                        to="/profile/edit"
-                        className="inline-flex items-center text-sm text-foundit-blue hover:text-foundit-blue-light"
-                      >
-                        <Edit size={16} className="mr-1" />
-                        Edit Profile
-                      </Link>
-                    </div>
-                  </div>
-
-                  <p className="text-lg text-gray-700 mb-3">
-                    Software Developer
-                  </p>
-
-                  <div className="flex flex-col md:flex-row flex-wrap gap-y-2 text-sm text-gray-600">
-                    {/* <div className="flex items-center mr-4">
-                      <MapPin size={16} className="mr-1" />
-                      <span>Mumbai, India</span>
-                    </div> */}
-                    <div className="flex items-center mr-4">
-                      <Mail size={16} className="mr-1" />
-                      <span>{user?.email}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Phone size={16} className="mr-1" />
-                      <span>{user?.phone_number || "Not provided"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* About Section */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-foundit-blue">
-                  About Me
-                </h2>
-                <Link
-                  to="/profile/edit"
-                  className="text-sm text-foundit-blue hover:text-foundit-blue-light"
-                >
-                  <Edit size={16} />
-                </Link>
-              </div>
-              <p className="text-gray-700">
-                {user?.bio ||
-                  "No bio provided yet. Click the edit button to add your bio."}
-              </p>
-            </div>
-
-            {/* Skills Section */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-foundit-blue">
-                  Skills
-                </h2>
-                <Link
-                  to="/profile/edit"
-                  className="text-sm text-foundit-blue hover:text-foundit-blue-light"
-                >
-                  <Edit size={16} />
-                </Link>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {userSkills.length > 0 ? (
-                  userSkills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="bg-blue-100 text-foundit-blue px-3 py-1 rounded-full text-sm"
-                    >
-                      {skill}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-gray-500">
-                    No skills added yet. Click the edit button to add your
-                    skills.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Experience Section */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-foundit-blue">
-                  Experience
-                </h2>
-                <Link
-                  to="/profile/edit"
-                  className="text-sm text-foundit-blue hover:text-foundit-blue-light"
-                >
-                  <Edit size={16} />
-                </Link>
-              </div>
-
-              <div className="space-y-6">
-                {experiences && experiences.length > 0 ? (
-                  experiences.map((exp: any) => (
-                    <div
-                      key={exp.id || exp._id}
-                      className="border-b pb-6 last:border-b-0 last:pb-0"
-                    >
-                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
-                        <h3 className="text-lg font-medium">{exp.job_title}</h3>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar size={14} className="mr-1" />
-                          <span>
-                            {exp.start_date} - {exp.end_date || "Present"}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-foundit-blue mb-2">
-                        {exp.company_name}, {exp.location}
-                      </p>
-                      <p className="text-gray-700">{exp.description}</p>
-                      <p className="text-xs text-gray-500">
-                        {exp.employment_type}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No experience added yet.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Education Section */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-foundit-blue">
-                  Education
-                </h2>
-                <Link
-                  to="/profile/edit"
-                  className="text-sm text-foundit-blue hover:text-foundit-blue-light"
-                >
-                  <Edit size={16} />
-                </Link>
-              </div>
-
-              <div className="space-y-6">
-                {educationList && educationList.length > 0 ? (
-                  educationList.map((edu: any) => (
-                    <div
-                      key={edu.id || edu._id}
-                      className="border-b pb-6 last:border-b-0 last:pb-0"
-                    >
-                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-1">
-                        <h3 className="text-lg font-medium">
-                          {edu.education}{" "}
-                          {edu.specialization && `(${edu.specialization})`}
-                        </h3>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Calendar size={14} className="mr-1" />
-                          <span>
-                            {edu.start_year} - {edu.end_year}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No education added yet.</p>
-                )}
-              </div>
-=======
   // Handlers
   const handleEdit = (section: string) => {
     setEditingSection(section);
@@ -1351,7 +1106,6 @@ const Profile = () => {
                   </div>
                 </CardContent>
               </Card>
->>>>>>> 410557a16c5902b86bb8a61d687c4901d1e4fac8
             </div>
           </div>
         </div>
