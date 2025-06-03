@@ -41,6 +41,7 @@ import BookingPage from "./components/Services/BookingPage";
 import FormPage from "./components/Services/FormPage";
 import PaymentPage from "./components/Services/PaymentPage";
 import SuccessPage from "./components/Services/SucessPage";
+import BookingConfirmation from "./pages/BookingConfirmation";
 
 // Set up axios defaults
 import axios from "axios";
@@ -216,6 +217,10 @@ const App = () => {
                     element={<SuccessPage />}
                   />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route
+                    path="/services/:serviceId/booking/confirmation"
+                    element={<BookingConfirmation />}
+                  />
                 </Routes>
                 <Toaster />
                 <Sonner />

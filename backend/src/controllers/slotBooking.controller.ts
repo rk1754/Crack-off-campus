@@ -88,7 +88,7 @@ class SlotBookingController {
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best regards,</p>
-        <p>Team Crack-Off-Campus</p>
+        <p>Team Crack Off-Campus</p>
       `;
       // Optionally send confirmation email here...
       console.log("User HTML: ", userHtml);
