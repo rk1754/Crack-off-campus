@@ -268,18 +268,45 @@ export default function BookingPage() {
   const getDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 0; i < 4; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      const day = date.toLocaleDateString("en-US", { weekday: "short" });
-      const month = date.toLocaleDateString("en-US", { month: "short" });
-      const dayNum = date.getDate();
-      dates.push({
-        day,
-        month,
-        dayNum,
-        fullDate: `${month} ${dayNum}`,
-      });
+    let added = 0;
+    let i = 0;
+    // For Quick Chat, allow next 4 days (any day)
+    if (service.title === "Quick Chat") {
+      while (added < 4) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const day = date.toLocaleDateString("en-US", { weekday: "short" });
+        const month = date.toLocaleDateString("en-US", { month: "short" });
+        const dayNum = date.getDate();
+        dates.push({
+          day,
+          month,
+          dayNum,
+          fullDate: `${month} ${dayNum}`,
+        });
+        i++;
+        added++;
+      }
+    } else {
+      // For other services, only show next 4 Saturdays/Sundays
+      while (added < 4) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          const day = date.toLocaleDateString("en-US", { weekday: "short" });
+          const month = date.toLocaleDateString("en-US", { month: "short" });
+          const dayNum = date.getDate();
+          dates.push({
+            day,
+            month,
+            dayNum,
+            fullDate: `${month} ${dayNum}`,
+          });
+          added++;
+        }
+        i++;
+      }
     }
     return dates;
   };
