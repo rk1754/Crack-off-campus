@@ -104,12 +104,15 @@ const ResourcesPage = () => {
     setLoading(true);
     try {
       console.log("Creating Cashfree order for amount:", amountInPaise);
-      const orderRes = await axios.post("https://api.crackoffcampus.com/api/v1/payment/create-order", {
-        amount: amountInPaise,
-        name: user.name,
-        email: user.email,
-        phone: user.phone_number || "+919876543210",
-      });
+      const orderRes = await axios.post(
+        "https://api.crackoffcampus.com/api/v1/payment/create-order",
+        {
+          amount: amountInPaise,
+          name: user.name,
+          email: user.email,
+          phone: user.phone_number || "+919876543210",
+        }
+      );
       console.log("Order response:", orderRes.data);
       const { payment_session_id, order_id } = orderRes.data;
 
@@ -173,7 +176,11 @@ const ResourcesPage = () => {
       user?.subscription_type_2,
     ].filter(Boolean);
 
-    if (userSubscriptionTypes.some((type) => ["booster", "standard"].includes(type)))
+    if (
+      userSubscriptionTypes.some((type) =>
+        ["booster", "standard"].includes(type)
+      )
+    )
       return true;
     if (
       resource.requiredSubscription === "resume" &&
@@ -394,7 +401,11 @@ const ResourcesPage = () => {
                         ].filter(Boolean);
 
                         // Standard and Booster users get all resources
-                        if (userSubscriptionTypes.some((type) => ["booster", "standard"].includes(type))) {
+                        if (
+                          userSubscriptionTypes.some((type) =>
+                            ["booster", "standard"].includes(type)
+                          )
+                        ) {
                           resource.action();
                           return;
                         }
@@ -402,40 +413,55 @@ const ResourcesPage = () => {
                         // Resume template: only for resume users
                         if (
                           resource.requiredSubscription === "resume" &&
-                          userSubscriptionTypes.some((type) => type === "resume")
+                          userSubscriptionTypes.some(
+                            (type) => type === "resume"
+                          )
                         ) {
                           setDownloadingId(resource.id);
                           resource.action();
-
                           return;
-
-                          setTimeout(() => setDownloadingId(null), 2000);
-                        } else {
-                          handleUpgradeSubscription(resource.requiredSubscription);
                         }
 
-                        // Referral template: only for standard/booster (already handled above)
+                        // Referral template: only for other_templates users
                         if (
                           resource.requiredSubscription === "other_templates" &&
-                          resource.title.toLowerCase().includes("referral")
+                          resource.title.toLowerCase().includes("referral") &&
+                          userSubscriptionTypes.some(
+                            (type) => type === "other_templates"
+                          )
                         ) {
-                          // Only standard/booster can access, so payment for others
-                          handleUpgradeSubscription(resource.requiredSubscription);
+                          resource.action();
                           return;
                         }
 
-                        // Cover Letter, Cold Email, HR Emails: allow basic, standard, booster
+                        // Cover Letter, Cold Email, HR Emails: allow basic, standard, booster, other_templates
                         if (
                           resource.requiredSubscription === "other_templates" &&
-                          ["cover letter", "cold email", "hr emails", "hr email"].some((kw) => resource.title.toLowerCase().includes(kw)) &&
-                          userSubscriptionTypes.some((type) => ["basic", "standard", "booster"].includes(type))
+                          [
+                            "cover letter",
+                            "cold email",
+                            "hr emails",
+                            "hr email",
+                          ].some((kw) =>
+                            resource.title.toLowerCase().includes(kw)
+                          ) &&
+                          userSubscriptionTypes.some((type) =>
+                            [
+                              "basic",
+                              "standard",
+                              "booster",
+                              "other_templates",
+                            ].includes(type)
+                          )
                         ) {
                           resource.action();
                           return;
                         }
 
                         // Otherwise, redirect to payment
-                        handleUpgradeSubscription(resource.requiredSubscription);
+                        handleUpgradeSubscription(
+                          resource.requiredSubscription
+                        );
                       }}
                     >
                       {isDownloading
