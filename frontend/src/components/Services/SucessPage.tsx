@@ -76,13 +76,7 @@ export default function SuccessPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={handleViewBooking}
-              variant="outline"
-              className="border-[rgb(150,130,209)] text-[rgb(150,130,209)] hover:bg-[rgb(150,130,209)] hover:text-white"
-            >
-              View My Booking
-            </Button>
+            
 
             <Button
               onClick={handleGoToHome}

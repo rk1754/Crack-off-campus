@@ -28,6 +28,7 @@ class SlotBookingController {
         });
         return;
       }
+      console.log("Service Data",date, time, service_name);
       // Check if slot is already booked (not cancelled)
       const existing = await SessionBooking.findOne({
         where: {
@@ -79,12 +80,11 @@ class SlotBookingController {
         hour12: true,
         timeZone: "Asia/Kolkata",
       };
-      const istDateTime = istDateObj.toLocaleString("en-IN", options);
       // Fetch service details
       const serviceName = booking.service_name;
       const userHtml = `
         <p>Dear ${user.name},</p>
-        <p>Your slot has been booked successfully for <b>${serviceName}</b> on <b>${istDateTime}</b>.</p>
+        <p>Your slot has been booked successfully for <b>${serviceName}</b> on <b>${date} Time: ${time}</b>.</p>
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best regards,</p>
@@ -99,12 +99,12 @@ class SlotBookingController {
         html: userHtml,
       });
       logger.info(
-        `Slot booked successfully for user ${user.name} (${user.email}) on ${istDateTime}`
+        `Slot booked successfully for user ${user.name} (${user.email}) on ${date} at ${time}`
       );
       logger.info(`Notification email sent to user ${user.email}`);
       const adminHTML = `
         <p>Dear Admin,</p>
-        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on <b>${istDateTime}</b>.</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on <b>${date} at ${time}</b>.</p>
         <p> User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best regards,</p>

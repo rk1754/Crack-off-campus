@@ -160,7 +160,7 @@ const JobCard = ({
               {canAccess ? (
                 isPremiumJob ? (
                   <Link
-                    to={`/jobs/${id}`}
+                    to={jobUrl}
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
                     <Crown size={14} className="mr-1" />

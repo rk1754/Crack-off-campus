@@ -12,6 +12,7 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import axios from "axios";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 interface ServiceDetails {
   id: number;
@@ -41,7 +42,14 @@ export default function FormPage() {
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
 
+  // Get user from Redux store
+  const user = useSelector((state: any) => state.user?.user);
+  const subscriptionType =
+    user?.subscription_type || user?.subscription_type_2 || "regular";
+
+
   const BACKEND_URL = "https://api.crackoffcampus.com";
+  
 
   const getServiceTitle = (id: string | undefined): string => {
     const titleMap: Record<string, string> = {
@@ -126,6 +134,49 @@ export default function FormPage() {
       setError("Please select a slot before proceeding.");
       return;
     }
+
+    // Booster user direct booking for Resume Review or Referral
+    if (
+      subscriptionType === "booster" &&
+      (serviceId === "1" || serviceId === "3")
+    ) {
+      setIsSubmitting(true);
+      setError(null);
+      try {
+        // Direct booking API call (replace endpoint as needed)
+        const bookingForm = new FormData();
+        bookingForm.append("serviceId", serviceId || "");
+        bookingForm.append("service_name", serviceTitle);
+        bookingForm.append("date", date);
+        bookingForm.append("time", time);
+        bookingForm.append("name", formData.name);
+        bookingForm.append("phone", formData.phone);
+        bookingForm.append("email", formData.email);
+        bookingForm.append("state", formData.state);
+        bookingForm.append("targetRole", formData.targetRole);
+        bookingForm.append("language", formData.language);
+        if (formData.resume) {
+          bookingForm.append("resume", formData.resume);
+        }
+
+        await axios.post(
+          `${BACKEND_URL}/api/v1/session/booking/book`, // <-- Adjust endpoint as per backend
+          bookingForm,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        toast.success("Booking successful! Check your email for details.");
+        navigate("/services/booking/success");
+      } catch (error: any) {
+        setError(
+          error?.response?.data?.message ||
+            error.message ||
+            "An error occurred while booking."
+        );
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
     if (!sdkLoaded || !window.Cashfree) {
       setError("Payment gateway is not available. Please try again later.");
       return;
