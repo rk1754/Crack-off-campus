@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import Admin from "../models/admin.model";
 import User from "../models/user.model";
+import Experience from "../models/experience.model";
+import Education from "../models/education.model";
 import bcrypt from "bcrypt";
 import { BCRYPT_SALT, JWT_SECRET } from "../config/config";
 import jwt from "jsonwebtoken";
@@ -226,6 +228,9 @@ class AdminController {
                 res.status(404).json({ success: false, message: "User not found" });
                 return;
             }
+            // Delete related experience and education
+            await Experience.destroy({ where: { user_id: id } });
+            await Education.destroy({ where: { user_id: id } });
             await user.destroy();
             res.status(200).json({ success: true, message: "User deleted successfully" });
         } catch (err) {
