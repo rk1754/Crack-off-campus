@@ -218,12 +218,21 @@ const EditProfile = () => {
   }
 
   const addEducationItem = () => {
+    // Check if the last education item is incomplete
+    if (educationItems.length > 0) {
+      const last = educationItems[educationItems.length - 1]
+      if (!last.education || !last.specialization || !last.college || !last.start_year || !last.end_year || !last.location) {
+        toast.error("Please fill all required education fields before adding another.")
+        return
+      }
+    }
     const newEducation: EducationItem = {
       education: "",
       specialization: "",
       college: "",
       start_year: "",
       end_year: "",
+      location: "",
     }
     setEducationItems([...educationItems, newEducation])
   }
