@@ -87,7 +87,7 @@ class SlotBookingController {
       // User email
       const userHtml = `
         <p>Dear ${user.name},</p>
-        <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${formattedDateTime}</b>.</p>
+        <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best Regards,</p>
