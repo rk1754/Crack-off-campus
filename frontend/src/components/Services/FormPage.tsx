@@ -21,12 +21,13 @@ interface ServiceDetails {
 
 export default function FormPage() {
   const navigate = useNavigate();
-  const { serviceId } = useParams<{ serviceId: string }>();
+  const { serviceId } = useParams<{ serviceId: string,  }>();
   const location = useLocation();
   // Get slot info from navigation state
-  const { date, time } = (location.state || {}) as {
+  const { date, time, amount } = (location.state || {}) as {
     date?: string;
     time?: string;
+    amount: string
   };
 
   const [formData, setFormData] = useState({
@@ -48,7 +49,8 @@ export default function FormPage() {
     user?.subscription_type || user?.subscription_type_2 || "regular";
 
 
-  const BACKEND_URL = "https://api.crackoffcampus.com";
+  // const BACKEND_URL = "https://api.crackoffcampus.com";
+  const BACKEND_URL = "http://localhost:5454";
   
 
   const getServiceTitle = (id: string | undefined): string => {
@@ -92,6 +94,7 @@ export default function FormPage() {
 
   // Load Cashfree SDK on mount
   useEffect(() => {
+    console.log(amount);
     const loadCashfreeSDK = async () => {
       if (document.getElementById("cashfree-sdk") || window.Cashfree) {
         setSdkLoaded(true);
@@ -203,10 +206,11 @@ export default function FormPage() {
       );
 
       // 1. Create Cashfree order (call your backend endpoint)
+      console.log(amount);
       const paymentOrderRes = await axios.post(
         `${BACKEND_URL}/api/v1/payment/create-order`,
         {
-          amount: 199, // You may want to get the actual amount dynamically
+          amount: Number(amount), // You may want to get the actual amount dynamically
           name: formData.name,
           email: formData.email,
           phone: formData.phone,

@@ -261,7 +261,7 @@ export default function BookingPage() {
 
     // Redirect to the form page with slot info
     navigate(`/services/${serviceId}/form`, {
-      state: { date: selectedDate, time: selectedTime },
+      state: { date: selectedDate, time: selectedTime, amount: service.amount },
     });
   };
 
