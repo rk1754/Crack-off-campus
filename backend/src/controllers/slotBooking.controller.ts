@@ -83,7 +83,7 @@ class SlotBookingController {
         timeZone: "Asia/Kolkata",
       };
       const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
-
+      console.log(service_name, date, time, formattedDateTime);
       // User email
       const userHtml = `
         <p>Dear ${user.name},</p>
@@ -109,7 +109,7 @@ class SlotBookingController {
       // Admin email
       const adminHTML = `
         <p>Dear Admin,</p>
-        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${formattedDateTime}</b>.</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${date} ${time}</b>.</p>
         <p>User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best Regards,</p>
