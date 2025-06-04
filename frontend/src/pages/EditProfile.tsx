@@ -571,6 +571,7 @@ const EditProfile = () => {
                               onChange={(e) => updateExperienceItem(index, "job_title", e.target.value)}
                               placeholder="e.g., Senior Software Engineer"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -583,6 +584,7 @@ const EditProfile = () => {
                               onChange={(e) => updateExperienceItem(index, "company_name", e.target.value)}
                               placeholder="e.g., Google Inc."
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -595,6 +597,7 @@ const EditProfile = () => {
                               value={exp.start_date ? exp.start_date.slice(0, 10) : ""}
                               onChange={(e) => updateExperienceItem(index, "start_date", e.target.value)}
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -607,6 +610,7 @@ const EditProfile = () => {
                               value={exp.end_date ? exp.end_date.slice(0, 10) : ""}
                               onChange={(e) => updateExperienceItem(index, "end_date", e.target.value)}
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -619,6 +623,7 @@ const EditProfile = () => {
                               onChange={(e) => updateExperienceItem(index, "location", e.target.value)}
                               placeholder="e.g., San Francisco, CA"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -630,6 +635,7 @@ const EditProfile = () => {
                               value={exp.employment_type}
                               onChange={(e) => updateExperienceItem(index, "employment_type", e.target.value)}
                               className="w-full border border-purple-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 mt-1 text-sm sm:text-base"
+                              required={true}
                             >
                               <option value="full_time">Full Time</option>
                               <option value="part_time">Part Time</option>
@@ -647,6 +653,7 @@ const EditProfile = () => {
                             placeholder="Describe your role, responsibilities, and key achievements..."
                             rows={3}
                             className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                            required={true}
                           />
                         </div>
                       </div>
@@ -727,6 +734,7 @@ const EditProfile = () => {
                               onChange={(e) => updateEducationItem(index, "education", e.target.value)}
                               placeholder="e.g., Bachelor of Science"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -739,6 +747,7 @@ const EditProfile = () => {
                               onChange={(e) => updateEducationItem(index, "specialization", e.target.value)}
                               placeholder="e.g., Computer Science"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div className="lg:col-span-2">
@@ -751,6 +760,7 @@ const EditProfile = () => {
                               onChange={(e) => updateEducationItem(index, "college", e.target.value)}
                               placeholder="e.g., IIT Bombay"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -764,6 +774,7 @@ const EditProfile = () => {
                               onChange={(e) => updateEducationItem(index, "start_year", e.target.value)}
                               placeholder="2020"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -777,6 +788,7 @@ const EditProfile = () => {
                               onChange={(e) => updateEducationItem(index, "end_year", e.target.value)}
                               placeholder="2024"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                           <div>
@@ -789,6 +801,7 @@ const EditProfile = () => {
                               onChange={(e) => updateEducationItem(index, "location", e.target.value)}
                               placeholder="e.g., Mumbai, India"
                               className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                              required={true}
                             />
                           </div>
                         </div>

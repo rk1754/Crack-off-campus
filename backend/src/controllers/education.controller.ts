@@ -4,7 +4,7 @@ import Education from "../models/education.model";
 class EducationController{
     addEducation = async(req : Request, res : Response):Promise<void>=>{
         try{
-            const {education, start_year, end_year, specialization} = req.body;
+            const {education, start_year, end_year,location, specialization} = req.body;
             const user = req.user;
             if(!user){
                 res.status(403).json({
@@ -27,6 +27,7 @@ class EducationController{
                 start_year,
                 end_year,
                 specialization,
+                location,
                 user_id : user.id
             });
             if(!userEducation){
