@@ -11,7 +11,6 @@ class SlotBookingController {
   // Book a slot (service_id, date, time)
   bookSlot = async (req: Request, res: Response): Promise<void> => {
     try {
-      console.log(req.body);
       const { serviceId, date, service_name, time } = req.body;
       const userId = req.user?.id;
       if (!userId) {
@@ -28,7 +27,7 @@ class SlotBookingController {
         });
         return;
       }
-      console.log("Service Data",date, time, service_name);
+
       // Check if slot is already booked (not cancelled)
       const existing = await SessionBooking.findOne({
         where: {
@@ -45,6 +44,7 @@ class SlotBookingController {
         });
         return;
       }
+
       const booking = await SessionBooking.create({
         userId,
         service_id: serviceId,
@@ -53,6 +53,7 @@ class SlotBookingController {
         time,
         cancelled: false,
       });
+
       const u = req.user;
       if (!u) {
         res.status(401).json({
@@ -69,8 +70,9 @@ class SlotBookingController {
         });
         return;
       }
-      // Format date and time to Indian Standard Time (IST)
-      const istDateObj = new Date(date + "T" + time);
+
+      // Format date and time to Indian Standard Time (IST) for email
+      const istDateObj = new Date(`${date}T${time}:00Z`);
       const options: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "long",
@@ -80,38 +82,40 @@ class SlotBookingController {
         hour12: true,
         timeZone: "Asia/Kolkata",
       };
-      // Fetch service details
-      const serviceName = booking.service_name;
+      const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
+
+      // User email
       const userHtml = `
         <p>Dear ${user.name},</p>
-        <p>Your slot has been booked successfully for <b>${serviceName}</b> on <b>${date} Time: ${time}</b>.</p>
+        <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${formattedDateTime}</b>.</p>
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best regards,</p>
         <p>Team Crack Off-Campus</p>
       `;
-      // Optionally send confirmation email here...
-      console.log("User HTML: ", userHtml);
+
       await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: user.email,
         subject: "Slot Booking Confirmation",
         html: userHtml,
       });
+
       logger.info(
         `Slot booked successfully for user ${user.name} (${user.email}) on ${date} at ${time}`
       );
       logger.info(`Notification email sent to user ${user.email}`);
+
+      // Admin email
       const adminHTML = `
         <p>Dear Admin,</p>
-        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on <b>${date} at ${time}</b>.</p>
-        <p> User Contact: ${user.phone_number}</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${formattedDateTime}</b>.</p>
+        <p>User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best regards,</p>
         <p>Team Crack Off-Campus</p>
       `;
 
-      console.log("Admin HTML: ", adminHTML);
       // Attach resume if uploaded
       const attachments = [];
       if (req.file) {
@@ -120,6 +124,7 @@ class SlotBookingController {
           path: req.file.path,
         });
       }
+
       await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: "crackoffcampus63@gmail.com",
@@ -127,13 +132,20 @@ class SlotBookingController {
         html: adminHTML,
         attachments,
       });
+
       logger.info(
         `Notification email sent to admin about new booking by ${user.email}`
       );
+
+      // Format booking for response
       res.status(201).json({
         success: true,
         message: "Slot booked successfully",
-        booking,
+        booking: {
+          ...booking.toJSON(),
+          date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null, // YYYY-MM-DD
+          time: booking.time ? booking.time.slice(0, 5) : null, // HH:mm
+        },
       });
     } catch (err) {
       console.error(err);

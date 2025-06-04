@@ -6,8 +6,8 @@ import { Navigate, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import type { RootState, AppDispatch } from "@/redux/store"
 import { fetchCurrentUser, updateUser } from "@/redux/slices/userSlice"
-import { getMyExperience, addExperience as addExperienceThunk, updateExperience } from "@/redux/slices/experienceSlice"
-import { getMyEducation, addEducation, updateMyEducation } from "@/redux/slices/educationSlice"
+import { getMyExperience, addExperience as addExperienceThunk, updateExperience, deleteExperience } from "@/redux/slices/experienceSlice"
+import { getMyEducation, addEducation, updateMyEducation, deleteEducation } from "@/redux/slices/educationSlice"
 import Layout from "../components/layout/Layout"
 import {
   Camera,
@@ -255,7 +255,7 @@ const EditProfile = () => {
         errors.start_year = "Start year cannot be in the future"
       }
       if (endYear > currentYear + 10) {
-        errors.end_year = "End year seems too far in the future"
+        errors.end_year = "End year seems to far in the future"
       }
       if (startYear >= endYear) {
         errors.end_year = "End year must be after start year"
@@ -460,6 +460,16 @@ const EditProfile = () => {
 
       await dispatch(updateUser({ data: payload })).unwrap()
 
+      // Handle experience deletions
+      const currentIds = experienceItems.map(e => e.id || e._id).filter(Boolean)
+      if (experiences && Array.isArray(experiences)) {
+        for (const oldExp of experiences) {
+          const oldId = oldExp.id || oldExp._id
+          if (oldId && !currentIds.includes(oldId)) {
+            await dispatch(deleteExperience(oldId)).unwrap()
+          }
+        }
+      }
       // Save experience items
       for (const exp of experienceItems) {
         if (exp.id || exp._id) {
@@ -471,6 +481,16 @@ const EditProfile = () => {
         }
       }
 
+      // Handle education deletions
+      const currentEduIds = educationItems.map(e => e.id || e._id).filter(Boolean)
+      if (educationList && Array.isArray(educationList)) {
+        for (const oldEdu of educationList) {
+          const oldId = oldEdu.id || oldEdu._id
+          if (oldId && !currentEduIds.includes(oldId)) {
+            await dispatch(deleteEducation(oldId)).unwrap()
+          }
+        }
+      }
       // Save education items
       for (const edu of educationItems) {
         if (edu.id || edu._id) {
@@ -702,7 +722,7 @@ const EditProfile = () => {
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Award size={16} className="sm:w-5 sm:h-5 text-purple-600" />
                     </div>
-                    Skills & Expertise <span className="text-red-500">*</span>
+                    Skills & Expertise
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 sm:pt-6 space-y-4 px-4 sm:px-6">
@@ -722,7 +742,7 @@ const EditProfile = () => {
                       <Plus size={16} />
                     </Button>
                   </div>
-                  {validationErrors.profile.skills && (
+                  {validationErrors.profile.skills && false && (
                     <p className="text-red-500 text-xs flex items-center gap-1">
                       <AlertCircle size={12} />
                       {validationErrors.profile.skills}
