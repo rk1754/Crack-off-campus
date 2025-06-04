@@ -328,7 +328,12 @@ const AuthForm = ({ type }: AuthFormProps) => {
           </>
         )}
 
-        <div className="mt-6 text-center">{formConfig[type].footerText}</div>
+        <div className="mt-6 text-center">
+          <span>{formConfig[type].footerText} </span>
+          <Link to={formConfig[type].footerLink} className="text-[#9b87f5] hover:underline font-medium">
+            {formConfig[type].footerLinkText}
+          </Link>
+        </div>
 
         {type === "employer" && (
           <div className="mt-2 text-center text-sm text-gray-600">
