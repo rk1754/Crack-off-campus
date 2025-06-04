@@ -26,6 +26,7 @@ import {
   Calendar,
   MapPin,
   Clock,
+  AlertCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +35,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -57,7 +59,13 @@ interface EducationItem {
   college: string
   start_year: string
   end_year: string
-  location?: string
+  location: string
+}
+
+interface ValidationErrors {
+  experience: { [key: number]: { [key: string]: string } }
+  education: { [key: number]: { [key: string]: string } }
+  profile: { [key: string]: string }
 }
 
 const EditProfile = () => {
@@ -72,6 +80,11 @@ const EditProfile = () => {
   const { isAuthenticated } = useAuth()
 
   const [isSaving, setIsSaving] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
+    experience: {},
+    education: {},
+    profile: {},
+  })
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -153,6 +166,166 @@ const EditProfile = () => {
     )
   }
 
+  // Validation functions
+  const validateProfileData = () => {
+    const errors: { [key: string]: string } = {}
+
+    if (!profileData.name.trim()) {
+      errors.name = "Full name is required"
+    }
+    if (!profileData.phone_number.trim()) {
+      errors.phone_number = "Phone number is required"
+    }
+    if (!profileData.bio.trim()) {
+      errors.bio = "About me section is required"
+    }
+    if (profileData.skills.length === 0) {
+      errors.skills = "At least one skill is required"
+    }
+
+    return errors
+  }
+
+  const validateExperienceItem = (exp: ExperienceItem, index: number) => {
+    const errors: { [key: string]: string } = {}
+
+    if (!exp.job_title.trim()) {
+      errors.job_title = "Job title is required"
+    }
+    if (!exp.company_name.trim()) {
+      errors.company_name = "Company name is required"
+    }
+    if (!exp.start_date.trim()) {
+      errors.start_date = "Start date is required"
+    }
+    if (!exp.end_date.trim()) {
+      errors.end_date = "End date is required"
+    }
+    if (!exp.location.trim()) {
+      errors.location = "Location is required"
+    }
+    if (!exp.description.trim()) {
+      errors.description = "Job description is required"
+    }
+    if (!exp.employment_type.trim()) {
+      errors.employment_type = "Employment type is required"
+    }
+
+    // Date validation
+    if (exp.start_date && exp.end_date) {
+      const startDate = new Date(exp.start_date)
+      const endDate = new Date(exp.end_date)
+      if (startDate >= endDate) {
+        errors.end_date = "End date must be after start date"
+      }
+    }
+
+    return errors
+  }
+
+  const validateEducationItem = (edu: EducationItem, index: number) => {
+    const errors: { [key: string]: string } = {}
+
+    if (!edu.education.trim()) {
+      errors.education = "Degree is required"
+    }
+    if (!edu.specialization.trim()) {
+      errors.specialization = "Specialization is required"
+    }
+    if (!edu.college.trim()) {
+      errors.college = "College/University is required"
+    }
+    if (!edu.start_year.trim()) {
+      errors.start_year = "Start year is required"
+    }
+    if (!edu.end_year.trim()) {
+      errors.end_year = "End year is required"
+    }
+    if (!edu.location.trim()) {
+      errors.location = "Location is required"
+    }
+
+    // Year validation
+    if (edu.start_year && edu.end_year) {
+      const startYear = Number.parseInt(edu.start_year)
+      const endYear = Number.parseInt(edu.end_year)
+      const currentYear = new Date().getFullYear()
+
+      if (startYear > currentYear) {
+        errors.start_year = "Start year cannot be in the future"
+      }
+      if (endYear > currentYear + 10) {
+        errors.end_year = "End year seems too far in the future"
+      }
+      if (startYear >= endYear) {
+        errors.end_year = "End year must be after start year"
+      }
+    }
+
+    return errors
+  }
+
+  const validateAllForms = () => {
+    const newValidationErrors: ValidationErrors = {
+      experience: {},
+      education: {},
+      profile: {},
+    }
+
+    // Validate profile data
+    newValidationErrors.profile = validateProfileData()
+
+    // Validate experience items
+    experienceItems.forEach((exp, index) => {
+      const expErrors = validateExperienceItem(exp, index)
+      if (Object.keys(expErrors).length > 0) {
+        newValidationErrors.experience[index] = expErrors
+      }
+    })
+
+    // Validate education items
+    educationItems.forEach((edu, index) => {
+      const eduErrors = validateEducationItem(edu, index)
+      if (Object.keys(eduErrors).length > 0) {
+        newValidationErrors.education[index] = eduErrors
+      }
+    })
+
+    setValidationErrors(newValidationErrors)
+
+    // Check if there are any errors
+    const hasProfileErrors = Object.keys(newValidationErrors.profile).length > 0
+    const hasExperienceErrors = Object.keys(newValidationErrors.experience).length > 0
+    const hasEducationErrors = Object.keys(newValidationErrors.education).length > 0
+
+    return !(hasProfileErrors || hasExperienceErrors || hasEducationErrors)
+  }
+
+  // Clear specific field error
+  const clearFieldError = (section: "profile" | "experience" | "education", index?: number, field?: string) => {
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev }
+      if (section === "profile" && field) {
+        delete newErrors.profile[field]
+      } else if (section === "experience" && typeof index === "number" && field) {
+        if (newErrors.experience[index]) {
+          delete newErrors.experience[index][field]
+          if (Object.keys(newErrors.experience[index]).length === 0) {
+            delete newErrors.experience[index]
+          }
+        }
+      } else if (section === "education" && typeof index === "number" && field) {
+        if (newErrors.education[index]) {
+          delete newErrors.education[index][field]
+          if (Object.keys(newErrors.education[index]).length === 0) {
+            delete newErrors.education[index]
+          }
+        }
+      }
+      return newErrors
+    })
+  }
+
   // Handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target
@@ -175,6 +348,7 @@ const EditProfile = () => {
         skills: [...prev.skills, trimmedSkill],
       }))
       setSkillInput("")
+      clearFieldError("profile", undefined, "skills")
     }
   }
 
@@ -209,23 +383,23 @@ const EditProfile = () => {
     const updated = [...experienceItems]
     updated[index] = { ...updated[index], [field]: value }
     setExperienceItems(updated)
+    clearFieldError("experience", index, field)
   }
 
   const removeExperience = (index: number) => {
     const updated = [...experienceItems]
     updated.splice(index, 1)
     setExperienceItems(updated)
+
+    // Clear validation errors for this item
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev }
+      delete newErrors.experience[index]
+      return newErrors
+    })
   }
 
   const addEducationItem = () => {
-    // Check if the last education item is incomplete
-    if (educationItems.length > 0) {
-      const last = educationItems[educationItems.length - 1]
-      if (!last.education || !last.specialization || !last.college || !last.start_year || !last.end_year || !last.location) {
-        toast.error("Please fill all required education fields before adding another.")
-        return
-      }
-    }
     const newEducation: EducationItem = {
       education: "",
       specialization: "",
@@ -241,12 +415,20 @@ const EditProfile = () => {
     const updated = [...educationItems]
     updated[index] = { ...updated[index], [field]: value }
     setEducationItems(updated)
+    clearFieldError("education", index, field)
   }
 
   const removeEducationItem = (index: number) => {
     const updated = [...educationItems]
     updated.splice(index, 1)
     setEducationItems(updated)
+
+    // Clear validation errors for this item
+    setValidationErrors((prev) => {
+      const newErrors = { ...prev }
+      delete newErrors.education[index]
+      return newErrors
+    })
   }
 
   const calculateDuration = (startYear: string, endYear: string) => {
@@ -256,6 +438,14 @@ const EditProfile = () => {
   }
 
   const handleSaveProfile = async () => {
+    // Validate all forms before saving
+    const isValid = validateAllForms()
+
+    if (!isValid) {
+      toast.error("Please fill in all required fields and fix any errors before saving.")
+      return
+    }
+
     setIsSaving(true)
     try {
       // Save profile data
@@ -304,6 +494,11 @@ const EditProfile = () => {
     }
   }
 
+  const handleProfileDataChange = (field: string, value: string) => {
+    setProfileData((prev) => ({ ...prev, [field]: value }))
+    clearFieldError("profile", undefined, field)
+  }
+
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
@@ -343,6 +538,18 @@ const EditProfile = () => {
                 )}
               </Button>
             </div>
+
+            {/* Validation Summary */}
+            {(Object.keys(validationErrors.profile).length > 0 ||
+              Object.keys(validationErrors.experience).length > 0 ||
+              Object.keys(validationErrors.education).length > 0) && (
+                <Alert className="mb-6 border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    Please fix the validation errors below before saving your profile.
+                  </AlertDescription>
+                </Alert>
+              )}
 
             <div className="space-y-6 sm:space-y-8">
               {/* Cover Photo & Profile Picture - Responsive like LinkedIn */}
@@ -390,6 +597,7 @@ const EditProfile = () => {
                             profilePicPreview ||
                             user?.profile_pic ||
                             "/placeholder.svg?height=128&width=128" ||
+                            "/placeholder.svg" ||
                             "/placeholder.svg"
                           }
                           alt="Profile"
@@ -429,48 +637,60 @@ const EditProfile = () => {
                 <CardContent className="pt-4 sm:pt-6 space-y-4 sm:space-y-6 px-4 sm:px-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                      <Label className="text-purple-700 font-medium text-sm sm:text-base">Full Name</Label>
+                      <Label className="text-purple-700 font-medium text-sm sm:text-base">
+                        Full Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         value={profileData.name}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => handleProfileDataChange("name", e.target.value)}
                         placeholder="Enter your full name"
-                        className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                        className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.profile.name ? "border-red-500" : ""
+                          }`}
                       />
+                      {validationErrors.profile.name && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          {validationErrors.profile.name}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <Label className="text-purple-700 font-medium text-sm sm:text-base">Phone Number</Label>
+                      <Label className="text-purple-700 font-medium text-sm sm:text-base">
+                        Phone Number <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         value={profileData.phone_number}
-                        onChange={(e) =>
-                          setProfileData((prev) => ({
-                            ...prev,
-                            phone_number: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => handleProfileDataChange("phone_number", e.target.value)}
                         placeholder="Enter your phone number"
-                        className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                        className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.profile.phone_number ? "border-red-500" : ""
+                          }`}
                       />
+                      {validationErrors.profile.phone_number && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          {validationErrors.profile.phone_number}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-purple-700 font-medium text-sm sm:text-base">About Me</Label>
+                    <Label className="text-purple-700 font-medium text-sm sm:text-base">
+                      About Me <span className="text-red-500">*</span>
+                    </Label>
                     <Textarea
                       value={profileData.bio}
-                      onChange={(e) =>
-                        setProfileData((prev) => ({
-                          ...prev,
-                          bio: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => handleProfileDataChange("bio", e.target.value)}
                       placeholder="Tell us about yourself, your experience, and what you're passionate about..."
                       rows={4}
-                      className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
+                      className={`resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.profile.bio ? "border-red-500" : ""
+                        }`}
                     />
+                    {validationErrors.profile.bio && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {validationErrors.profile.bio}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -482,7 +702,7 @@ const EditProfile = () => {
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Award size={16} className="sm:w-5 sm:h-5 text-purple-600" />
                     </div>
-                    Skills & Expertise
+                    Skills & Expertise <span className="text-red-500">*</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 sm:pt-6 space-y-4 px-4 sm:px-6">
@@ -502,6 +722,12 @@ const EditProfile = () => {
                       <Plus size={16} />
                     </Button>
                   </div>
+                  {validationErrors.profile.skills && (
+                    <p className="text-red-500 text-xs flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      {validationErrors.profile.skills}
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2 sm:gap-3">
                     {profileData.skills.map((skill, index) => (
                       <Badge
@@ -547,7 +773,8 @@ const EditProfile = () => {
                     {experienceItems.map((exp, index) => (
                       <div
                         key={index}
-                        className="relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300"
+                        className={`relative bg-gradient-to-r from-white to-purple-50/30 border rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300 ${validationErrors.experience[index] ? "border-red-300 bg-red-50/20" : "border-purple-200"
+                          }`}
                       >
                         <Button
                           onClick={() => removeExperience(index)}
@@ -565,6 +792,12 @@ const EditProfile = () => {
                             <span className="text-xs sm:text-sm font-medium text-purple-700">
                               Experience #{index + 1}
                             </span>
+                            {validationErrors.experience[index] && (
+                              <Badge variant="destructive" className="text-xs">
+                                <AlertCircle size={10} className="mr-1" />
+                                Required fields missing
+                              </Badge>
+                            )}
                           </div>
                           <Separator className="bg-purple-100" />
                         </div>
@@ -573,78 +806,110 @@ const EditProfile = () => {
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <User size={12} className="sm:w-3 sm:h-3" />
-                              Job Title
+                              Job Title <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={exp.job_title || ""}
                               onChange={(e) => updateExperienceItem(index, "job_title", e.target.value)}
                               placeholder="e.g., Senior Software Engineer"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.job_title ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.job_title && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].job_title}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Building size={12} className="sm:w-3 sm:h-3" />
-                              Company Name
+                              Company Name <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={exp.company_name || ""}
                               onChange={(e) => updateExperienceItem(index, "company_name", e.target.value)}
                               placeholder="e.g., Google Inc."
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.company_name ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.company_name && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].company_name}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar size={12} className="sm:w-3 sm:h-3" />
-                              Start Date
+                              Start Date <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="date"
                               value={exp.start_date ? exp.start_date.slice(0, 10) : ""}
                               onChange={(e) => updateExperienceItem(index, "start_date", e.target.value)}
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.start_date ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.start_date && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].start_date}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar size={12} className="sm:w-3 sm:h-3" />
-                              End Date
+                              End Date <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="date"
                               value={exp.end_date ? exp.end_date.slice(0, 10) : ""}
                               onChange={(e) => updateExperienceItem(index, "end_date", e.target.value)}
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.end_date ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.end_date && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].end_date}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <MapPin size={12} className="sm:w-3 sm:h-3" />
-                              Location
+                              Location <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={exp.location || ""}
                               onChange={(e) => updateExperienceItem(index, "location", e.target.value)}
                               placeholder="e.g., San Francisco, CA"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.location ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.location && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].location}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Clock size={12} className="sm:w-3 sm:h-3" />
-                              Employment Type
+                              Employment Type <span className="text-red-500">*</span>
                             </Label>
                             <select
                               value={exp.employment_type}
                               onChange={(e) => updateExperienceItem(index, "employment_type", e.target.value)}
-                              className="w-full border border-purple-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 mt-1 text-sm sm:text-base"
-                              required={true}
+                              className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 mt-1 text-sm sm:text-base ${validationErrors.experience[index]?.employment_type
+                                  ? "border-red-500"
+                                  : "border-purple-200"
+                                }`}
                             >
                               <option value="full_time">Full Time</option>
                               <option value="part_time">Part Time</option>
@@ -652,18 +917,32 @@ const EditProfile = () => {
                               <option value="internship">Internship</option>
                               <option value="freelance">Freelance</option>
                             </select>
+                            {validationErrors.experience[index]?.employment_type && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].employment_type}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="mt-3 sm:mt-4">
-                          <Label className="text-purple-700 font-medium text-xs sm:text-sm">Job Description</Label>
+                          <Label className="text-purple-700 font-medium text-xs sm:text-sm">
+                            Job Description <span className="text-red-500">*</span>
+                          </Label>
                           <Textarea
                             value={exp.description || ""}
                             onChange={(e) => updateExperienceItem(index, "description", e.target.value)}
                             placeholder="Describe your role, responsibilities, and key achievements..."
                             rows={3}
-                            className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                            required={true}
+                            className={`resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.description ? "border-red-500" : ""
+                              }`}
                           />
+                          {validationErrors.experience[index]?.description && (
+                            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                              <AlertCircle size={10} />
+                              {validationErrors.experience[index].description}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -710,7 +989,8 @@ const EditProfile = () => {
                     {educationItems.map((edu, index) => (
                       <div
                         key={index}
-                        className="relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300"
+                        className={`relative bg-gradient-to-r from-white to-purple-50/30 border rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300 ${validationErrors.education[index] ? "border-red-300 bg-red-50/20" : "border-purple-200"
+                          }`}
                       >
                         <Button
                           onClick={() => removeEducationItem(index)}
@@ -728,6 +1008,12 @@ const EditProfile = () => {
                             <span className="text-xs sm:text-sm font-medium text-purple-700">
                               Education #{index + 1}
                             </span>
+                            {validationErrors.education[index] && (
+                              <Badge variant="destructive" className="text-xs">
+                                <AlertCircle size={10} className="mr-1" />
+                                Required fields missing
+                              </Badge>
+                            )}
                           </div>
                           <Separator className="bg-purple-100" />
                         </div>
@@ -736,82 +1022,118 @@ const EditProfile = () => {
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Award size={12} className="sm:w-3 sm:h-3" />
-                              Degree
+                              Degree <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.education}
                               onChange={(e) => updateEducationItem(index, "education", e.target.value)}
                               placeholder="e.g., Bachelor of Science"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.education ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.education && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].education}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <BookOpen size={12} className="sm:w-3 sm:h-3" />
-                              Specialization/Branch
+                              Specialization/Branch <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.specialization}
                               onChange={(e) => updateEducationItem(index, "specialization", e.target.value)}
                               placeholder="e.g., Computer Science"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.specialization ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.specialization && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].specialization}
+                              </p>
+                            )}
                           </div>
                           <div className="lg:col-span-2">
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Building size={12} className="sm:w-3 sm:h-3" />
-                              College/University
+                              College/University <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.college}
                               onChange={(e) => updateEducationItem(index, "college", e.target.value)}
                               placeholder="e.g., IIT Bombay"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.college ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.college && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].college}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar size={12} className="sm:w-3 sm:h-3" />
-                              Start Year
+                              Start Year <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="number"
                               value={edu.start_year}
                               onChange={(e) => updateEducationItem(index, "start_year", e.target.value)}
                               placeholder="2020"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.start_year ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.start_year && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].start_year}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <Calendar size={12} className="sm:w-3 sm:h-3" />
-                              End Year
+                              End Year <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="number"
                               value={edu.end_year}
                               onChange={(e) => updateEducationItem(index, "end_year", e.target.value)}
                               placeholder="2024"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.end_year ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.end_year && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].end_year}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
                               <MapPin size={12} className="sm:w-3 sm:h-3" />
-                              Location
+                              Location <span className="text-red-500">*</span>
                             </Label>
                             <Input
-                              value={edu.location}
+                              value={edu.location || ""}
                               onChange={(e) => updateEducationItem(index, "location", e.target.value)}
                               placeholder="e.g., Mumbai, India"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1"
-                              required={true}
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.location ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.location && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].location}
+                              </p>
+                            )}
                           </div>
                         </div>
 
