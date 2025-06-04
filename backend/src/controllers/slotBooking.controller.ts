@@ -90,7 +90,7 @@ class SlotBookingController {
         <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${formattedDateTime}</b>.</p>
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
-        <p>Best regards,</p>
+        <p>Best Regards,</p>
         <p>Team Crack Off-Campus</p>
       `;
 
@@ -112,7 +112,7 @@ class SlotBookingController {
         <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${formattedDateTime}</b>.</p>
         <p>User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
-        <p>Best regards,</p>
+        <p>Best Regards,</p>
         <p>Team Crack Off-Campus</p>
       `;
 
