@@ -151,11 +151,9 @@ class PaymentController {
     const validSubscriptionTypes = [
       "basic", "standard", "booster", "regular", "job", "resume", "other_templates"
     ];
-    // Only update subscription_type if it's a subscription, not a resource
-    // (If you want to update for subscriptions, keep this block. Otherwise, remove it entirely.)
-    // if (validSubscriptionTypes.includes(serviceName)) {
-    //   updateFields.subscription_type = serviceName;
-    // }
+    if (validSubscriptionTypes.includes(serviceName)) {
+      updateFields.subscription_type = serviceName;
+    }
 
     // Set all relevant boolean fields to true
     const fieldsToSet = serviceFieldMap[serviceName];
