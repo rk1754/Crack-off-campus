@@ -476,14 +476,23 @@ class PaymentController {
       }
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-      // Update user subscription and store transaction atomically
+      // Only set subscription_type to 'job' if user is not already premium
+      const premiumTiers = ["booster", "standard", "basic"];
+      let updateFields: any = {
+        subscription_expiry: subscriptionExpiry,
+        is_premium: true,
+      };
+      if (
+        subscriptionType === "job" &&
+        premiumTiers.includes(user.subscription_type)
+      ) {
+        // Do not downgrade, just update expiry and is_premium
+      } else {
+        updateFields.subscription_type = subscriptionType;
+      }
       await sequelize.transaction(async (t: any) => {
         await User.update(
-          {
-            subscription_type: subscriptionType,
-            subscription_expiry: subscriptionExpiry,
-            is_premium: true,
-          },
+          updateFields,
           { where: { id: user.id }, transaction: t }
         );
         await Transactions.create(
@@ -501,11 +510,12 @@ class PaymentController {
         );
       });
       // Update JWT token
+      const updatedUser = await User.findByPk(user.id);
       const token = jwt.sign(
         {
           id: user.id,
           email: user.email,
-          subscription_type: subscriptionType,
+          subscription_type: updatedUser?.subscription_type || subscriptionType,
           phone_number: user.phone_number,
         },
         JWT_SECRET,
