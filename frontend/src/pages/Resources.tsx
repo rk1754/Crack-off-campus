@@ -88,7 +88,7 @@ const ResourcesPage = () => {
     setLoading(true);
     try {
       const orderRes = await axios.post(
-        "https://api.crackoffcampus.com/api/v1/payment/create-order",
+        "http://localhost:5454/api/v1/payment/create-order",
         {
           amount: amountInPaise,
           name: user.name,

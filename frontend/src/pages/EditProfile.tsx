@@ -559,8 +559,20 @@ const EditProfile = () => {
               </Button>
             </div>
 
-            <div className="space-y-8">
-              {/* Cover Photo & Profile Picture */}
+            {/* Validation Summary */}
+            {(Object.keys(validationErrors.profile).length > 0 ||
+              Object.keys(validationErrors.experience).length > 0 ||
+              Object.keys(validationErrors.education).length > 0) && (
+                <Alert className="mb-6 border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    Please fix the validation errors below before saving your profile.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+            <div className="space-y-6 sm:space-y-8">
+              {/* Cover Photo & Profile Picture - Responsive like LinkedIn */}
               <Card className="overflow-hidden border-none shadow-lg bg-gradient-to-br from-gray-100 via-white to-purple-100">
                 {/* Cover Image Section - Responsive height */}
                 <div className="relative w-full h-32 sm:h-40 md:h-48">
@@ -605,6 +617,7 @@ const EditProfile = () => {
                             profilePicPreview ||
                             user?.profile_pic ||
                             "/placeholder.svg?height=128&width=128" ||
+                            "/placeholder.svg" ||
                             "/placeholder.svg"
                           }
                           alt="Profile"
@@ -644,33 +657,60 @@ const EditProfile = () => {
                 <CardContent className="pt-4 sm:pt-6 space-y-4 sm:space-y-6 px-4 sm:px-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                      <Label className="text-purple-700 font-medium">Full Name</Label>
+                      <Label className="text-purple-700 font-medium text-sm sm:text-base">
+                        Full Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         value={profileData.name}
                         onChange={(e) => handleProfileDataChange("name", e.target.value)}
                         placeholder="Enter your full name"
-                        className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                        className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.profile.name ? "border-red-500" : ""
+                          }`}
                       />
+                      {validationErrors.profile.name && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          {validationErrors.profile.name}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <Label className="text-purple-700 font-medium">Phone Number</Label>
+                      <Label className="text-purple-700 font-medium text-sm sm:text-base">
+                        Phone Number <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         value={profileData.phone_number}
                         onChange={(e) => handleProfileDataChange("phone_number", e.target.value)}
                         placeholder="Enter your phone number"
-                        className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                        className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.profile.phone_number ? "border-red-500" : ""
+                          }`}
                       />
+                      {validationErrors.profile.phone_number && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          {validationErrors.profile.phone_number}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-purple-700 font-medium">About Me</Label>
+                    <Label className="text-purple-700 font-medium text-sm sm:text-base">
+                      About Me <span className="text-red-500">*</span>
+                    </Label>
                     <Textarea
                       value={profileData.bio}
                       onChange={(e) => handleProfileDataChange("bio", e.target.value)}
                       placeholder="Tell us about yourself, your experience, and what you're passionate about..."
                       rows={4}
-                      className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                      className={`resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.profile.bio ? "border-red-500" : ""
+                        }`}
                     />
+                    {validationErrors.profile.bio && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        <AlertCircle size={12} />
+                        {validationErrors.profile.bio}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -702,7 +742,13 @@ const EditProfile = () => {
                       <Plus size={16} />
                     </Button>
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  {validationErrors.profile.skills && false && (
+                    <p className="text-red-500 text-xs flex items-center gap-1">
+                      <AlertCircle size={12} />
+                      {validationErrors.profile.skills}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2 sm:gap-3">
                     {profileData.skills.map((skill, index) => (
                       <Badge
                         key={index}
@@ -747,7 +793,8 @@ const EditProfile = () => {
                     {experienceItems.map((exp, index) => (
                       <div
                         key={index}
-                        className="relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
+                        className={`relative bg-gradient-to-r from-white to-purple-50/30 border rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300 ${validationErrors.experience[index] ? "border-red-300 bg-red-50/20" : "border-purple-200"
+                          }`}
                       >
                         <Button
                           onClick={() => removeExperience(index)}
@@ -761,82 +808,128 @@ const EditProfile = () => {
                         {/* Experience Header */}
                         <div className="mb-4 sm:mb-6">
                           <div className="flex items-center gap-2 mb-2">
-                            <Briefcase size={18} className="text-purple-600" />
-                            <span className="text-sm font-medium text-purple-700">Experience #{index + 1}</span>
+                            <Briefcase size={16} className="sm:w-4 sm:h-4 text-purple-600" />
+                            <span className="text-xs sm:text-sm font-medium text-purple-700">
+                              Experience #{index + 1}
+                            </span>
+                            {validationErrors.experience[index] && (
+                              <Badge variant="destructive" className="text-xs">
+                                <AlertCircle size={10} className="mr-1" />
+                                Required fields missing
+                              </Badge>
+                            )}
                           </div>
                           <Separator className="bg-purple-100" />
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <User size={14} />
-                              Job Title
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <User size={12} className="sm:w-3 sm:h-3" />
+                              Job Title <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={exp.job_title || ""}
                               onChange={(e) => updateExperienceItem(index, "job_title", e.target.value)}
                               placeholder="e.g., Senior Software Engineer"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.job_title ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.job_title && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].job_title}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Building size={14} />
-                              Company Name
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Building size={12} className="sm:w-3 sm:h-3" />
+                              Company Name <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={exp.company_name || ""}
                               onChange={(e) => updateExperienceItem(index, "company_name", e.target.value)}
                               placeholder="e.g., Google Inc."
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.company_name ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.company_name && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].company_name}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Calendar size={14} />
-                              Start Date
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Calendar size={12} className="sm:w-3 sm:h-3" />
+                              Start Date <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="date"
                               value={exp.start_date ? exp.start_date.slice(0, 10) : ""}
                               onChange={(e) => updateExperienceItem(index, "start_date", e.target.value)}
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.start_date ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.start_date && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].start_date}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Calendar size={14} />
-                              End Date
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Calendar size={12} className="sm:w-3 sm:h-3" />
+                              End Date <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="date"
                               value={exp.end_date ? exp.end_date.slice(0, 10) : ""}
                               onChange={(e) => updateExperienceItem(index, "end_date", e.target.value)}
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.end_date ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.end_date && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].end_date}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <MapPin size={14} />
-                              Location
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <MapPin size={12} className="sm:w-3 sm:h-3" />
+                              Location <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={exp.location || ""}
                               onChange={(e) => updateExperienceItem(index, "location", e.target.value)}
                               placeholder="e.g., San Francisco, CA"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.location ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.experience[index]?.location && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.experience[index].location}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Clock size={14} />
-                              Employment Type
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Clock size={12} className="sm:w-3 sm:h-3" />
+                              Employment Type <span className="text-red-500">*</span>
                             </Label>
                             <select
                               value={exp.employment_type}
                               onChange={(e) => updateExperienceItem(index, "employment_type", e.target.value)}
-                              className="w-full border border-purple-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                              className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 mt-1 text-sm sm:text-base ${validationErrors.experience[index]?.employment_type
+                                  ? "border-red-500"
+                                  : "border-purple-200"
+                                }`}
                             >
                               <option value="full_time">Full Time</option>
                               <option value="part_time">Part Time</option>
@@ -852,15 +945,24 @@ const EditProfile = () => {
                             )}
                           </div>
                         </div>
-                        <div className="mt-4">
-                          <Label className="text-purple-700 font-medium">Job Description</Label>
+                        <div className="mt-3 sm:mt-4">
+                          <Label className="text-purple-700 font-medium text-xs sm:text-sm">
+                            Job Description <span className="text-red-500">*</span>
+                          </Label>
                           <Textarea
                             value={exp.description || ""}
                             onChange={(e) => updateExperienceItem(index, "description", e.target.value)}
                             placeholder="Describe your role, responsibilities, and key achievements..."
                             rows={3}
-                            className="resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                            className={`resize-none focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.experience[index]?.description ? "border-red-500" : ""
+                              }`}
                           />
+                          {validationErrors.experience[index]?.description && (
+                            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                              <AlertCircle size={10} />
+                              {validationErrors.experience[index].description}
+                            </p>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -907,7 +1009,8 @@ const EditProfile = () => {
                     {educationItems.map((edu, index) => (
                       <div
                         key={index}
-                        className="relative bg-gradient-to-r from-white to-purple-50/30 border border-purple-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300"
+                        className={`relative bg-gradient-to-r from-white to-purple-50/30 border rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-300 ${validationErrors.education[index] ? "border-red-300 bg-red-50/20" : "border-purple-200"
+                          }`}
                       >
                         <Button
                           onClick={() => removeEducationItem(index)}
@@ -921,86 +1024,136 @@ const EditProfile = () => {
                         {/* Education Header */}
                         <div className="mb-4 sm:mb-6">
                           <div className="flex items-center gap-2 mb-2">
-                            <GraduationCap size={18} className="text-purple-600" />
-                            <span className="text-sm font-medium text-purple-700">Education #{index + 1}</span>
+                            <GraduationCap size={16} className="sm:w-4 sm:h-4 text-purple-600" />
+                            <span className="text-xs sm:text-sm font-medium text-purple-700">
+                              Education #{index + 1}
+                            </span>
+                            {validationErrors.education[index] && (
+                              <Badge variant="destructive" className="text-xs">
+                                <AlertCircle size={10} className="mr-1" />
+                                Required fields missing
+                              </Badge>
+                            )}
                           </div>
                           <Separator className="bg-purple-100" />
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Award size={14} />
-                              Degree
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Award size={12} className="sm:w-3 sm:h-3" />
+                              Degree <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.education}
                               onChange={(e) => updateEducationItem(index, "education", e.target.value)}
                               placeholder="e.g., Bachelor of Science"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.education ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.education && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].education}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <BookOpen size={14} />
-                              Specialization/Branch
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <BookOpen size={12} className="sm:w-3 sm:h-3" />
+                              Specialization/Branch <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.specialization}
                               onChange={(e) => updateEducationItem(index, "specialization", e.target.value)}
                               placeholder="e.g., Computer Science"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.specialization ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.specialization && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].specialization}
+                              </p>
+                            )}
                           </div>
-                          <div className="md:col-span-2">
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Building size={14} />
-                              College/University
+                          <div className="lg:col-span-2">
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Building size={12} className="sm:w-3 sm:h-3" />
+                              College/University <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.college}
                               onChange={(e) => updateEducationItem(index, "college", e.target.value)}
                               placeholder="e.g., IIT Bombay"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.college ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.college && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].college}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Calendar size={14} />
-                              Start Year
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Calendar size={12} className="sm:w-3 sm:h-3" />
+                              Start Year <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="number"
                               value={edu.start_year}
                               onChange={(e) => updateEducationItem(index, "start_year", e.target.value)}
                               placeholder="2020"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.start_year ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.start_year && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].start_year}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <Calendar size={14} />
-                              End Year
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <Calendar size={12} className="sm:w-3 sm:h-3" />
+                              End Year <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               type="number"
                               value={edu.end_year}
                               onChange={(e) => updateEducationItem(index, "end_year", e.target.value)}
                               placeholder="2024"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.end_year ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.end_year && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].end_year}
+                              </p>
+                            )}
                           </div>
                           <div>
-                            <Label className="text-purple-700 font-medium flex items-center gap-2">
-                              <MapPin size={14} />
-                              Location
+                            <Label className="text-purple-700 font-medium flex items-center gap-2 text-xs sm:text-sm">
+                              <MapPin size={12} className="sm:w-3 sm:h-3" />
+                              Location <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={edu.location || ""}
                               onChange={(e) => updateEducationItem(index, "location", e.target.value)}
                               placeholder="e.g., Mumbai, India"
-                              className="focus:border-purple-500 focus:ring-purple-500 border-purple-200"
+                              className={`focus:border-purple-500 focus:ring-purple-500 border-purple-200 mt-1 ${validationErrors.education[index]?.location ? "border-red-500" : ""
+                                }`}
                             />
+                            {validationErrors.education[index]?.location && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <AlertCircle size={10} />
+                                {validationErrors.education[index].location}
+                              </p>
+                            )}
                           </div>
                         </div>
 
