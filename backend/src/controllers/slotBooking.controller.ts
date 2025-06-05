@@ -73,14 +73,6 @@ class SlotBookingController {
         return;
       }
 
-      let finalServiceName = service_name;
-      // If service_name is missing or is a number, fetch from Service model
-      if (!finalServiceName || !isNaN(finalServiceName)) {
-        const service = await Service.findByPk(serviceId);
-        if (service && service.title) {
-          finalServiceName = service.title;
-        }
-      }
       // Format date and time to Indian Standard Time (IST) for email
       const istDateObj = new Date(`${date}T${time}:00Z`);
       const options: Intl.DateTimeFormatOptions = {
@@ -93,11 +85,11 @@ class SlotBookingController {
         timeZone: "Asia/Kolkata",
       };
       const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
-      console.log(finalServiceName, date, time, formattedDateTime);
+      console.log(service_name, date, time, formattedDateTime);
       // User email
       const userHtml = `
         <p>Dear ${user.name},</p>
-        <p>Your slot has been booked successfully for <b>${finalServiceName}</b> on <b>${date} at ${time}</b>.</p>
+        <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best Regards,</p>
@@ -119,7 +111,7 @@ class SlotBookingController {
       // Admin email
       const adminHTML = `
         <p>Dear Admin,</p>
-        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${finalServiceName}</b> on <b>${date} ${time}</b>.</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${date} ${time}</b>.</p>
         <p>User Contact: ${user.phone_number}</p>
         <p>Thank you.</p>
         <p>Best Regards,</p>
