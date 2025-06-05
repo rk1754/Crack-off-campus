@@ -487,14 +487,17 @@ class PaymentController {
         premiumTiers.includes(user.subscription_type)
       ) {
         // Do not downgrade, just update expiry and is_premium
+      } else if (subscriptionType === "job") {
+        // For regular or job users, always set to job
+        updateFields.subscription_type = "job";
       } else {
         updateFields.subscription_type = subscriptionType;
       }
       await sequelize.transaction(async (t: any) => {
-        await User.update(
-          updateFields,
-          { where: { id: user.id }, transaction: t }
-        );
+        await User.update(updateFields, {
+          where: { id: user.id },
+          transaction: t,
+        });
         await Transactions.create(
           {
             user_id: user.id,
