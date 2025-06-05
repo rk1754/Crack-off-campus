@@ -155,7 +155,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   ];
 
   const handleContinue = async (planName: string) => {
-    console.log("handleContinue called for plan:", planName);
+    console.log("handleContinue called for plan:", planName.toLowerCase());
     if (!user) {
       toast.error("Please log in to purchase a premium plan.");
       navigate("/login");
@@ -203,50 +203,22 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         mode: "production"
       });
 
+      // Set returnUrl to a page that will handle verification after redirect
+      const returnUrl = `${window.location.origin}/payment/verify?order_id=${order_id}&serviceName=${planName.toLowerCase()}`;
+
       const checkoutOptions: {
         paymentSessionId: string;
         returnUrl: string;
         redirectTarget?: "_self" | "_blank";
       } = {
         paymentSessionId: payment_session_id,
-        // You can use a thank you page or just the homepage, but the actual verification will be handled below
-        returnUrl: `https://www.crackoffcampus.com/thank-you`,
+        returnUrl,
         redirectTarget: "_self",
       };
 
-      cashfree.checkout(checkoutOptions).then(async (result) => {
-        if (result.error) {
-          toast.error(`Payment error: ${result.error.message}`);
-          setLoading(false);
-        } else if (result.redirect) {
-          toast.info("Redirecting to Cashfree payment gateway...");
-        } else if (
-          result &&
-          (result as any).status &&
-          ((result as any).status === "SUCCESS" || (result as any).status === "COMPLETED")
-        ) {
-          // After successful payment, call backend to verify and activate subscription
-          try {
-            await axios.post(
-              `${BACKEND_URL}/api/v1/payment/verify`,
-              {
-                order_id,
-                serviceName: planName.toLowerCase(), // must match backend mapping
-              },
-              { withCredentials: true }
-            );
-            toast.success("Premium subscription activated!");
-            // Optionally, refresh user data here
-            onClose();
-          } catch (err: any) {
-            toast.error(
-              err?.response?.data?.message ||
-                "Payment succeeded but failed to activate subscription. Please contact support."
-            );
-          }
-          setLoading(false);
-        }
-      });
+      // Start checkout (no .then() block, as user will be redirected)
+      cashfree.checkout(checkoutOptions);
+      setLoading(false);
     } catch (err: any) {
       toast.error("Please enter your mobile number to proceed with the payment.");
       setLoading(false);
