@@ -203,50 +203,52 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         mode: "production"
       });
 
-      // Define checkout options with explicit typing
       const checkoutOptions: {
-  paymentSessionId: string;
-  returnUrl: string;
-  redirectTarget?: "_self" | "_blank";
-} = {
-  paymentSessionId: payment_session_id,
-  returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&subscription_type=${planName.toLowerCase()}`,
-  redirectTarget: "_self",
-};
+        paymentSessionId: string;
+        returnUrl: string;
+        redirectTarget?: "_self" | "_blank";
+      } = {
+        paymentSessionId: payment_session_id,
+        // You can use a thank you page or just the homepage, but the actual verification will be handled below
+        returnUrl: `https://www.crackoffcampus.com/thank-you`,
+        redirectTarget: "_self",
+      };
 
-      console.log("Initiating Cashfree checkout with options:", checkoutOptions);
       cashfree.checkout(checkoutOptions).then(async (result) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
-          console.error("Checkout error:", result.error);
           setLoading(false);
         } else if (result.redirect) {
-          console.log("Redirecting to Cashfree checkout page");
           toast.info("Redirecting to Cashfree payment gateway...");
-        }  else if (result && (result as any).status && ((result as any).status === "SUCCESS" || (result as any).status === "COMPLETED")) {
-          // Call backend to update user subscription after successful payment
+        } else if (
+          result &&
+          (result as any).status &&
+          ((result as any).status === "SUCCESS" || (result as any).status === "COMPLETED")
+        ) {
+          // After successful payment, call backend to verify and activate subscription
           try {
-            await axios.post("/payment/update-subscription", {
-              userId: user.id,
-              subscription_type: planName.toLowerCase(),
-              order_id,
-            });
+            await axios.post(
+              `${BACKEND_URL}/api/v1/payment/verify`,
+              {
+                order_id,
+                serviceName: planName.toLowerCase(), // must match backend mapping
+              },
+              { withCredentials: true }
+            );
             toast.success("Premium subscription activated!");
             // Optionally, refresh user data here
-          } catch (err) {
-            toast.error("Payment succeeded but failed to update subscription. Please contact support.");
+            onClose();
+          } catch (err: any) {
+            toast.error(
+              err?.response?.data?.message ||
+                "Payment succeeded but failed to activate subscription. Please contact support."
+            );
           }
           setLoading(false);
-          onClose();
         }
       });
     } catch (err: any) {
-      // toast.error(
-      //   err?.response?.data?.message ||
-      //     "Could not initiate payment. Please try again."
-      // );
       toast.error("Please enter your mobile number to proceed with the payment.");
-      console.error("Payment initiation error:", err);
       setLoading(false);
     }
   };
