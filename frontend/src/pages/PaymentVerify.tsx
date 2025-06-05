@@ -47,7 +47,7 @@ const PaymentVerify = () => {
       }
       try {
         const res = await axios.post(
-          "/api/v1/payment/verify",
+          "/payment/verify",
           {
             order_id,
             serviceName,
