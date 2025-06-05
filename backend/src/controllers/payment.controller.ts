@@ -98,63 +98,63 @@ class PaymentController {
     logger.info("User found for payment verification", { user_id: user.id });
 
     // Set the correct boolean field based on serviceName
-    // You can expand this mapping as needed
+    // Use enum values as per user.model.ts
     const serviceFieldMap: Record<string, string[]> = {
-  // Individual resources
-  "Resume Template": ["resume"],
-  "Referral Template": ["referral"],
-  "cold_mail": ["cold_mail"],
-  "hr_mail": ["hr_mail"],
-  "cover_letter": ["cover_letter"],
-  "linkedin": ["linkedin"],
-  "CV": ["cv"],
-  "Roadmaps": ["roadmaps"],
-  "Interview": ["interview"],
+      // Individual resources (use enum keys)
+      "resume": ["resume"],
+      "referral": ["referral"],
+      "cold_mail": ["cold_mail"],
+      "hr_mail": ["hr_mail"],
+      "cover_letter": ["cover_letter"],
+      "linkedin": ["linkedin"],
+      "cv": ["cv"],
+      "roadmaps": ["roadmaps"],
+      "interview": ["interview"],
 
-  // Subscription types (set all resource booleans)
-  "basic": ["cold_mail", "cover_letter", "hr_mail"],
-  "standard": [
-    "resume",
-    "referral",
-    "cold_mail",
-    "cover_letter",
-    "hr_mail",
-    "linkedin",
-    "cv",
-    "roadmaps",
-    "interview",
-  ],
-  "booster": [
-    "resume",
-    "referral",
-    "cold_mail",
-    "cover_letter",
-    "hr_mail",
-    "linkedin",
-    "cv",
-    "roadmaps",
-    "interview",
-  ],
-  // Add more mappings as needed
-};
+      // Subscription types (set all resource booleans)
+      "basic": ["cold_mail", "cover_letter", "hr_mail"],
+      "standard": [
+        "resume",
+        "referral",
+        "cold_mail",
+        "cover_letter",
+        "hr_mail",
+        "linkedin",
+        "cv",
+        "roadmaps",
+        "interview",
+      ],
+      "booster": [
+        "resume",
+        "referral",
+        "cold_mail",
+        "cover_letter",
+        "hr_mail",
+        "linkedin",
+        "cv",
+        "roadmaps",
+        "interview",
+      ],
+      // Add more mappings as needed
+    };
 
-const updateFields: any = {
-  is_premium: true,
-  subscription_expiry: (() => {
-    const expiry = new Date();
-    expiry.setDate(expiry.getDate() + 30);
-    return expiry;
-  })(),
-  subscription_type: serviceName,
-};
+    const updateFields: any = {
+      is_premium: true,
+      subscription_expiry: (() => {
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + 30);
+        return expiry;
+      })(),
+      subscription_type: serviceName,
+    };
 
-// Set all relevant boolean fields to true
-const fieldsToSet = serviceFieldMap[serviceName];
-if (fieldsToSet && Array.isArray(fieldsToSet)) {
-  for (const field of fieldsToSet) {
-    updateFields[field] = true;
-  }
-}
+    // Set all relevant boolean fields to true
+    const fieldsToSet = serviceFieldMap[serviceName];
+    if (fieldsToSet && Array.isArray(fieldsToSet)) {
+      for (const field of fieldsToSet) {
+        updateFields[field] = true;
+      }
+    }
 
     // Update user
     await sequelize.transaction(async (t: any) => {
@@ -240,7 +240,7 @@ if (fieldsToSet && Array.isArray(fieldsToSet)) {
       }
       const sub: SubscriptionMap = {
         199: "basic",
-        1: "standard",
+        299: "standard",
         699: "booster",
         99: "job",
       };

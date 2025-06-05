@@ -154,7 +154,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/Resume Template.png",
       imageAlt: "Resume Template",
       action: () => requireLogin(() => dispatch(downloadResumeTemplate()), 1),
-      requiredBoolean: "Resume Template",
+      requiredBoolean: "resume",
     },
     {
       id: 2,
@@ -165,7 +165,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/refralTemplate.png",
       imageAlt: "Referral Template",
       action: () => requireLogin(() => dispatch(downloadReferralTemplate()), 2),
-      requiredBoolean: "Referral Template",
+      requiredBoolean: "referral",
     },
     {
       id: 3,
