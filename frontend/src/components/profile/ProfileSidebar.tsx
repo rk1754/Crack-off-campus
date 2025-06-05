@@ -60,8 +60,8 @@ const ProfileSidebar = () => {
         <p className="text-purple-600 text-sm font-medium">
           {user?.subscription_type
             ? user.subscription_type.charAt(0).toUpperCase() +
-              user.subscription_type.slice(1) +
-              " Member"
+            user.subscription_type.slice(1) +
+            " Member"
             : "Member"}
         </p>
       </div>
@@ -73,18 +73,16 @@ const ProfileSidebar = () => {
               <Link
                 to={item.path}
                 className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group
-                  ${
-                    location.pathname === item.path
-                      ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-600/25"
-                      : "hover:bg-purple-50 text-gray-700 hover:text-purple-700"
+                  ${location.pathname === item.path
+                    ? "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-600/25"
+                    : "hover:bg-purple-50 text-gray-700 hover:text-purple-700"
                   }`}
               >
                 <span
-                  className={`mr-3 transition-transform duration-200 group-hover:scale-110 ${
-                    location.pathname === item.path
+                  className={`mr-3 transition-transform duration-200 group-hover:scale-110 ${location.pathname === item.path
                       ? "text-white"
                       : "text-purple-600"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </span>

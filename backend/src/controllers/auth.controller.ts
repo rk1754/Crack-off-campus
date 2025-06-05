@@ -4,13 +4,12 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model";
 import { BCRYPT_SALT, JWT_EXPIRES_IN, JWT_SECRET, SMTP_USER } from "../config/config";
 import nodemailer from "nodemailer";
-import { createWriteStream } from 'fs';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
+import { createWriteStream } from "fs";
+import { pipeline } from "stream";
+import { promisify } from "util";
 import bcrypt from "bcrypt";
 import cloudinary from "../config/cloudinary";
 import { transporter } from "../utils/mailer";
-
 
 const streamPipeline = promisify(pipeline);
 
@@ -18,7 +17,12 @@ class AuthController {
   FRONTEND_URL = process.env.FRONTEND_URL || "https://www.crackoffcampus.com";
   signup = async (req: Request, res: Response): Promise<void> => {
     const data = req.body;
-    if (!data.email || !data.password || !data.phone_number || data.phone_number === "Not provided") {
+    if (
+      !data.email ||
+      !data.password ||
+      !data.phone_number ||
+      data.phone_number === "Not provided"
+    ) {
       res.status(400).json({
         success: false,
         message: "Please provide complete data to register",
@@ -36,7 +40,7 @@ class AuthController {
         });
         return;
       }
-      
+
       const hashedPassword = await bcrypt.hash(data.password, BCRYPT_SALT);
       data.password = hashedPassword;
       const user = await User.create({
@@ -46,16 +50,16 @@ class AuthController {
         provider: "manual",
       });
 
-      if(req.file){
+      if (req.file) {
         const base64 = `data:${
           req.file.mimetype
         };base64,${req.file.buffer.toString("base64")}`;
         const result = await cloudinary.uploader.upload(base64, {
           folder: "job-portal/profiles",
         });
-          user.resume_url = result.secure_url;
-          user.resume_public_id = result.public_id;
-          await user.save();
+        user.resume_url = result.secure_url;
+        user.resume_public_id = result.public_id;
+        await user.save();
       }
 
       const token = jwt.sign(
@@ -124,7 +128,7 @@ class AuthController {
           id: user.id,
           email: user.email,
           subscription_type: user.subscription_type,
-          subscription_type_2 : user.subscription_type_2,
+          subscription_type_2: user.subscription_type_2,
           phone_number: user.phone_number,
         },
         JWT_SECRET,
@@ -309,8 +313,12 @@ class AuthController {
       return;
     }
 
-    const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
-    const resetLink = `${this.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+
+      const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      
 
     await transporter.sendMail({
       from: SMTP_USER,
@@ -624,7 +632,7 @@ class AuthController {
           id: user.id,
           email: user.email,
           subscription_type: user.subscription_type,
-          subscription_type_2 : user.subscription_type_2,
+          subscription_type_2: user.subscription_type_2,
           phone_number: user.phone_number,
         },
         JWT_SECRET,
@@ -644,10 +652,10 @@ class AuthController {
       res.status(500).json({ success: false, message: "Something went wrong" });
     }
   };
-  setUserPremium = async(req : Request, res : Response):Promise<void>=>{
-    try{
+  setUserPremium = async (req: Request, res: Response): Promise<void> => {
+    try {
       const user = req.user;
-      if(!user){
+      if (!user) {
         res.status(403).json({
           success: false,
           message: "Please login first",
@@ -655,13 +663,16 @@ class AuthController {
         return;
       }
 
-      await User.update({
-        subscription_type: "booster",
-      }, {
-        where : {
-          id : user.id
+      await User.update(
+        {
+          subscription_type: "booster",
+        },
+        {
+          where: {
+            id: user.id,
+          },
         }
-      });
+      );
 
       res.clearCookie("token");
       const token = jwt.sign(
@@ -682,9 +693,9 @@ class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.status(200).json({
-        success : true
+        success: true,
       });
-    }catch(err){
+    } catch (err) {
       console.error(err);
       res.status(500).json({
         success: false,
@@ -693,7 +704,7 @@ class AuthController {
       });
       return;
     }
-  }
+  };
   deleteMe = async (req: Request, res: Response): Promise<void> => {
     try {
       await User.destroy({
@@ -725,7 +736,9 @@ class AuthController {
         return;
       }
 
-      const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+      const base64 = `data:${
+        req.file.mimetype
+      };base64,${req.file.buffer.toString("base64")}`;
       const user = req.user as User;
       if (!user) {
         res.status(403).json({
@@ -772,12 +785,12 @@ class AuthController {
       });
     }
   };
-// ...existing code...
+  // ...existing code...
 
-  downloadResume = async(req : Request, res : Response):Promise<void>=>{
-    try{
+  downloadResume = async (req: Request, res: Response): Promise<void> => {
+    try {
       const user = req.user as User;
-      if(!user){
+      if (!user) {
         res.status(403).json({
           success: false,
           message: "Please login first",
@@ -785,7 +798,7 @@ class AuthController {
         return;
       }
       const u = await User.findByPk(user.id);
-      if(!u){
+      if (!u) {
         res.status(403).json({
           success: false,
           message: "Please login first",
@@ -793,7 +806,7 @@ class AuthController {
         return;
       }
       const resumeUrl = u.resume_url;
-      if(!resumeUrl){
+      if (!resumeUrl) {
         res.status(404).json({
           success: false,
           message: "Resume not found",
@@ -802,16 +815,19 @@ class AuthController {
       }
       const fileName = `resume-${u.name || u.email}.pdf`;
       const response = await axios({
-        method : "get",
-        url : resumeUrl,
-        responseType : "stream",
+        method: "get",
+        url: resumeUrl,
+        responseType: "stream",
       });
 
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-      res.setHeader('Content-Type', response.headers['content-type']);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${fileName}"`
+      );
+      res.setHeader("Content-Type", response.headers["content-type"]);
       await streamPipeline(response.data, res);
       return;
-    }catch(err){
+    } catch (err) {
       console.error(err);
       res.status(500).json({
         success: false,
@@ -819,7 +835,7 @@ class AuthController {
       });
       return;
     }
-  }
+  };
 }
 
 export default AuthController;
