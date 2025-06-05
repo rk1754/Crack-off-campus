@@ -57,6 +57,7 @@ class PaymentController {
       return;
     }
   };
+
   verifyPaymentAPI = async (req: Request, res: Response): Promise<void> => {
     try {
       logger.info("/payment/verify called", { body: req.body, user: req.user });
@@ -113,7 +114,6 @@ class PaymentController {
 
       // Set the correct boolean field based on serviceName
       const serviceFieldMap: Record<string, string[]> = {
-        // Individual resources (use enum keys)
         resume: ["resume"],
         referral: ["referral"],
         cold_mail: ["cold_mail"],
@@ -123,8 +123,6 @@ class PaymentController {
         cv: ["cv"],
         roadmaps: ["roadmaps"],
         interview: ["interview"],
-
-        // Subscription types (set all resource booleans)
         basic: ["cold_mail", "cover_letter", "hr_mail"],
         standard: [
           "resume",
@@ -148,7 +146,7 @@ class PaymentController {
           "roadmaps",
           "interview",
         ],
-        // Add more mappings as needed
+        job: [], // Add "job" with no resource fields, as it only grants premium job access
       };
 
       const updateFields: any = {
@@ -158,24 +156,19 @@ class PaymentController {
           expiry.setDate(expiry.getDate() + 30);
           return expiry;
         })(),
-        // Do NOT set subscription_type for individual resources
       };
 
-      // Only set subscription_type if serviceName is a valid subscription (not a resource)
-      const validSubscriptionTypes = [
-        "basic",
-        "standard",
-        "booster",
-        "regular",
-        "job",
-        "resume",
-        "other_templates",
-      ];
-      // Only update subscription_type if it's a subscription, not a resource
-      // (If you want to update for subscriptions, keep this block. Otherwise, remove it entirely.)
-      // if (validSubscriptionTypes.includes(serviceName)) {
-      //   updateFields.subscription_type = serviceName;
-      // }
+      // Add subscription_type update based on order amount
+      const subscriptionMap: SubscriptionMap = {
+        199: "basic",
+        299: "standard",
+        699: "booster",
+        99: "job",
+      };
+      const orderAmount = Number(orderDetails.data.order_amount);
+      if (orderAmount in subscriptionMap) {
+        updateFields.subscription_type = subscriptionMap[orderAmount];
+      }
 
       // Set all relevant boolean fields to true
       const fieldsToSet = serviceFieldMap[serviceName];

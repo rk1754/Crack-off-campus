@@ -157,21 +157,22 @@ const JobListings = () => {
       window.scrollTo(0, 0);
     }
   };
+
   let userSubscriptionType = "regular";
   if (user) {
     // Check both subscription_type and subscription_type_2
     if (
-      user.subscription_type === "premium" ||
       user.subscription_type === "booster" ||
       user.subscription_type === "standard" ||
-      user.subscription_type === "basic"
+      user.subscription_type === "basic" ||
+      user.subscription_type === "job" // Added "job" to recognize it as premium
     ) {
       userSubscriptionType = user.subscription_type;
     } else if (
-      user.subscription_type_2 === "premium" ||
       user.subscription_type_2 === "booster" ||
       user.subscription_type_2 === "standard" ||
-      user.subscription_type_2 === "basic"
+      user.subscription_type_2 === "basic" ||
+      user.subscription_type_2 === "job" // Added "job" to recognize it as premium
     ) {
       userSubscriptionType = user.subscription_type_2;
     } else {
@@ -179,14 +180,15 @@ const JobListings = () => {
         user.subscription_type || user.subscription_type_2 || "regular";
     }
   }
+
   const handleOpenPremiumModal = () => {
     if (!user) {
       navigate("/login?redirect=/jobs");
     } else if (
-      userSubscriptionType === "premium" ||
       userSubscriptionType === "booster" ||
       userSubscriptionType === "standard" ||
-      userSubscriptionType === "basic"
+      userSubscriptionType === "basic" ||
+      userSubscriptionType === "job" // Added "job" to skip modal for job plan users
     ) {
       setIsPremiumModalOpen(false);
       return;
@@ -293,37 +295,6 @@ const JobListings = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // If user is not logged in, show the login/register message
-  // if (!user) {
-  //   return (
-  //     <Layout>
-  //       <div className="min-h-[calc(100vh-150px)] flex items-center justify-center bg-white text-center px-4">
-  //         <div className="space-y-4">
-  //           <p className="text-gray-700 text-lg">
-  //             Please{" "}
-  //             <span
-  //               className="text-purple-600 font-medium cursor-pointer hover:underline"
-  //               onClick={() => navigate("/login?redirect=/jobs")}
-  //             >
-  //               log in
-  //             </span>{" "}
-  //             to view job listings.
-  //           </p>
-  //           <p className="text-gray-600">
-  //             Don’t have an account?{" "}
-  //             <span
-  //               className="text-purple-600 font-medium cursor-pointer hover:underline"
-  //               onClick={() => navigate("/register?redirect=/jobs")}
-  //             >
-  //               Sign up now!
-  //             </span>
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </Layout>
-  //   );
-  // }
-
   return (
     <Layout>
       <div className="py-8 md:py-12 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50">
@@ -347,7 +318,7 @@ const JobListings = () => {
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="w-full">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
-            <p className="text-gray-700 text-lg">
+            <p className="text-gray-600 text-lg">
               Showing{" "}
               <span className="font-semibold text-[#9b87f5]">
                 {currentJobsToDisplay.length}
@@ -359,7 +330,7 @@ const JobListings = () => {
               jobs
             </p>
             <div className="flex items-center mt-4 sm:mt-0">
-              <label htmlFor="sort" className="mr-3 text-gray-700 text-md">
+              <label htmlFor="sort" className="mr-3 text-gray-600 text-md">
                 Sort by:
               </label>
               <select
@@ -468,11 +439,10 @@ const JobListings = () => {
                     <button
                       key={pageNumber}
                       onClick={() => paginate(pageNumber)}
-                      className={`px-4 py-2 border-t border-b border-l border-gray-300 ${
-                        currentPage === pageNumber
+                      className={`px-4 py-2 border-t border-b border-l border-gray-300 ${currentPage === pageNumber
                           ? "bg-[#9b87f5] text-white font-semibold"
                           : "bg-white text-gray-700 hover:bg-gray-50"
-                      } text-md transition-colors`}
+                        } text-md transition-colors`}
                     >
                       {pageNumber}
                     </button>
@@ -484,10 +454,9 @@ const JobListings = () => {
                 >
                   Next
                 </button>
-              </nav>
+            </div>
             </div>
           )}
-        </div>
       </div>
 
       {/* Premium Modal for Non-Premium Users */}
@@ -521,8 +490,8 @@ const JobListings = () => {
               {!sdkLoaded && !paymentState.loading
                 ? "Loading Payment Gateway..."
                 : paymentState.loading
-                ? "Processing..."
-                : "Pay ₹99 & Unlock"}
+                  ? "Processing..."
+                  : "Pay ₹99 & Unlock"}
             </Button>
           </DialogFooter>
         </DialogContent>
