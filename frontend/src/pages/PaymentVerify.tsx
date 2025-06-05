@@ -82,7 +82,8 @@ const PaymentVerify = () => {
             formData.append("serviceId", serviceId);
             formData.append("date", date);
             formData.append("time", time);
-            formData.append("service_name", bookingData.name || "");
+            // Ensure service_name is always set
+            formData.append("service_name", serviceName || bookingData.name || "");
             formData.append("phone", bookingData.phone || "");
             formData.append("email", bookingData.email || "");
             formData.append("state", bookingData.state || "");
