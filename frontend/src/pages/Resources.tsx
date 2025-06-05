@@ -356,10 +356,10 @@ const ResourcesPage = () => {
                   <div className="w-full md:w-3/5 space-y-4">
                     <div
                       className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${index % 3 === 0
-                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                        : index % 3 === 1
-                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
-                          : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                          : index % 3 === 1
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
                         }`}
                     >
                       Resource {resource.id}
@@ -401,7 +401,7 @@ const ResourcesPage = () => {
                           user?.subscription_type_2,
                         ].filter(Boolean);
 
-                        // 1. Standard and Booster users get all resources
+                        // Standard and Booster users get all resources
                         if (
                           userSubscriptionTypes.some((type) =>
                             ["booster", "standard"].includes(type)
@@ -411,18 +411,58 @@ const ResourcesPage = () => {
                           return;
                         }
 
-                        // 2. User has purchased this resource individually
+                        // Resume template: only for resume users
                         if (
-                          typeof hasUserPurchasedResource === "function" &&
-                          hasUserPurchasedResource(resource.id)
+                          resource.requiredSubscription === "resume" &&
+                          userSubscriptionTypes.some(
+                            (type) => type === "resume"
+                          )
                         ) {
                           await resource.action();
                           return;
                         }
 
-                        // 3. Otherwise, redirect to payment for this resource
+                        // Referral template: only for other_templates users
+                        if (
+                          resource.requiredSubscription === "other_templates" &&
+                          resource.title.toLowerCase().includes("referral") &&
+                          userSubscriptionTypes.some(
+                            (type) => type === "other_templates"
+                          )
+                        ) {
+                          await resource.action();
+                          return;
+                        }
+
+                        // Cover Letter, Cold Email, HR Emails: allow basic, standard, booster, other_templates
+                        if (
+                          resource.requiredSubscription === "other_templates" &&
+                          [
+                            "cover letter",
+                            "cold email",
+                            "hr emails",
+                            "hr email",
+                          ].some((kw) =>
+                            resource.title.toLowerCase().includes(kw)
+                          ) &&
+                          userSubscriptionTypes.some((type) =>
+                            [
+                              "basic",
+                              "standard",
+                              "booster",
+                              "other_templates",
+                            ].includes(type)
+                          )
+                        ) {
+                          await resource.action();
+                          return;
+                        }
+
+                        // Otherwise, redirect to payment
                         setLoading(true);
-                        await handleUpgradeSubscription(resource.requiredSubscription);
+                        await handleUpgradeSubscription(
+                          resource.requiredSubscription
+                        );
                         setLoading(false);
                       }}
                     >
@@ -445,11 +485,5 @@ const ResourcesPage = () => {
     </Layout>
   );
 };
-
-// Checks if the user has purchased this resource (expects user.purchasedResources to be an array of IDs)
-// This must be INSIDE the ResourcesPage component to access the latest user state
-const hasUserPurchasedResource = (resourceId: number): boolean => {
-  return Array.isArray(user?.purchasedResources) && user.purchasedResources.includes(resourceId);
-}
 
 export default ResourcesPage;
