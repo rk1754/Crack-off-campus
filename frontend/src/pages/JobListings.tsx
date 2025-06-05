@@ -274,7 +274,7 @@ const JobListings = () => {
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&subscription_type=job`,
         redirectTarget: "_self" as "_self",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {

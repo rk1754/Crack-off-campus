@@ -205,14 +205,14 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
 
       // Define checkout options with explicit typing
       const checkoutOptions: {
-        paymentSessionId: string;
-        returnUrl: string;
-        redirectTarget?: "_self" | "_blank";
-      } = {
-        paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
-        redirectTarget: "_self", // Explicitly typed as "_self"
-      };
+  paymentSessionId: string;
+  returnUrl: string;
+  redirectTarget?: "_self" | "_blank";
+} = {
+  paymentSessionId: payment_session_id,
+  returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&subscription_type=${planName.toLowerCase()}`,
+  redirectTarget: "_self",
+};
 
       console.log("Initiating Cashfree checkout with options:", checkoutOptions);
       cashfree.checkout(checkoutOptions).then(async (result) => {

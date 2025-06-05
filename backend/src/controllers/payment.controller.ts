@@ -99,33 +99,62 @@ class PaymentController {
 
     // Set the correct boolean field based on serviceName
     // You can expand this mapping as needed
-    const serviceFieldMap: Record<string, string> = {
-      "Resume / CV Review": "resume",
-      "Get a Referral": "referral",
-      "Cold Mail": "cold_mail",
-      "HR Mail": "hr_mail",
-      "Cover Letter": "cover_letter",
-      "LinkedIn Review": "linkedin",
-      "CV": "cv",
-      "Roadmaps": "roadmaps",
-      "Interview": "interview",
-      // Add more mappings as needed
-    };
+    const serviceFieldMap: Record<string, string[]> = {
+  // Individual resources
+  "Resume Template": ["resume"],
+  "Referral Template": ["referral"],
+  "cold_mail": ["cold_mail"],
+  "hr_mail": ["hr_mail"],
+  "cover_letter": ["cover_letter"],
+  "linkedin": ["linkedin"],
+  "CV": ["cv"],
+  "Roadmaps": ["roadmaps"],
+  "Interview": ["interview"],
 
-    const updateFields: any = {
-      is_premium: true,
-      subscription_expiry: (() => {
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + 30);
-        return expiry;
-      })(),
-      subscription_type: serviceName,
-    };
+  // Subscription types (set all resource booleans)
+  "basic": ["cold_mail", "cover_letter", "hr_mail"],
+  "standard": [
+    "resume",
+    "referral",
+    "cold_mail",
+    "cover_letter",
+    "hr_mail",
+    "linkedin",
+    "cv",
+    "roadmaps",
+    "interview",
+  ],
+  "booster": [
+    "resume",
+    "referral",
+    "cold_mail",
+    "cover_letter",
+    "hr_mail",
+    "linkedin",
+    "cv",
+    "roadmaps",
+    "interview",
+  ],
+  // Add more mappings as needed
+};
 
-    const fieldToSet = serviceFieldMap[serviceName];
-    if (fieldToSet) {
-      updateFields[fieldToSet] = true;
-    }
+const updateFields: any = {
+  is_premium: true,
+  subscription_expiry: (() => {
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + 30);
+    return expiry;
+  })(),
+  subscription_type: serviceName,
+};
+
+// Set all relevant boolean fields to true
+const fieldsToSet = serviceFieldMap[serviceName];
+if (fieldsToSet && Array.isArray(fieldsToSet)) {
+  for (const field of fieldsToSet) {
+    updateFields[field] = true;
+  }
+}
 
     // Update user
     await sequelize.transaction(async (t: any) => {
