@@ -171,9 +171,11 @@ class PaymentController {
         "resume",
         "other_templates",
       ];
-      if (validSubscriptionTypes.includes(serviceName)) {
-        updateFields.subscription_type = serviceName;
-      }
+      // Only update subscription_type if it's a subscription, not a resource
+      // (If you want to update for subscriptions, keep this block. Otherwise, remove it entirely.)
+      // if (validSubscriptionTypes.includes(serviceName)) {
+      //   updateFields.subscription_type = serviceName;
+      // }
 
       // Set all relevant boolean fields to true
       const fieldsToSet = serviceFieldMap[serviceName];
@@ -297,31 +299,20 @@ class PaymentController {
         status: "success",
         method: "cashfree",
       });
-      // Fetch user to check current subscription
-      const user = await User.findByPk(user_id);
-      if (!user) {
-        res.status(404).json({ success: false, message: "User not found" });
-        return;
-      }
-      // Only set subscription_type to 'job' if user is not already premium
-      const premiumTiers = ["booster", "standard", "basic"];
-      let updateFields: any = {
-        subscription_expiry: (() => {
-          const expiry = new Date();
-          expiry.setDate(expiry.getDate() + 30);
-          return expiry;
-        })(),
-        is_premium: true,
-      };
-      if (
-        subscriptionType === "job" &&
-        premiumTiers.includes(user.subscription_type)
-      ) {
-        // Do not downgrade, just update expiry and is_premium
-      } else {
-        updateFields.subscription_type = subscriptionType;
-      }
-      await User.update(updateFields, { where: { id: user_id } });
+      const subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      await User.update(
+        {
+          subscription_type: subscriptionType,
+          subscription_expiry: subscriptionExpiry,
+          is_premium: true,
+        },
+        {
+          where: {
+            id: user_id,
+          },
+        }
+      );
       if (!payment) {
         res.status(400).json({
           success: false,
@@ -476,28 +467,16 @@ class PaymentController {
       }
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-      // Only set subscription_type to 'job' if user is not already premium
-      const premiumTiers = ["booster", "standard", "basic"];
-      let updateFields: any = {
-        subscription_expiry: subscriptionExpiry,
-        is_premium: true,
-      };
-      if (
-        subscriptionType === "job" &&
-        premiumTiers.includes(user.subscription_type)
-      ) {
-        // Do not downgrade, just update expiry and is_premium
-      } else if (subscriptionType === "job") {
-        // For regular or job users, always set to job
-        updateFields.subscription_type = "job";
-      } else {
-        updateFields.subscription_type = subscriptionType;
-      }
+      // Update user subscription and store transaction atomically
       await sequelize.transaction(async (t: any) => {
-        await User.update(updateFields, {
-          where: { id: user.id },
-          transaction: t,
-        });
+        await User.update(
+          {
+            subscription_type: subscriptionType,
+            subscription_expiry: subscriptionExpiry,
+            is_premium: true,
+          },
+          { where: { id: user.id }, transaction: t }
+        );
         await Transactions.create(
           {
             user_id: user.id,
@@ -513,12 +492,11 @@ class PaymentController {
         );
       });
       // Update JWT token
-      const updatedUser = await User.findByPk(user.id);
       const token = jwt.sign(
         {
           id: user.id,
           email: user.email,
-          subscription_type: updatedUser?.subscription_type || subscriptionType,
+          subscription_type: subscriptionType,
           phone_number: user.phone_number,
         },
         JWT_SECRET,
