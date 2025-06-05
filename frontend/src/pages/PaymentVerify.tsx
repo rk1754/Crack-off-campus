@@ -20,7 +20,7 @@ const PaymentVerify = () => {
       const serviceId = params.get("serviceId");
       const date = params.get("date");
       const time = params.get("time");
-
+      const serviceName = params.get("service_name");
       if (!order_id) {
         toast.error("Order ID missing in payment verification.");
         navigate("/services");
@@ -29,7 +29,7 @@ const PaymentVerify = () => {
 
       try {
         // Call backend to verify payment and update subscription/resource/service
-        const res = await axios.post("/payment/verify", { order_id });
+        const res = await axios.post("/payment/verify", { order_id, serviceName, resourceType, serviceId, date, time }, { withCredentials: true });
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
 

@@ -58,165 +58,139 @@ class PaymentController {
     }
   };
   verifyPaymentAPI = async (req: Request, res: Response): Promise<void> => {
-    try {
-      logger.info("/payment/verify called", { body: req.body, user: req.user });
-      const { order_id } = req.body;
-      if (!order_id) {
-        logger.warn("order_id missing in /payment/verify", { body: req.body });
-        res.status(400).json({ success: false, message: "order_id is required" });
-        return;
-      }
-
-      // Fetch order details from Cashfree
-      const orderDetails = await cashfree.PGFetchOrder(order_id as string);
-      logger.info("Cashfree order details", { order_id, orderDetails });
-      if (!orderDetails || orderDetails.data.order_status !== "PAID") {
-        logger.warn("Order not paid", { order_id, orderDetails });
-        res.status(400).json({ success: false, message: "Payment not verified" });
-        return;
-      }
-
-      // Fetch payment details to get cf_payment_id
-      const paymentDetails = await cashfree.PGOrderFetchPayments(order_id as string);
-      logger.info("Cashfree payment details", { order_id, paymentDetails });
-      const successfulPayment = paymentDetails.data.find(
-        (payment: any) => payment.payment_status === "SUCCESS"
-      );
-      if (!successfulPayment) {
-        logger.warn("No successful payment found", { order_id, paymentDetails });
-        res.status(400).json({ success: false, message: "No successful payment found" });
-        return;
-      }
-
-      // Get user from token/session
-      const user = req.user;
-      if (!user) {
-        logger.warn("Unauthorized user in /payment/verify", { user });
-        res.status(401).json({ success: false, message: "Unauthorized" });
-        return;
-      }
-      logger.info("User found for payment verification", { user_id: user.id });
-      // Map amount to subscription type
-      const subscriptionMap: SubscriptionMap = {
-        199: "basic",
-        299: "standard",
-        699: "booster",
-        99: "job",
-        79: "resume",
-        49: "other_templates"
-      };
-      const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
-      if (!subscriptionType) {
-        logger.warn("Invalid subscription amount", { order_id, amount: orderDetails.data.order_amount });
-        res.status(400).json({ success: false, message: "Invalid subscription amount" });
-        return;
-      }
-      
-      const subscriptionExpiry = new Date();
-      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-      const u = await User.findByPk(user.id);
-      if(!u){
-        res.status(500).json({ success: false, message: "User not found" });
-        return;
-      }
-      if(u.subscription_type !== "regular"){
-        await sequelize.transaction(async (t: any) => {
-        await User.update(
-          {
-            subscription_type_2: subscriptionType,
-            subscription_expiry: subscriptionExpiry,
-            is_premium: true,
-          },
-          { where: { id: user.id }, transaction: t }
-        );
-        await Transactions.create(
-          {
-            user_id: user.id,
-            cf_order_id: order_id as string,
-            cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: String(orderDetails.data.order_amount),
-            currency: orderDetails.data.order_currency as string,
-            captured: true,
-            status: "success",
-            method: "cashfree",
-            // Add dummy values for required Razorpay fields to avoid NOT NULL error
-            razorpay_order_id: "cashfree_dummy_order",
-            razorpay_payment_id: "cashfree_dummy_payment",
-            razorpay_signature: "cashfree_dummy_signature",
-          },
-          { transaction: t }
-        );
-      });
-      }
-      // Update user subscription and store transaction atomically
-      else{
-        await sequelize.transaction(async (t: any) => {
-        await User.update(
-          {
-            subscription_type: subscriptionType,
-            subscription_expiry: subscriptionExpiry,
-            is_premium: true,
-          },
-          { where: { id: user.id }, transaction: t }
-        );
-        await Transactions.create(
-          {
-            user_id: user.id,
-            cf_order_id: order_id as string,
-            cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: String(orderDetails.data.order_amount),
-            currency: orderDetails.data.order_currency as string,
-            captured: true,
-            status: "success",
-            method: "cashfree",
-            // Add dummy values for required Razorpay fields to avoid NOT NULL error
-            razorpay_order_id: "cashfree_dummy_order",
-            razorpay_payment_id: "cashfree_dummy_payment",
-            razorpay_signature: "cashfree_dummy_signature",
-          },
-          { transaction: t }
-        );
-      });
-      }
-      const us = await User.findByPk(user.id);
-      if(!us){ 
-        res.status(500).json({ success: false, message: "User not found" });
-        return;
-      }
-      // Update JWT token
-      const token = jwt.sign(
-        {
-          id: us.id,
-          email: us.email,
-          subscription_type: us.subscription_type,
-          subscription_type_2: us.subscription_type_2,
-          phone_number: us.phone_number,
-        },
-        JWT_SECRET,
-        { expiresIn: "2d" }
-      );
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      logger.info("Payment verified and subscription updated", { user_id: user.id, subscriptionType, order_id });
-      res.status(200).json({
-        success: true,
-        message: "Payment verified and subscription updated",
-        subscription_type: subscriptionType,
-        subscription_expiry: subscriptionExpiry,
-      });
-    } catch (err: any) {
-      logger.error("Payment verification error in /payment/verify", { error: err, body: req.body, user: req.user });
-      console.error("Payment verification error:", err);
-      res.status(500).json({
-        success: false,
-        message: err.message || "Server error",
-      });
+  try {
+    logger.info("/payment/verify called", { body: req.body, user: req.user });
+    const { order_id, serviceName } = req.body;
+    if (!order_id || !serviceName) {
+      logger.warn("order_id or serviceName missing in /payment/verify", { body: req.body });
+      res.status(400).json({ success: false, message: "order_id and serviceName are required" });
+      return;
     }
-  };
+
+    // Fetch order details from Cashfree
+    const orderDetails = await cashfree.PGFetchOrder(order_id as string);
+    logger.info("Cashfree order details", { order_id, orderDetails });
+    if (!orderDetails || orderDetails.data.order_status !== "PAID") {
+      logger.warn("Order not paid", { order_id, orderDetails });
+      res.status(400).json({ success: false, message: "Payment not verified" });
+      return;
+    }
+
+    // Fetch payment details to get cf_payment_id
+    const paymentDetails = await cashfree.PGOrderFetchPayments(order_id as string);
+    logger.info("Cashfree payment details", { order_id, paymentDetails });
+    const successfulPayment = paymentDetails.data.find(
+      (payment: any) => payment.payment_status === "SUCCESS"
+    );
+    if (!successfulPayment) {
+      logger.warn("No successful payment found", { order_id, paymentDetails });
+      res.status(400).json({ success: false, message: "No successful payment found" });
+      return;
+    }
+
+    // Get user from token/session
+    const user = req.user;
+    if (!user) {
+      logger.warn("Unauthorized user in /payment/verify", { user });
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+    logger.info("User found for payment verification", { user_id: user.id });
+
+    // Set the correct boolean field based on serviceName
+    // You can expand this mapping as needed
+    const serviceFieldMap: Record<string, string> = {
+      "Resume / CV Review": "resume",
+      "Get a Referral": "referral",
+      "Cold Mail": "cold_mail",
+      "HR Mail": "hr_mail",
+      "Cover Letter": "cover_letter",
+      "LinkedIn Review": "linkedin",
+      "CV": "cv",
+      "Roadmaps": "roadmaps",
+      "Interview": "interview",
+      // Add more mappings as needed
+    };
+
+    const updateFields: any = {
+      is_premium: true,
+      subscription_expiry: (() => {
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + 30);
+        return expiry;
+      })(),
+      subscription_type: serviceName,
+    };
+
+    const fieldToSet = serviceFieldMap[serviceName];
+    if (fieldToSet) {
+      updateFields[fieldToSet] = true;
+    }
+
+    // Update user
+    await sequelize.transaction(async (t: any) => {
+      await User.update(
+        updateFields,
+        { where: { id: user.id }, transaction: t }
+      );
+      await Transactions.create(
+        {
+          user_id: user.id,
+          cf_order_id: order_id as string,
+          cf_payment_id: successfulPayment.cf_payment_id || "unknown",
+          amount: String(orderDetails.data.order_amount),
+          currency: orderDetails.data.order_currency as string,
+          captured: true,
+          status: "success",
+          method: "cashfree",
+          razorpay_order_id: "cashfree_dummy_order",
+          razorpay_payment_id: "cashfree_dummy_payment",
+          razorpay_signature: "cashfree_dummy_signature",
+        },
+        { transaction: t }
+      );
+    });
+
+    const us = await User.findByPk(user.id);
+    if (!us) {
+      res.status(500).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    // Update JWT token
+    const token = jwt.sign(
+      {
+        id: us.id,
+        email: us.email,
+        subscription_type: us.subscription_type,
+        subscription_type_2: us.subscription_type_2,
+        phone_number: us.phone_number,
+      },
+      JWT_SECRET,
+      { expiresIn: "2d" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    logger.info("Payment verified and subscription updated", { user_id: user.id, serviceName, order_id });
+    res.status(200).json({
+      success: true,
+      message: "Payment verified and service updated",
+      service_name: serviceName,
+      subscription_expiry: updateFields.subscription_expiry,
+    });
+  } catch (err: any) {
+    logger.error("Payment verification error in /payment/verify", { error: err, body: req.body, user: req.user });
+    console.error("Payment verification error:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message || "Server error",
+    });
+  }
+};
 
   verifyAndStorePayment = async (
     req: Request<{}, {}, PaymentRequestBody>,

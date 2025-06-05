@@ -231,7 +231,7 @@ export default function FormPage() {
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&serviceId=${serviceId}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&serviceId=${serviceId}&serviceName=${encodeURIComponent(serviceTitle)}`,
         redirectTarget: "_blank" as "_blank",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {

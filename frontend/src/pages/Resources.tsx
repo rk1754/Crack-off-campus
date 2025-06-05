@@ -32,42 +32,25 @@ const ResourcesPage = () => {
   const [loading, setLoading] = useState(false); // Only for payment
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
-  // Log subscription types for debugging
-  useEffect(() => {
-    if (user) {
-      console.log("User subscription_type:", user.subscription_type);
-      console.log("User subscription_type_2:", user.subscription_type_2);
-    }
-  }, [user]);
-
   // Load Cashfree SDK
   useEffect(() => {
     const loadCashfreeSDK = async () => {
       if (document.getElementById("cashfree-sdk") || window.Cashfree) {
         setSdkLoaded(true);
-        console.log("Cashfree SDK already loaded");
         return;
       }
-
-      console.log("Loading Cashfree SDK...");
       const script = document.createElement("script");
       script.id = "cashfree-sdk";
       script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
       script.async = true;
-      script.onload = () => {
-        setSdkLoaded(true);
-        console.log("Cashfree SDK loaded successfully");
-      };
+      script.onload = () => setSdkLoaded(true);
       script.onerror = () => {
         setSdkLoaded(false);
         toast.error("Failed to load Cashfree SDK. Please try again.");
-        console.error("Cashfree SDK failed to load");
       };
       document.body.appendChild(script);
     };
-
     loadCashfreeSDK();
-
     return () => {
       const existingScript = document.getElementById("cashfree-sdk");
       if (existingScript && existingScript.parentNode) {
@@ -79,7 +62,7 @@ const ResourcesPage = () => {
 
   // Payment handler
   const handleUpgradeSubscription = async (
-    requiredSubscriptionType: string
+    requiredBoolean: string
   ) => {
     if (!user) {
       toast.error("Please login to access this resource.");
@@ -88,14 +71,15 @@ const ResourcesPage = () => {
 
     if (!sdkLoaded || !window.Cashfree) {
       toast.error("Payment gateway is not available. Please try again later.");
-      console.error("Cashfree SDK not loaded");
       return;
     }
 
     let amountInPaise = 0;
-    if (requiredSubscriptionType === "resume") {
+    if (requiredBoolean === "resume") {
       amountInPaise = 79; // ₹79
-    } else if (requiredSubscriptionType === "other_templates") {
+    } else if (
+      ["referral", "cold_mail", "cover_letter", "hr_mail"].includes(requiredBoolean)
+    ) {
       amountInPaise = 49; // ₹49
     } else {
       return;
@@ -103,7 +87,6 @@ const ResourcesPage = () => {
 
     setLoading(true);
     try {
-      console.log("Creating Cashfree order for amount:", amountInPaise);
       const orderRes = await axios.post(
         "https://api.crackoffcampus.com/api/v1/payment/create-order",
         {
@@ -113,49 +96,27 @@ const ResourcesPage = () => {
           phone: user.phone_number || "+919876543210",
         }
       );
-      console.log("Order response:", orderRes.data);
       const { payment_session_id, order_id } = orderRes.data;
-
-      if (!payment_session_id) {
-        throw new Error("Payment session ID not found in response");
-      }
-
-      // Validate payment_session_id
+      if (!payment_session_id) throw new Error("Payment session ID not found in response");
       if (
         !payment_session_id.startsWith("session_") ||
         /[^a-zA-Z0-9_-]/.test(payment_session_id)
       ) {
-        console.error("Invalid payment_session_id:", payment_session_id);
         throw new Error("Invalid payment session ID format");
       }
-
-      // Initialize Cashfree SDK
       const cashfree = new window.Cashfree({
         mode: "production",
       });
-
-      // Define checkout options with explicit typing
-      const checkoutOptions: {
-        paymentSessionId: string;
-        returnUrl: string;
-        redirectTarget?: "_blank";
-      } = {
+      const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://crackoffcampus.com/payment/verify?order_id=${order_id}&resourceType=${requiredSubscriptionType}`,
-        redirectTarget: "_blank",
+        returnUrl: `https://crackoffcampus.com/payment/verify?order_id=${order_id}&resourceType=${requiredBoolean}`,
+        redirectTarget: "_blank" as "_blank",
       };
-
-      console.log(
-        "Initiating Cashfree checkout with options:",
-        checkoutOptions
-      );
       cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
-          console.error("Checkout error:", result.error);
           setLoading(false);
         } else if (result.redirect) {
-          console.log("Redirecting to Cashfree checkout page");
           toast.info("Redirecting to Cashfree payment gateway...");
         }
       });
@@ -164,35 +125,8 @@ const ResourcesPage = () => {
         err?.response?.data?.message ||
           "Could not initiate payment. Please try again."
       );
-      console.error("Payment initiation error:", err);
       setLoading(false);
     }
-  };
-
-  // Helper to check access
-  const canAccess = (resource: any) => {
-    const userSubscriptionTypes = [
-      user?.subscription_type,
-      user?.subscription_type_2,
-    ].filter(Boolean);
-
-    if (
-      userSubscriptionTypes.some((type) =>
-        ["booster", "standard"].includes(type)
-      )
-    )
-      return true;
-    if (
-      resource.requiredSubscription === "resume" &&
-      userSubscriptionTypes.some((type) => type === "resume")
-    )
-      return true;
-    if (
-      resource.requiredSubscription === "other_templates" &&
-      userSubscriptionTypes.some((type) => type === "other_templates")
-    )
-      return true;
-    return false;
   };
 
   // Helper for login check
@@ -209,6 +143,7 @@ const ResourcesPage = () => {
     }
   };
 
+  // Resource definitions with requiredBoolean for access
   const resources = [
     {
       id: 1,
@@ -219,7 +154,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/Resume Template.png",
       imageAlt: "Resume Template",
       action: () => requireLogin(() => dispatch(downloadResumeTemplate()), 1),
-      requiredSubscription: "resume",
+      requiredBoolean: "resume",
     },
     {
       id: 2,
@@ -230,7 +165,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/refralTemplate.png",
       imageAlt: "Referral Template",
       action: () => requireLogin(() => dispatch(downloadReferralTemplate()), 2),
-      requiredSubscription: "other_templates",
+      requiredBoolean: "referral",
     },
     {
       id: 3,
@@ -241,7 +176,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/ColdEmail.png",
       imageAlt: "Cold Email Template",
       action: () => requireLogin(() => dispatch(downloadColdMailTemplate()), 3),
-      requiredSubscription: "other_templates",
+      requiredBoolean: "cold_mail",
     },
     {
       id: 4,
@@ -252,7 +187,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
       action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate()), 4),
-      requiredSubscription: "other_templates",
+      requiredBoolean: "cover_letter",
     },
     {
       id: 5,
@@ -263,7 +198,7 @@ const ResourcesPage = () => {
       imagePath: "/lovable-uploads/hr_contants-removebg-preview.png",
       imageAlt: "HR Contact Directory",
       action: () => requireLogin(() => dispatch(downloadHrEmailTemplate()), 5),
-      requiredSubscription: "other_templates",
+      requiredBoolean: "hr_mail",
     },
     {
       id: 6,
@@ -394,78 +329,23 @@ const ResourcesPage = () => {
                       size="lg"
                       disabled={
                         resource.buttonText === "Coming Soon" ||
-                        loading || // disables all buttons only during payment
+                        loading ||
                         !sdkLoaded ||
                         isDownloading
                       }
                       onClick={async () => {
-                        const userSubscriptionTypes = [
-                          user?.subscription_type,
-                          user?.subscription_type_2,
-                        ].filter(Boolean);
+                        // If no requiredBoolean, just show coming soon
+                        if (!resource.requiredBoolean) return;
 
-                        // Standard and Booster users get all resources
-                        if (
-                          userSubscriptionTypes.some((type) =>
-                            ["booster", "standard"].includes(type)
-                          )
-                        ) {
-                          await resource.action();
-                          return;
-                        }
-
-                        // Resume template: only for resume users
-                        if (
-                          resource.requiredSubscription === "resume" &&
-                          userSubscriptionTypes.some(
-                            (type) => type === "resume"
-                          )
-                        ) {
-                          await resource.action();
-                          return;
-                        }
-
-                        // Referral template: only for other_templates users
-                        if (
-                          resource.requiredSubscription === "other_templates" &&
-                          resource.title.toLowerCase().includes("referral") &&
-                          userSubscriptionTypes.some(
-                            (type) => type === "other_templates"
-                          )
-                        ) {
-                          await resource.action();
-                          return;
-                        }
-
-                        // Cover Letter, Cold Email, HR Emails: allow basic, standard, booster, other_templates
-                        if (
-                          resource.requiredSubscription === "other_templates" &&
-                          [
-                            "cover letter",
-                            "cold email",
-                            "hr emails",
-                            "hr email",
-                          ].some((kw) =>
-                            resource.title.toLowerCase().includes(kw)
-                          ) &&
-                          userSubscriptionTypes.some((type) =>
-                            [
-                              "basic",
-                              "standard",
-                              "booster",
-                              "other_templates",
-                            ].includes(type)
-                          )
-                        ) {
+                        // Check boolean field for access
+                        if (user && user[resource.requiredBoolean]) {
                           await resource.action();
                           return;
                         }
 
                         // Otherwise, redirect to payment
                         setLoading(true);
-                        await handleUpgradeSubscription(
-                          resource.requiredSubscription
-                        );
+                        await handleUpgradeSubscription(resource.requiredBoolean);
                         setLoading(false);
                       }}
                     >
