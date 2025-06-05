@@ -404,7 +404,7 @@ const ResourcesPage = () => {
                           user?.subscription_type_2,
                         ].filter(Boolean);
 
-                        // Standard and Booster users get all resources
+                        // 1. Standard and Booster users get all resources
                         if (
                           userSubscriptionTypes.some((type) =>
                             ["booster", "standard"].includes(type)
@@ -414,58 +414,18 @@ const ResourcesPage = () => {
                           return;
                         }
 
-                        // Resume template: only for resume users
+                        // 2. User has purchased this resource individually
                         if (
-                          resource.requiredSubscription === "resume" &&
-                          userSubscriptionTypes.some(
-                            (type) => type === "resume"
-                          )
+                          typeof hasUserPurchasedResource === "function" &&
+                          hasUserPurchasedResource(resource.id)
                         ) {
                           await resource.action();
                           return;
                         }
 
-                        // Referral template: only for other_templates users
-                        if (
-                          resource.requiredSubscription === "other_templates" &&
-                          resource.title.toLowerCase().includes("referral") &&
-                          userSubscriptionTypes.some(
-                            (type) => type === "other_templates"
-                          )
-                        ) {
-                          await resource.action();
-                          return;
-                        }
-
-                        // Cover Letter, Cold Email, HR Emails: allow basic, standard, booster, other_templates
-                        if (
-                          resource.requiredSubscription === "other_templates" &&
-                          [
-                            "cover letter",
-                            "cold email",
-                            "hr emails",
-                            "hr email",
-                          ].some((kw) =>
-                            resource.title.toLowerCase().includes(kw)
-                          ) &&
-                          userSubscriptionTypes.some((type) =>
-                            [
-                              "basic",
-                              "standard",
-                              "booster",
-                              "other_templates",
-                            ].includes(type)
-                          )
-                        ) {
-                          await resource.action();
-                          return;
-                        }
-
-                        // Otherwise, redirect to payment
+                        // 3. Otherwise, redirect to payment for this resource
                         setLoading(true);
-                        await handleUpgradeSubscription(
-                          resource.requiredSubscription
-                        );
+                        await handleUpgradeSubscription(resource.requiredSubscription);
                         setLoading(false);
                       }}
                     >
@@ -488,5 +448,11 @@ const ResourcesPage = () => {
     </Layout>
   );
 };
+
+// Placeholder: Replace with your actual implementation
+function hasUserPurchasedResource(resourceId: number): boolean {
+  // TODO: Implement actual check (API call or state)
+  return false;
+}
 
 export default ResourcesPage;
