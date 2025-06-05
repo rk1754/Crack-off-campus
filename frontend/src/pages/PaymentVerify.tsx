@@ -21,6 +21,7 @@ const PaymentVerify = () => {
       const date = params.get("date");
       const time = params.get("time");
       const serviceName = params.get("service_name");
+      console.log(order_id, resourceType, serviceId, date, time, serviceName);
       if (!order_id) {
         toast.error("Order ID missing in payment verification.");
         navigate("/services");
@@ -29,7 +30,36 @@ const PaymentVerify = () => {
 
       try {
         // Call backend to verify payment and update subscription/resource/service
-        const res = await axios.post("/payment/verify", { order_id, serviceName, resourceType, serviceId, date, time }, { withCredentials: true });
+        const resourceTypeToServiceName: Record<string, string> = {
+  "Resume / CV Review": "resume",
+  "Get a Referral": "referral",
+  "Cold Mail": "cold_mail",
+  "HR Mail": "hr_mail",
+  "Cover Letter": "cover_letter",
+  "LinkedIn Review": "linkedin",
+  "CV": "cv",
+  "Roadmaps": "roadmaps",
+  "Interview": "interview",
+  // Add more mappings as needed
+};
+
+let finalServiceName = serviceName;
+if (!finalServiceName && resourceType) {
+  finalServiceName = resourceTypeToServiceName[resourceType] || resourceType;
+}
+
+const res = await axios.post(
+  "/payment/verify",
+  {
+    order_id,
+    serviceName: finalServiceName,
+    resourceType,
+    serviceId,
+    date,
+    time,
+  },
+  { withCredentials: true }
+);
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
 
