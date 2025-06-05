@@ -454,9 +454,10 @@ const JobListings = () => {
                 >
                   Next
                 </button>
-            </div>
+              </nav>
             </div>
           )}
+        </div>
       </div>
 
       {/* Premium Modal for Non-Premium Users */}
