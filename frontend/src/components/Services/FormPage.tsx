@@ -67,7 +67,7 @@ export default function FormPage() {
   };
 
   const serviceTitle = getServiceTitle(serviceId);
-
+  console.log("Service Title:", serviceTitle);
   const handleGoBack = () => {
     navigate(`/services/${serviceId}/booking`);
   };
@@ -150,6 +150,7 @@ export default function FormPage() {
         const bookingForm = new FormData();
         bookingForm.append("serviceId", serviceId || "");
         bookingForm.append("service_name", serviceTitle);
+        console.log(serviceTitle);
         bookingForm.append("date", date);
         bookingForm.append("time", time);
         bookingForm.append("name", formData.name);

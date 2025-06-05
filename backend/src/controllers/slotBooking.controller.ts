@@ -20,6 +20,8 @@ class SlotBookingController {
         });
         return;
       }
+      logger.info("Logging input data of slot booking", serviceId, date, service_name, time);
+      // Validate input
       if (!serviceId || !date || !time) {
         res.status(400).json({
           success: false,
