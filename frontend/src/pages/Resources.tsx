@@ -123,7 +123,7 @@ const ResourcesPage = () => {
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
-          "Could not initiate payment. Please try again."
+        "Could not initiate payment. Please try again."
       );
       setLoading(false);
     }
@@ -273,9 +273,8 @@ const ResourcesPage = () => {
               return (
                 <div
                   key={resource.id}
-                  className={`flex flex-col ${
-                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                  } items-center gap-8 md:gap-12`}
+                  className={`flex flex-col ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
+                    } items-center gap-8 md:gap-12`}
                 >
                   {/* Image */}
                   <div className="w-full md:w-2/5">
@@ -291,13 +290,12 @@ const ResourcesPage = () => {
                   {/* Content */}
                   <div className="w-full md:w-3/5 space-y-4">
                     <div
-                      className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
-                        index % 3 === 0
+                      className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${index % 3 === 0
                           ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
                           : index % 3 === 1
-                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
-                          : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-                      }`}
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                            : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                        }`}
                     >
                       Resource {resource.id}
                     </div>
@@ -323,9 +321,8 @@ const ResourcesPage = () => {
                       )}
                     </div>
                     <Button
-                      className={`mt-2 bg-orange-500 hover:bg-orange-600 text-white${
-                        isDownloading ? " blur-sm" : ""
-                      }`}
+                      className={`mt-2 bg-orange-500 hover:bg-orange-600 text-white${isDownloading ? " blur-sm" : ""
+                        }`}
                       size="lg"
                       disabled={
                         resource.buttonText === "Coming Soon" ||
@@ -352,10 +349,10 @@ const ResourcesPage = () => {
                       {isDownloading
                         ? "Downloading..."
                         : loading
-                        ? "Processing..."
-                        : !sdkLoaded
-                        ? "Loading..."
-                        : resource.buttonText}
+                          ? "Processing..."
+                          : !sdkLoaded
+                            ? "Loading..."
+                            : resource.buttonText}
                     </Button>
                   </div>
                 </div>
