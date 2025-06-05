@@ -16,50 +16,48 @@ const PaymentVerify = () => {
     const verifyPayment = async () => {
       const params = new URLSearchParams(location.search);
       const order_id = params.get("order_id");
+      // Accept both serviceName and resourceType as possible keys
+      let serviceName = params.get("serviceName");
       const resourceType = params.get("resourceType");
       const serviceId = params.get("serviceId");
       const date = params.get("date");
       const time = params.get("time");
-      const serviceName = params.get("service_name");
-      console.log(order_id, resourceType, serviceId, date, time, serviceName);
-      if (!order_id) {
-        toast.error("Order ID missing in payment verification.");
+      // If serviceName is not present, try to map resourceType
+      const resourceTypeToServiceName: Record<string, string> = {
+        "Resume / CV Review": "resume",
+        "Get a Referral": "referral",
+        "Cold Mail": "cold_mail",
+        "HR Mail": "hr_mail",
+        "Cover Letter": "cover_letter",
+        "LinkedIn Review": "linkedin",
+        "CV": "cv",
+        "Roadmaps": "roadmaps",
+        "Interview": "interview",
+        // Add more mappings as needed
+      };
+      if (!serviceName && resourceType) {
+        serviceName = resourceTypeToServiceName[resourceType] || resourceType;
+      }
+      // Log for debugging
+      console.log("order_id", order_id, "serviceName", serviceName, "resourceType", resourceType);
+      if (!order_id || !serviceName) {
+        toast.error("Order ID or service name missing in payment verification.");
         navigate("/services");
         return;
       }
-
       try {
-        // Call backend to verify payment and update subscription/resource/service
-        const resourceTypeToServiceName: Record<string, string> = {
-  "Resume / CV Review": "resume",
-  "Get a Referral": "referral",
-  "Cold Mail": "cold_mail",
-  "HR Mail": "hr_mail",
-  "Cover Letter": "cover_letter",
-  "LinkedIn Review": "linkedin",
-  "CV": "cv",
-  "Roadmaps": "roadmaps",
-  "Interview": "interview",
-  // Add more mappings as needed
-};
-
-let finalServiceName = serviceName;
-if (!finalServiceName && resourceType) {
-  finalServiceName = resourceTypeToServiceName[resourceType] || resourceType;
-}
-
-const res = await axios.post(
-  "/payment/verify",
-  {
-    order_id,
-    serviceName: finalServiceName,
-    resourceType,
-    serviceId,
-    date,
-    time,
-  },
-  { withCredentials: true }
-);
+        const res = await axios.post(
+          "/api/v1/payment/verify",
+          {
+            order_id,
+            serviceName,
+            resourceType,
+            serviceId,
+            date,
+            time,
+          },
+          { withCredentials: true }
+        );
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
 
