@@ -5,13 +5,25 @@ import fs from 'fs';
 // Directory where static templates are stored
 const TEMPLATE_DIR = path.join(__dirname, '../static/templates');
 
-// Subscription types
-const SUBSCRIPTION_RESUME = 'resume';
-const SUBSCRIPTION_TEMPLATES = 'other_templates';
+// Helper type guard for user booleans
+function isUserWithResourceFlags(user: any): user is {
+  resume?: boolean;
+  referral?: boolean;
+  cold_mail?: boolean;
+  cover_letter?: boolean;
+  hr_mail?: boolean;
+  linkedin?: boolean;
+  cv?: boolean;
+  roadmaps?: boolean;
+  interview?: boolean;
+  job?: boolean;
+} {
+  return typeof user === 'object' && user !== null;
+}
 
 // Helper to check access for individual resources based on user.model.ts booleans
 function hasResourceAccess(user: any, resource: string): boolean {
-  if (!user) return false;
+  if (!isUserWithResourceFlags(user)) return false;
   switch (resource) {
     case 'resume':
       return user.resume === true;
