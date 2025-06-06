@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import { BCRYPT_SALT, JWT_SECRET } from "../config/config";
 import jwt from "jsonwebtoken";
 import Transactions from "../models/transaction.model";
+import SessionBooking from "../models/sessionBooking.model";
 
 class AdminController {
     // Admin signup method
@@ -232,6 +233,7 @@ class AdminController {
             // Delete related experience and education
             await Experience.destroy({ where: { user_id: id } });
             await Education.destroy({ where: { user_id: id } });
+            await SessionBooking.destroy({ where: { userId: id } });
             await Transactions.destroy({ where: { user_id: id } });
             await user.destroy();
             res.status(200).json({ success: true, message: "User deleted successfully" });
