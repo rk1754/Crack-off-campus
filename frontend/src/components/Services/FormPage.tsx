@@ -158,13 +158,16 @@ export default function FormPage() {
         bookingForm.append("state", formData.state);
         bookingForm.append("targetRole", formData.targetRole);
         bookingForm.append("language", formData.language);
-        if (formData.resume) {
-          bookingForm.append("resume", formData.resume, formData.resume.name);
-        }
+        // if (formData.resume) {
+        //   bookingForm.append("resume", formData.resume);
+        // }
 
         await axios.post(
           `${BACKEND_URL}/api/v1/session/booking/book`,
+          { 
           bookingForm,
+          resume: formData.resume,
+          },
           {
             headers: {
               "Content-Type": "multipart/form-data",
