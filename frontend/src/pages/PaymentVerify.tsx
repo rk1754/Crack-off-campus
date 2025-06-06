@@ -33,6 +33,7 @@ const PaymentVerify = () => {
         "CV": "cv",
         "Roadmaps": "roadmaps",
         "Interview": "interview",
+        "job" : "job"
         // Add more mappings as needed
       };
       if (!serviceName && resourceType) {
