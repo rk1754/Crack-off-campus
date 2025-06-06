@@ -171,12 +171,18 @@ class PaymentController {
         99: "job",
       };
       const orderAmount = Number(orderDetails.data.order_amount);
+      let planType: string | undefined = undefined;
       if (orderAmount in subscriptionMap) {
-        updateFields.subscription_type = subscriptionMap[orderAmount];
+        planType = subscriptionMap[orderAmount];
+        updateFields.subscription_type = planType;
       }
 
       // Set all relevant boolean fields to true
-      const fieldsToSet = serviceFieldMap[serviceName];
+      let fieldsToSet = serviceFieldMap[serviceName];
+      // If planType is basic/standard/booster, override fieldsToSet
+      if (planType === "basic" || planType === "standard" || planType === "booster") {
+        fieldsToSet = serviceFieldMap[planType];
+      }
       if (fieldsToSet && Array.isArray(fieldsToSet)) {
         for (const field of fieldsToSet) {
           updateFields[field] = true;
