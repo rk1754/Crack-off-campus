@@ -72,9 +72,8 @@ const JobCard = ({
   // Helper to ensure protocol
   const getSafeUrl = (url: string) => {
     if (!url) return "#";
-    return url.startsWith("http://") || url.startsWith("https://")
-      ? url
-      : `https://${url}`;
+    if (/^https?:\/\//i.test(url)) return url;
+    return "https://" + url.replace(/^\/+/, "");
   };
 
   return (
@@ -159,13 +158,15 @@ const JobCard = ({
               </div>
               {canAccess ? (
                 isPremiumJob ? (
-                  <Link
-                    to={jobUrl}
+                  <a
+                    href={getSafeUrl(jobUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
                     <Crown size={14} className="mr-1" />
                     Apply Now
-                  </Link>
+                  </a>
                 ) : (
                   <a
                     href={getSafeUrl(jobUrl)}
