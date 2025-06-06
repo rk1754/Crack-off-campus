@@ -150,7 +150,6 @@ export default function FormPage() {
         const bookingForm = new FormData();
         bookingForm.append("serviceId", serviceId || "");
         bookingForm.append("service_name", serviceTitle);
-        console.log(serviceTitle);
         bookingForm.append("date", date);
         bookingForm.append("time", time);
         bookingForm.append("name", formData.name);
@@ -160,13 +159,17 @@ export default function FormPage() {
         bookingForm.append("targetRole", formData.targetRole);
         bookingForm.append("language", formData.language);
         if (formData.resume) {
-          bookingForm.append("resume", formData.resume);
+          bookingForm.append("resume", formData.resume, formData.resume.name);
         }
 
         await axios.post(
-          `${BACKEND_URL}/api/v1/session/booking/book`, // <-- Adjust endpoint as per backend
+          `${BACKEND_URL}/api/v1/session/booking/book`,
           bookingForm,
-          { headers: { "Content-Type": "multipart/form-data" } }
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
         toast.success("Booking successful! Check your email for details.");
         navigate("/services/booking/success");
@@ -387,14 +390,22 @@ export default function FormPage() {
                   required
                   className="border-gray-300"
                 />
-                <Button
+                {/* Remove or disable the custom Browse button, or wire it to trigger the file input */}
+                {/* <Button
                   type="button"
                   variant="secondary"
                   className="ml-2 bg-[#F97316] text-white hover:bg-orange-600"
+                  onClick={() => document.getElementById('resume')?.click()}
                 >
                   Browse
-                </Button>
+                </Button> */}
               </div>
+              {/* Show selected file name */}
+              {formData.resume && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Selected file: {formData.resume.name}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
