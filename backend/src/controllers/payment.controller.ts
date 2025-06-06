@@ -109,9 +109,9 @@ class PaymentController {
       "cv": ["cv"],
       "roadmaps": ["roadmaps"],
       "interview": ["interview"],
-
+      "job" : ["job"],
       // Subscription types (set all resource booleans)
-      "basic": ["cold_mail", "cover_letter", "hr_mail"],
+      "basic": ["cold_mail", "cover_letter", "hr_mail", "job"],
       "standard": [
         "resume",
         "referral",
@@ -120,11 +120,13 @@ class PaymentController {
         "hr_mail",
         "linkedin",
         "cv",
+        "job",
         "roadmaps",
         "interview",
       ],
       "booster": [
         "resume",
+        "job",
         "referral",
         "cold_mail",
         "cover_letter",

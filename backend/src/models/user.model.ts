@@ -122,6 +122,11 @@ User.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    job: {
+      type : DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: true,
+    },
     resume:{
       type: DataTypes.BOOLEAN,
       defaultValue: false,
