@@ -9,53 +9,33 @@ const TEMPLATE_DIR = path.join(__dirname, '../static/templates');
 const SUBSCRIPTION_RESUME = 'resume';
 const SUBSCRIPTION_TEMPLATES = 'other_templates';
 
-// Helper to check subscription or boolean access
-function hasResumeAccess(user: any): boolean {
-  // Check subscription type or boolean column
-  const types = [
-    user?.subscription_type,
-    user?.subscription_type_2,
-  ].filter(Boolean);
-
-  return (
-    (types.includes('resume') ||
-      types.includes('booster') ||
-      types.includes('standard')) ||
-    user?.resume === true
-  );
-}
-
-function hasTemplateAccess(user: any): boolean {
-  // Check subscription type or boolean columns for any template
-  const types = [
-    user?.subscription_type,
-    user?.subscription_type_2,
-  ].filter(Boolean);
-
-  return (
-    (types.includes('other_templates') ||
-      types.includes('booster') ||
-      types.includes('standard') ||
-      types.includes('basic')) ||
-    user?.referral === true ||
-    user?.cold_mail === true ||
-    user?.cover_letter === true ||
-    user?.hr_mail === true
-  );
-}
-
-// Individual boolean checks for each template
-function hasReferralAccess(user: any): boolean {
-  return hasTemplateAccess(user) || user?.referral === true;
-}
-function hasColdMailAccess(user: any): boolean {
-  return hasTemplateAccess(user) || user?.cold_mail === true;
-}
-function hasCoverLetterAccess(user: any): boolean {
-  return hasTemplateAccess(user) || user?.cover_letter === true;
-}
-function hasHrMailAccess(user: any): boolean {
-  return hasTemplateAccess(user) || user?.hr_mail === true;
+// Helper to check access for individual resources based on user.model.ts booleans
+function hasResourceAccess(user: any, resource: string): boolean {
+  if (!user) return false;
+  switch (resource) {
+    case 'resume':
+      return user.resume === true;
+    case 'referral':
+      return user.referral === true;
+    case 'cold_mail':
+      return user.cold_mail === true;
+    case 'cover_letter':
+      return user.cover_letter === true;
+    case 'hr_mail':
+      return user.hr_mail === true;
+    case 'linkedin':
+      return user.linkedin === true;
+    case 'cv':
+      return user.cv === true;
+    case 'roadmaps':
+      return user.roadmaps === true;
+    case 'interview':
+      return user.interview === true;
+    case 'job':
+      return user.job === true;
+    default:
+      return false;
+  }
 }
 
 // Download Resume Template
@@ -66,8 +46,8 @@ export const downloadResumeTemplate = (req: Request, res: Response) => {
     return;
   }
 
-  if (!hasResumeAccess(user)) {
-    res.status(403).json({ error: 'Resume template requires resume subscription or purchase.' });
+  if (!hasResourceAccess(user, 'resume')) {
+    res.status(403).json({ error: 'Resume template requires purchase or access.' });
     return;
   }
 
@@ -89,8 +69,8 @@ export const downloadResumeTemplate = (req: Request, res: Response) => {
 // Download HR Email Template
 export const downloadHrEmailTemplate = (req: Request, res: Response) => {
   const user = req.user;
-  if (!hasHrMailAccess(user)) {
-    res.status(403).json({ error: 'HR email template requires subscription or purchase.' });
+  if (!hasResourceAccess(user, 'hr_mail')) {
+    res.status(403).json({ error: 'HR email template requires purchase or access.' });
     return;
   }
 
@@ -113,8 +93,8 @@ export const downloadHrEmailTemplate = (req: Request, res: Response) => {
 // Download Referral Template
 export const downloadReferralTemplate = (req: Request, res: Response) => {
   const user = req.user;
-  if (!hasReferralAccess(user)) {
-    res.status(403).json({ error: 'Referral template requires subscription or purchase.' });
+  if (!hasResourceAccess(user, 'referral')) {
+    res.status(403).json({ error: 'Referral template requires purchase or access.' });
     return;
   }
 
@@ -137,8 +117,8 @@ export const downloadReferralTemplate = (req: Request, res: Response) => {
 // Download Cold Mail Template
 export const downloadColdMailTemplate = (req: Request, res: Response) => {
   const user = req.user;
-  if (!hasColdMailAccess(user)) {
-    res.status(403).json({ error: 'Cold mail template requires subscription or purchase.' });
+  if (!hasResourceAccess(user, 'cold_mail')) {
+    res.status(403).json({ error: 'Cold mail template requires purchase or access.' });
     return;
   }
 
@@ -161,8 +141,8 @@ export const downloadColdMailTemplate = (req: Request, res: Response) => {
 // Download Cover Letter Template
 export const downloadCoverLetterTemplate = (req: Request, res: Response) => {
   const user = req.user;
-  if (!hasCoverLetterAccess(user)) {
-    res.status(403).json({ error: 'Cover letter template requires subscription or purchase.' });
+  if (!hasResourceAccess(user, 'cover_letter')) {
+    res.status(403).json({ error: 'Cover letter template requires purchase or access.' });
     return;
   }
 
