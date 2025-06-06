@@ -13,11 +13,18 @@ const PaymentVerify = () => {
   const [bookingInProgress, setBookingInProgress] = useState(false);
 
   useEffect(() => {
+    console.log(window.location.href);
     const verifyPayment = async () => {
       const params = new URLSearchParams(location.search);
       const order_id = params.get("order_id");
-      // Accept both serviceName and resourceType as possible keys
+      // Try to get serviceName from both serviceName and job as fallback
       let serviceName = params.get("serviceName");
+      if (!serviceName) {
+        // Try fallback for job plan (as in JobListings.tsx)
+        if (params.get("job")) {
+          serviceName = "job";
+        }
+      }
       const resourceType = params.get("resourceType");
       const serviceId = params.get("serviceId");
       const date = params.get("date");
@@ -30,19 +37,28 @@ const PaymentVerify = () => {
         "HR Mail": "hr_mail",
         "Cover Letter": "cover_letter",
         "LinkedIn Review": "linkedin",
-        "CV": "cv",
-        "Roadmaps": "roadmaps",
-        "Interview": "interview",
-        "job" : "job"
+        CV: "cv",
+        Roadmaps: "roadmaps",
+        Interview: "interview",
+        job: "job",
         // Add more mappings as needed
       };
       if (!serviceName && resourceType) {
         serviceName = resourceTypeToServiceName[resourceType] || resourceType;
       }
       // Log for debugging
-      console.log("order_id", order_id, "serviceName", serviceName, "resourceType", resourceType);
+      console.log(
+        "order_id",
+        order_id,
+        "serviceName",
+        serviceName,
+        "resourceType",
+        resourceType
+      );
       if (!order_id || !serviceName) {
-        toast.error("Order ID or service name missing in payment verification.");
+        toast.error(
+          "Order ID or service name missing in payment verification."
+        );
         navigate("/services");
         return;
       }
@@ -84,7 +100,10 @@ const PaymentVerify = () => {
             formData.append("date", date);
             formData.append("time", time);
             // Ensure service_name is always set
-            formData.append("service_name", serviceName || bookingData.name || "");
+            formData.append(
+              "service_name",
+              serviceName || bookingData.name || ""
+            );
             formData.append("phone", bookingData.phone || "");
             formData.append("email", bookingData.email || "");
             formData.append("state", bookingData.state || "");
