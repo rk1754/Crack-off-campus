@@ -1,8 +1,11 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import Transactions from "../models/transaction.model";
 import { cashfree } from "../config/cashfree";
 import User from "../models/user.model";
-import { PaymentRequestBody, SubscriptionMap } from "../types/payment.types";
+import type {
+  PaymentRequestBody,
+  SubscriptionMap,
+} from "../types/payment.types";
 import logger from "../utils/logger";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/config";
@@ -112,47 +115,47 @@ class PaymentController {
       }
       logger.info("User found for payment verification", { user_id: user.id });
 
-    // Set the correct boolean field based on serviceName
-    const serviceFieldMap: Record<string, string[]> = {
-      // Individual resources (use enum keys)
-      "resume": ["resume"],
-      "referral": ["referral"],
-      "cold_mail": ["cold_mail"],
-      "hr_mail": ["hr_mail"],
-      "cover_letter": ["cover_letter"],
-      "linkedin": ["linkedin"],
-      "cv": ["cv"],
-      "roadmaps": ["roadmaps"],
-      "interview": ["interview"],
-      "job" : ["job"],
-      // Subscription types (set all resource booleans)
-      "basic": ["cold_mail", "cover_letter", "hr_mail", "job"],
-      "standard": [
-        "resume",
-        "referral",
-        "cold_mail",
-        "cover_letter",
-        "hr_mail",
-        "linkedin",
-        "cv",
-        "job",
-        "roadmaps",
-        "interview",
-      ],
-      "booster": [
-        "resume",
-        "job",
-        "referral",
-        "cold_mail",
-        "cover_letter",
-        "hr_mail",
-        "linkedin",
-        "cv",
-        "roadmaps",
-        "interview",
-      ],
-      // Add more mappings as needed
-    };
+      // Set the correct boolean field based on serviceName
+      const serviceFieldMap: Record<string, string[]> = {
+        // Individual resources (use enum keys)
+        resume: ["resume"],
+        referral: ["referral"],
+        cold_mail: ["cold_mail"],
+        hr_mail: ["hr_mail"],
+        cover_letter: ["cover_letter"],
+        linkedin: ["linkedin"],
+        cv: ["cv"],
+        roadmaps: ["roadmaps"],
+        interview: ["interview"],
+        job: ["job"],
+        // Subscription types (set all resource booleans)
+        basic: ["cold_mail", "cover_letter", "hr_mail", "job"],
+        standard: [
+          "resume",
+          "referral",
+          "cold_mail",
+          "cover_letter",
+          "hr_mail",
+          "linkedin",
+          "cv",
+          "job",
+          "roadmaps",
+          "interview",
+        ],
+        booster: [
+          "resume",
+          "job",
+          "referral",
+          "cold_mail",
+          "cover_letter",
+          "hr_mail",
+          "linkedin",
+          "cv",
+          "roadmaps",
+          "interview",
+        ],
+        // Add more mappings as needed
+      };
 
       const updateFields: any = {
         is_premium: true,
@@ -171,6 +174,12 @@ class PaymentController {
         99: "job",
       };
       const orderAmount = Number(orderDetails.data.order_amount);
+      console.log(
+        "Processing payment amount:",
+        orderAmount,
+        "subscription type:",
+        subscriptionMap[orderAmount]
+      );
       if (orderAmount in subscriptionMap) {
         updateFields.subscription_type = subscriptionMap[orderAmount];
       }
@@ -183,12 +192,27 @@ class PaymentController {
         }
       }
 
-      // Update user
+      // Update user - ensure both subscription fields are updated
       await sequelize.transaction(async (t: any) => {
-        await User.update(updateFields, {
-          where: { id: user.id },
-          transaction: t,
-        });
+        // For job subscription, update both subscription_type and subscription_type_2
+        if (serviceName === "job") {
+          await User.update(
+            {
+              ...updateFields,
+              subscription_type_2: "job", // Ensure job subscription is set in subscription_type_2
+            },
+            {
+              where: { id: user.id },
+              transaction: t,
+            }
+          );
+        } else {
+          await User.update(updateFields, {
+            where: { id: user.id },
+            transaction: t,
+          });
+        }
+
         await Transactions.create(
           {
             user_id: user.id,

@@ -1,164 +1,139 @@
-import React, { useState, useEffect } from "react";
-import Layout from "../components/layout/Layout";
-import SearchBar from "../components/job/SearchBar";
-import JobCard from "../components/job/JobCard";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
-import { fetchAllJobs, Job } from "@/redux/slices/jobSlice";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import PremiumJobsFeature from "@/components/job/premiumJobsFeature";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  createPaymentOrder,
-  verifyAndStorePayment,
-} from "@/redux/slices/paymentSlice";
-import { fetchCurrentUser } from "@/redux/slices/userSlice";
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import Layout from "../components/layout/Layout"
+import SearchBar from "../components/job/SearchBar"
+import JobCard from "../components/job/JobCard"
+import { useDispatch, useSelector } from "react-redux"
+import type { AppDispatch, RootState } from "@/redux/store"
+import { fetchAllJobs, type Job } from "@/redux/slices/jobSlice"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import PremiumJobsFeature from "@/components/job/premiumJobsFeature"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { fetchCurrentUser } from "@/redux/slices/userSlice"
 
 // Use environment variable for Razorpay key
-const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || ""
 
 const JobListings = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const { jobs, loading, error } = useSelector((state: RootState) => state.job);
-  const { user } = useSelector((state: RootState) => state.user);
-  const paymentState = useSelector((state: RootState) => state.payment);
-  const dispatchPayment = useDispatch<AppDispatch>();
+  const { jobs, loading, error } = useSelector((state: RootState) => state.job)
+  const { user } = useSelector((state: RootState) => state.user)
+  const paymentState = useSelector((state: RootState) => state.payment)
+  const dispatchPayment = useDispatch<AppDispatch>()
 
   // Local state for search
-  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
-  const [location, setLocation] = useState(searchParams.get("location") || "");
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "")
+  const [location, setLocation] = useState(searchParams.get("location") || "")
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([])
 
   // Sort state
-  const [sortBy, setSortBy] = useState("recent");
+  const [sortBy, setSortBy] = useState("recent")
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1)
+  const jobsPerPage = 10
 
   // Premium Modal State
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false)
 
   // Razorpay script loading state
-  const [isRazorpayReady, setIsRazorpayReady] = useState(false);
+  const [isRazorpayReady, setIsRazorpayReady] = useState(false)
 
   // Cashfree payment SDK loading state
-  const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false)
 
   useEffect(() => {
-    dispatch(fetchCurrentUser());
+    dispatch(fetchCurrentUser())
     // eslint-disable-next-line
-  }, [dispatch, user?.id]);
+  }, [dispatch, user?.id])
 
   useEffect(() => {
-    setKeyword(searchParams.get("keyword") || "");
-    setLocation(searchParams.get("location") || "");
-  }, [searchParams]);
+    setKeyword(searchParams.get("keyword") || "")
+    setLocation(searchParams.get("location") || "")
+  }, [searchParams])
 
   useEffect(() => {
-    dispatch(fetchAllJobs());
-  }, [dispatch]);
+    dispatch(fetchAllJobs())
+  }, [dispatch])
 
-  console.log("Jobs fetched:", jobs);
+  console.log("Jobs fetched:", jobs)
 
   useEffect(() => {
-    let newFilteredJobs = [...jobs];
+    let newFilteredJobs = [...jobs]
 
     if (keyword) {
       newFilteredJobs = newFilteredJobs.filter(
         (job) =>
           job.title.toLowerCase().includes(keyword.toLowerCase()) ||
-          job.company_name.toLowerCase().includes(keyword.toLowerCase())
-      );
+          job.company_name.toLowerCase().includes(keyword.toLowerCase()),
+      )
     }
 
     if (location) {
       newFilteredJobs = newFilteredJobs.filter(
-        (job) =>
-          job.location &&
-          job.location.toLowerCase().includes(location.toLowerCase())
-      );
+        (job) => job.location && job.location.toLowerCase().includes(location.toLowerCase()),
+      )
     }
 
     if (sortBy === "recent") {
-      newFilteredJobs.sort(
-        (a, b) =>
-          new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
-      );
+      newFilteredJobs.sort((a, b) => new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime())
     } else if (sortBy === "relevant") {
       newFilteredJobs.sort((a, b) => {
-        const aTitleMatch = a.title
-          .toLowerCase()
-          .includes(keyword.toLowerCase());
-        const bTitleMatch = b.title
-          .toLowerCase()
-          .includes(keyword.toLowerCase());
-        if (aTitleMatch && !bTitleMatch) return -1;
-        if (!aTitleMatch && bTitleMatch) return 1;
-        return (
-          new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
-        );
-      });
+        const aTitleMatch = a.title.toLowerCase().includes(keyword.toLowerCase())
+        const bTitleMatch = b.title.toLowerCase().includes(keyword.toLowerCase())
+        if (aTitleMatch && !bTitleMatch) return -1
+        if (!aTitleMatch && bTitleMatch) return 1
+        return new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
+      })
     }
 
-    setFilteredJobs(newFilteredJobs);
-    setCurrentPage(1);
-  }, [jobs, keyword, location, sortBy]);
+    setFilteredJobs(newFilteredJobs)
+    setCurrentPage(1)
+  }, [jobs, keyword, location, sortBy])
 
   const handleSearch = (searchKeyword: string, searchLocation: string) => {
-    setKeyword(searchKeyword);
-    setLocation(searchLocation);
-    setSearchParams({ keyword: searchKeyword, location: searchLocation });
-  };
+    setKeyword(searchKeyword)
+    setLocation(searchLocation)
+    setSearchParams({ keyword: searchKeyword, location: searchLocation })
+  }
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortBy(e.target.value);
-  };
-  console.log("user", user);
-  const indexOfLastJob = currentPage * jobsPerPage;
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobsToDisplay = filteredJobs.slice(
-    indexOfFirstJob,
-    indexOfLastJob
-  );
-  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+    setSortBy(e.target.value)
+  }
+  console.log("user", user)
+  const indexOfLastJob = currentPage * jobsPerPage
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage
+  const currentJobsToDisplay = filteredJobs.slice(indexOfFirstJob, indexOfLastJob)
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
 
   const paginate = (pageNumber: number) => {
-    if (
-      pageNumber > 0 &&
-      pageNumber <= totalPages &&
-      pageNumber !== currentPage
-    ) {
-      setCurrentPage(pageNumber);
-      window.scrollTo(0, 0);
+    if (pageNumber > 0 && pageNumber <= totalPages && pageNumber !== currentPage) {
+      setCurrentPage(pageNumber)
+      window.scrollTo(0, 0)
     }
-  };
+  }
 
   const nextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-      window.scrollTo(0, 0);
+      setCurrentPage(currentPage + 1)
+      window.scrollTo(0, 0)
     }
-  };
+  }
 
   const prevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-      window.scrollTo(0, 0);
+      setCurrentPage(currentPage - 1)
+      window.scrollTo(0, 0)
     }
-  };
+  }
 
-  let userSubscriptionType = "regular";
+  let userSubscriptionType = "regular"
   if (user) {
     // Check both subscription_type and subscription_type_2
     if (
@@ -167,134 +142,152 @@ const JobListings = () => {
       user.subscription_type === "basic" ||
       user.subscription_type === "job" // Added "job" to recognize it as premium
     ) {
-      userSubscriptionType = user.subscription_type;
+      userSubscriptionType = user.subscription_type
     } else if (
       user.subscription_type_2 === "booster" ||
       user.subscription_type_2 === "standard" ||
       user.subscription_type_2 === "basic" ||
       user.subscription_type_2 === "job" // Added "job" to recognize it as premium
     ) {
-      userSubscriptionType = user.subscription_type_2;
+      userSubscriptionType = user.subscription_type_2
     } else {
-      userSubscriptionType =
-        user.subscription_type || user.subscription_type_2 || "regular";
+      userSubscriptionType = user.subscription_type || user.subscription_type_2 || "regular"
     }
   }
 
   const handleOpenPremiumModal = () => {
     if (!user) {
-      navigate("/login?redirect=/jobs");
+      navigate("/login?redirect=/jobs")
     } else if (
       userSubscriptionType === "booster" ||
       userSubscriptionType === "standard" ||
       userSubscriptionType === "basic" ||
       userSubscriptionType === "job" // Added "job" to skip modal for job plan users
     ) {
-      setIsPremiumModalOpen(false);
-      return;
+      setIsPremiumModalOpen(false)
+      return
     } else {
-      setIsPremiumModalOpen(true);
+      setIsPremiumModalOpen(true)
     }
-  };
+  }
 
   useEffect(() => {
     // Load Razorpay script dynamically
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => setIsRazorpayReady(true);
-    document.body.appendChild(script);
+    const script = document.createElement("script")
+    script.src = "https://checkout.razorpay.com/v1/checkout.js"
+    script.async = true
+    script.onload = () => setIsRazorpayReady(true)
+    document.body.appendChild(script)
 
     return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+      document.body.removeChild(script)
+    }
+  }, [])
 
   useEffect(() => {
     const loadCashfreeSDK = async () => {
       if (document.getElementById("cashfree-sdk") || window.Cashfree) {
-        setSdkLoaded(true);
-        return;
+        setSdkLoaded(true)
+        return
       }
-      const script = document.createElement("script");
-      script.id = "cashfree-sdk";
-      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
-      script.async = true;
-      script.onload = () => setSdkLoaded(true);
-      script.onerror = () => setSdkLoaded(false);
-      document.body.appendChild(script);
-    };
-    loadCashfreeSDK();
+      const script = document.createElement("script")
+      script.id = "cashfree-sdk"
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js"
+      script.async = true
+      script.onload = () => setSdkLoaded(true)
+      script.onerror = () => setSdkLoaded(false)
+      document.body.appendChild(script)
+    }
+    loadCashfreeSDK()
     return () => {
-      const existingScript = document.getElementById("cashfree-sdk");
+      const existingScript = document.getElementById("cashfree-sdk")
       if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
+        existingScript.parentNode.removeChild(existingScript)
       }
-      setSdkLoaded(false);
-    };
-  }, []);
+      setSdkLoaded(false)
+    }
+  }, [])
 
   const handleCashfreePayment = async () => {
     if (!sdkLoaded || !window.Cashfree) {
-      alert("Payment gateway is not available. Please try again later.");
-      return;
+      alert("Payment gateway is not available. Please try again later.")
+      return
     }
     if (!user) {
-      navigate("/login?redirect=/jobs");
-      return;
+      navigate("/login?redirect=/jobs")
+      return
     }
     try {
       // Create order for ₹99
-      const res = await fetch(
-        "https://api.crackoffcampus.com/api/v1/payment/create-order",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            amount: 99,
-            name: user.name,
-            email: user.email,
-            phone: user.phone_number || "+919876543210",
-            currency: "INR",
-          }),
-        }
-      );
-      const data = await res.json();
-      const { payment_session_id, order_id } = data;
+      const res = await fetch("https://api.crackoffcampus.com/api/v1/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          amount: 99,
+          name: user.name,
+          email: user.email,
+          phone: user.phone_number || "+919876543210",
+          currency: "INR",
+        }),
+      })
+      const data = await res.json()
+      const { payment_session_id, order_id } = data
       if (!payment_session_id) {
-        alert("Payment session ID not found in response");
-        return;
+        alert("Payment session ID not found in response")
+        return
       }
-      if (
-        !payment_session_id.startsWith("session_") ||
-        /[^a-zA-Z0-9_-]/.test(payment_session_id)
-      ) {
-        alert("Invalid payment session ID format");
-        return;
+      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+        alert("Invalid payment session ID format")
+        return
       }
-      const cashfree = new window.Cashfree({ mode: "production" });
-      const order_type = "job";
+      const cashfree = new window.Cashfree({ mode: "production" })
+      const order_type = "job"
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}&resourceType=${order_type}`,
-        redirectTarget: "_self" as "_self",
-      };
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=job&resourceType=job`,
+        redirectTarget: "_self" as const,
+      }
+      console.log("Payment session created:", { payment_session_id, order_id, order_type })
       cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {
-          alert(`Payment error: ${result.error.message}`);
+          alert(`Payment error: ${result.error.message}`)
         } else if (result.redirect) {
           // Cashfree will handle redirect
         }
-      });
+      })
     } catch (err) {
-      alert("Payment failed to start. Please try again.");
+      alert("Payment failed to start. Please try again.")
     }
-  };
+  }
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+    window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment")
+    if (paymentStatus === "success") {
+      // Refresh user data after successful payment
+      dispatch(fetchCurrentUser())
+      // Show success message
+      alert("Payment successful! Your subscription has been activated.")
+    } else if (paymentStatus === "failed" || paymentStatus === "error") {
+      const errorMessage = searchParams.get("message") || "Payment failed. Please try again."
+      alert(errorMessage)
+    }
+  }, [searchParams, dispatch])
+
+  const checkAndUpdateSubscription = async () => {
+    if (user && user.id) {
+      try {
+        await dispatch(fetchCurrentUser())
+        console.log("User data refreshed after payment")
+      } catch (err) {
+        console.error("Error refreshing user data:", err)
+      }
+    }
+  }
 
   return (
     <Layout>
@@ -307,11 +300,7 @@ const JobListings = () => {
             Find Your <span className="text-[#9b87f5]">Perfect Job</span>
           </h1>
           <div className="max-w-2xl mx-auto">
-            <SearchBar
-              onSearch={handleSearch}
-              initialKeyword={keyword}
-              initialLocation={location}
-            />
+            <SearchBar onSearch={handleSearch} initialKeyword={keyword} initialLocation={location} />
           </div>
         </div>
       </div>
@@ -320,15 +309,8 @@ const JobListings = () => {
         <div className="w-full">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
             <p className="text-gray-600 text-lg">
-              Showing{" "}
-              <span className="font-semibold text-[#9b87f5]">
-                {currentJobsToDisplay.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-semibold text-[#9b87f5]">
-                {filteredJobs.length}
-              </span>{" "}
-              jobs
+              Showing <span className="font-semibold text-[#9b87f5]">{currentJobsToDisplay.length}</span> of{" "}
+              <span className="font-semibold text-[#9b87f5]">{filteredJobs.length}</span> jobs
             </p>
             <div className="flex items-center mt-4 sm:mt-0">
               <label htmlFor="sort" className="mr-3 text-gray-600 text-md">
@@ -354,14 +336,10 @@ const JobListings = () => {
           )}
           {!loading && error && (
             <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-6 rounded-md shadow-md text-center">
-              <h3 className="font-bold text-xl mb-2">
-                Oops! Something went wrong.
-              </h3>
+              <h3 className="font-bold text-xl mb-2">Oops! Something went wrong.</h3>
               <p className="text-md">
                 Error loading jobs:{" "}
-                {typeof error === "string"
-                  ? error
-                  : "An unexpected error occurred. Please try again later."}
+                {typeof error === "string" ? error : "An unexpected error occurred. Please try again later."}
               </p>
             </div>
           )}
@@ -375,11 +353,7 @@ const JobListings = () => {
                   company={job.company_name}
                   location={job.location || "N/A"}
                   ctc_stipend={job.ctc_stipend || "Not Disclosed"}
-                  postedDate={
-                    job.posted_at
-                      ? new Date(job.posted_at).toLocaleDateString()
-                      : "N/A"
-                  }
+                  postedDate={job.posted_at ? new Date(job.posted_at).toLocaleDateString() : "N/A"}
                   jobType={job.employment_type || "N/A"}
                   jobUrl={job.job_url}
                   jobSubscriptionType={job.subscription_type || "regular"}
@@ -395,12 +369,7 @@ const JobListings = () => {
             !loading &&
             !error && (
               <div className="text-center py-16 bg-gray-50 rounded-xl shadow-sm">
-                <svg
-                  className="mx-auto h-16 w-16 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -408,15 +377,9 @@ const JobListings = () => {
                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <h3 className="mt-4 text-2xl font-semibold text-[#7c66e0]">
-                  No Jobs Found
-                </h3>
-                <p className="mt-2 text-md text-gray-500">
-                  We couldn't find any jobs matching filters.
-                </p>
-                <p className="mt-1 text-md text-gray-500">
-                  Try adjusting your search terms or check back later!
-                </p>
+                <h3 className="mt-4 text-2xl font-semibold text-[#7c66e0]">No Jobs Found</h3>
+                <p className="mt-2 text-md text-gray-500">We couldn't find any jobs matching filters.</p>
+                <p className="mt-1 text-md text-gray-500">Try adjusting your search terms or check back later!</p>
               </div>
             )
           )}
@@ -432,10 +395,7 @@ const JobListings = () => {
                   Previous
                 </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .slice(
-                    Math.max(0, currentPage - 3),
-                    Math.min(totalPages, currentPage + 2)
-                  )
+                  .slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))
                   .map((pageNumber) => (
                     <button
                       key={pageNumber}
@@ -469,19 +429,14 @@ const JobListings = () => {
           </DialogHeader>
           <div className="py-4">
             <p className="text-lg font-medium mb-2">
-              Access one month of all premium jobs for just{" "}
-              <span className="text-[#9b87f5] font-bold">₹99</span>
+              Access one month of all premium jobs for just <span className="text-[#9b87f5] font-bold">₹99</span>
             </p>
             <p className="text-gray-600 mb-4">
-              Get exclusive access to premium job listings and boost your career
-              opportunities.
+              Get exclusive access to premium job listings and boost your career opportunities.
             </p>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsPremiumModalOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsPremiumModalOpen(false)}>
               Cancel
             </Button>
             <Button
@@ -499,7 +454,7 @@ const JobListings = () => {
         </DialogContent>
       </Dialog>
     </Layout>
-  );
-};
+  )
+}
 
-export default JobListings;
+export default JobListings
