@@ -23,27 +23,36 @@ import os from 'os';
 
 // Cache environment variables
 declare global {
-    namespace Express {
-      interface User {
-        id: string;
-        email: string;
-        subscription_type: string;
-        subscription_type_2: string;
-        phone_number: string;
-      }
+  namespace Express {
+    interface User {
+      id: string;
+      email: string;
+      subscription_type: string;
+      subscription_type_2: string;
+      phone_number: string;
+      resume?: boolean;
+      referral?: boolean;
+      cold_mail?: boolean;
+      cover_letter?: boolean;
+      hr_mail?: boolean;
+      linkedin?: boolean;
+      cv?: boolean;
+      roadmaps?: boolean;
+      interview?: boolean;
+      job?: boolean;
+    }
 
-      interface Admin {
-        id: string;
-        email: string;
-      }
+    interface Admin {
+      id: string;
+      email: string;
+    }
 
-      interface Request {
-        user?: User;
-        admin?: Admin;
-      }
+    interface Request {
+      user?: User;
+      admin?: Admin;
     }
   }
-
+}
 
 const ALLOWED_ORIGINS = [FRONTEND_URL, FRONTEND_URL_2, FRONTEND_URL_3].filter(Boolean) as string[];
 const NODE_ENV = process.env.NODE_ENV || 'production';

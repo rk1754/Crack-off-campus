@@ -19,6 +19,16 @@ class User extends Model {
   public resetPasswordToken? : string | null;
   public resetPasswordExpires ? : Date | null;
   public subscription_type!: string;
+  public resume?:boolean;
+  public referral?:boolean;
+  public cold_mail?:boolean;
+  public cover_letter?:boolean;
+  public hr_mail?:boolean;
+  public linkedin?:boolean;
+  public cv?:boolean;
+  public roadmaps?:boolean;
+  public interview?:boolean;
+  public job?:boolean;
   public subscription_type_2!: string;
   public subscription_expiry!: Date;
   public is_premium?: boolean;

@@ -11,7 +11,7 @@ declare global {
     }
     
     interface Request {
-      user?: { id: string; email: string; subscription_type: string; phone_number: string };
+      user?: { id: string; email: string; subscription_type: string; phone_number: string, resume?: boolean, referral?: boolean, cold_mail?: boolean, cover_letter?: boolean, hr_mail?: boolean, linkedin?: boolean, cv?: boolean, roadmaps?: boolean, interview?: boolean, job?: boolean };
       admin?: { id: string; email: string };
     }
   }

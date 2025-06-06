@@ -337,8 +337,12 @@ const ResourcesPage = () => {
                         // If no requiredBoolean, just show coming soon
                         if (!resource.requiredBoolean) return;
 
+                        // Debug: log user object and requiredBoolean
+                        console.log("User object before download:", user);
+                        console.log("Checking field:", resource.requiredBoolean, "Value:", user ? user[resource.requiredBoolean] : undefined);
+
                         // Check boolean field for access
-                        if (user && user[resource.requiredBoolean]) {
+                        if (user && user[resource.requiredBoolean] === true) {
                           await resource.action();
                           return;
                         }

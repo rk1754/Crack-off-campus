@@ -7,16 +7,16 @@ const TEMPLATE_DIR = path.join(__dirname, '../static/templates');
 
 // Helper type guard for user booleans
 function isUserWithResourceFlags(user: any): user is {
-  resume?: boolean;
-  referral?: boolean;
-  cold_mail?: boolean;
-  cover_letter?: boolean;
-  hr_mail?: boolean;
-  linkedin?: boolean;
-  cv?: boolean;
-  roadmaps?: boolean;
-  interview?: boolean;
-  job?: boolean;
+  resume?: boolean | null;
+  referral?: boolean | null;
+  cold_mail?: boolean | null;
+  cover_letter?: boolean | null;
+  hr_mail?: boolean | null;
+  linkedin?: boolean | null;
+  cv?: boolean | null;
+  roadmaps?: boolean | null;
+  interview?: boolean | null;
+  job?: boolean | null;
 } {
   return typeof user === 'object' && user !== null;
 }
@@ -26,24 +26,35 @@ function hasResourceAccess(user: any, resource: string): boolean {
   if (!isUserWithResourceFlags(user)) return false;
   switch (resource) {
     case 'resume':
+      // Debug log
+      console.log('Checking resume access:', user.resume);
       return user.resume === true;
     case 'referral':
+      console.log('Checking referral access:', user.referral);
       return user.referral === true;
     case 'cold_mail':
+      console.log('Checking cold_mail access:', user.cold_mail);
       return user.cold_mail === true;
     case 'cover_letter':
+      console.log('Checking cover_letter access:', user.cover_letter);
       return user.cover_letter === true;
     case 'hr_mail':
+      console.log('Checking hr_mail access:', user.hr_mail);
       return user.hr_mail === true;
     case 'linkedin':
+      console.log('Checking linkedin access:', user.linkedin);
       return user.linkedin === true;
     case 'cv':
+      console.log('Checking cv access:', user.cv);
       return user.cv === true;
     case 'roadmaps':
+      console.log('Checking roadmaps access:', user.roadmaps);
       return user.roadmaps === true;
     case 'interview':
+      console.log('Checking interview access:', user.interview);
       return user.interview === true;
     case 'job':
+      console.log('Checking job access:', user.job);
       return user.job === true;
     default:
       return false;
