@@ -24,9 +24,7 @@ function isUserWithResourceFlags(user: any): user is {
 // Helper to check access for individual resources based on user.model.ts booleans
 function hasResourceAccess(user: any, resource: string): boolean {
   if (!isUserWithResourceFlags(user)) return false;
-  // Normalize resource name to use underscores
-  const normalized = resource.replace(/-/g, "_");
-  switch (normalized) {
+  switch (resource) {
     case 'resume':
       // Debug log
       console.log('Checking resume access:', user.resume);

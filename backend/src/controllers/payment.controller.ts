@@ -221,16 +221,29 @@ class PaymentController {
 
       // Update JWT token
       const token = jwt.sign(
-        {
-          id: us.id,
-          email: us.email,
-          subscription_type: us.subscription_type,
-          subscription_type_2: us.subscription_type_2,
-          phone_number: us.phone_number,
-        },
-        JWT_SECRET,
-        { expiresIn: "2d" }
-      );
+              {
+                id: user.id,
+                email: user.email,
+                subscription_type: user.subscription_type,
+                subscription_type_2: user.subscription_type_2,
+                phone_number: user.phone_number,
+                // Add all resource booleans
+                resume: user.resume,
+                referral: user.referral,
+                cold_mail: user.cold_mail,
+                cover_letter: user.cover_letter,
+                hr_mail: user.hr_mail,
+                linkedin: user.linkedin,
+                cv: user.cv,
+                roadmaps: user.roadmaps,
+                interview: user.interview,
+                job: user.job,
+              },
+              JWT_SECRET,
+              {
+                expiresIn: "2d",
+              }
+            );
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
