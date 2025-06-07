@@ -5,6 +5,13 @@ import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { fetchCurrentUser } from "@/redux/slices/userSlice"; // Adjust import if needed
 import { AppDispatch } from "@/redux/store";
+import {
+  downloadResumeTemplate,
+  downloadReferralTemplate,
+  downloadColdMailTemplate,
+  downloadCoverLetterTemplate,
+  downloadHrEmailTemplate,
+} from "@/redux/slices/resourceSlice";
 
 const PaymentVerify = () => {
   const location = useLocation();
@@ -78,12 +85,44 @@ const PaymentVerify = () => {
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
 
-          // Optionally refresh user profile in Redux
+          // Refresh user profile in Redux
           dispatch(fetchCurrentUser());
 
-          // Redirect based on payment type
+          // Handle resource type purchase and trigger automatic download
           if (resourceType) {
-            // Resource purchase (e.g., resume, templates)
+            const triggerDownload = () => {
+              // Map resource types to the appropriate download action
+              const resourceTypeToDownloadAction: Record<string, () => void> = {
+                resume: () => dispatch(downloadResumeTemplate()),
+                referral: () => dispatch(downloadReferralTemplate()),
+                cold_mail: () => dispatch(downloadColdMailTemplate()),
+                cover_letter: () => dispatch(downloadCoverLetterTemplate()),
+                hr_mail: () => dispatch(downloadHrEmailTemplate()),
+              };
+
+              // Get the corresponding action for the resource type
+              const downloadAction = resourceTypeToDownloadAction[serviceName];
+
+              if (downloadAction) {
+                // Short delay to ensure user is properly updated in Redux
+                setTimeout(() => {
+                  try {
+                    downloadAction();
+                    toast.success(
+                      `Your ${resourceType} template is being downloaded!`
+                    );
+                  } catch (err) {
+                    console.error("Download error:", err);
+                    toast.error(
+                      "There was an error downloading your template. Please try again from the Resources page."
+                    );
+                  }
+                }, 1500);
+              }
+            };
+
+            // Trigger download and navigate
+            triggerDownload();
             navigate(`/resources?success=1&type=${resourceType}`);
           } else if (serviceId && date && time) {
             // Service booking: book the slot after payment
