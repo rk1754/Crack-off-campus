@@ -61,9 +61,7 @@ const ResourcesPage = () => {
   }, []);
 
   // Payment handler
-  const handleUpgradeSubscription = async (
-    requiredBoolean: string
-  ) => {
+  const handleUpgradeSubscription = async (requiredBoolean: string) => {
     if (!user) {
       toast.error("Please login to access this resource.");
       return;
@@ -76,9 +74,11 @@ const ResourcesPage = () => {
 
     let amountInPaise = 0;
     if (requiredBoolean === "resume") {
-      amountInPaise = 79; // ₹79
+      amountInPaise = 4; // ₹4
     } else if (
-      ["referral", "cold_mail", "cover_letter", "hr_mail"].includes(requiredBoolean)
+      ["referral", "cold_mail", "cover_letter", "hr_mail"].includes(
+        requiredBoolean
+      )
     ) {
       amountInPaise = 49; // ₹49
     } else {
@@ -97,7 +97,8 @@ const ResourcesPage = () => {
         }
       );
       const { payment_session_id, order_id } = orderRes.data;
-      if (!payment_session_id) throw new Error("Payment session ID not found in response");
+      if (!payment_session_id)
+        throw new Error("Payment session ID not found in response");
       if (
         !payment_session_id.startsWith("session_") ||
         /[^a-zA-Z0-9_-]/.test(payment_session_id)
@@ -130,7 +131,10 @@ const ResourcesPage = () => {
   };
 
   // Helper for login check
-  const requireLogin = async (action: () => Promise<any> | void, resourceId?: number) => {
+  const requireLogin = async (
+    action: () => Promise<any> | void,
+    resourceId?: number
+  ) => {
     if (!user) {
       toast.error("Please login to access this resource.");
       return;
@@ -186,7 +190,8 @@ const ResourcesPage = () => {
       buttonText: "Get a Cover Letter",
       imagePath: "/lovable-uploads/cover_letter-removebg-preview.png",
       imageAlt: "Cover Letter",
-      action: () => requireLogin(() => dispatch(downloadCoverLetterTemplate()), 4),
+      action: () =>
+        requireLogin(() => dispatch(downloadCoverLetterTemplate()), 4),
       requiredBoolean: "cover_letter",
     },
     {
@@ -339,7 +344,12 @@ const ResourcesPage = () => {
 
                         // Debug: log user object and requiredBoolean
                         console.log("User object before download:", user);
-                        console.log("Checking field:", resource.requiredBoolean, "Value:", user ? user[resource.requiredBoolean] : undefined);
+                        console.log(
+                          "Checking field:",
+                          resource.requiredBoolean,
+                          "Value:",
+                          user ? user[resource.requiredBoolean] : undefined
+                        );
 
                         // Check boolean field for access
                         if (user && user[resource.requiredBoolean] === true) {
@@ -349,7 +359,9 @@ const ResourcesPage = () => {
 
                         // Otherwise, redirect to payment
                         setLoading(true);
-                        await handleUpgradeSubscription(resource.requiredBoolean);
+                        await handleUpgradeSubscription(
+                          resource.requiredBoolean
+                        );
                         setLoading(false);
                       }}
                     >
