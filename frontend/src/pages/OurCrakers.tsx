@@ -9,7 +9,6 @@ const OurCrackers: React.FC = () => {
   return (
     <div className="min-h-screen bg-background dark:bg-gray-900 flex flex-col">
       <Navbar />
-
       <main className="flex-grow flex flex-col">
         <div className="flex-grow w-full">
           <StudentPlacementsPage />
@@ -17,7 +16,6 @@ const OurCrackers: React.FC = () => {
           <ProblemsSolutionsPage />
         </div>
       </main>
-
       <Footer />
     </div>
   );
