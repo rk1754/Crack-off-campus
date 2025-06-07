@@ -165,9 +165,9 @@ class PaymentController {
 
       // Add subscription_type update based on order amount
       const subscriptionMap: SubscriptionMap = {
-        199: "basic",
-        299: "standard",
-        699: "booster",
+        1: "basic",
+        2: "standard",
+        3: "booster",
         99: "job",
       };
       const orderAmount = Number(orderDetails.data.order_amount);
@@ -274,9 +274,9 @@ class PaymentController {
         return;
       }
       const sub: SubscriptionMap = {
-        199: "basic",
-        299: "standard",
-        699: "booster",
+        1: "basic",
+        2: "standard",
+        3: "booster",
         99: "job",
       };
       if (!(amount in sub)) {
@@ -454,9 +454,9 @@ class PaymentController {
       }
       // Map amount to subscription type
       const subscriptionMap: SubscriptionMap = {
-        199: "basic",
-        299: "standard",
-        699: "booster",
+        1: "basic",
+        2: "standard",
+        3: "booster",
         99: "job",
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];

@@ -31,9 +31,9 @@ export interface PremiumPlansModalProps {
 }
 
 const planAmountMap: Record<string, number> = {
-  BASIC: 199,
-  STANDARD: 299,
-  BOOSTER: 699,
+  BASIC: 1,
+  STANDARD: 1,
+  BOOSTER: 1,
 };
 
 const BACKEND_URL = "https://api.crackoffcampus.com";
@@ -112,8 +112,8 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const plans = [
     {
       name: "BASIC",
-      price: "₹199",
-      originalPrice: "₹299",
+      price: "₹1",
+      originalPrice: "₹2",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
@@ -124,7 +124,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "STANDARD",
-      price: "₹299",
+      price: "₹2",
       originalPrice: "₹499",
       includedFeatures: [
         "One Month Access to Premium Jobs",
@@ -138,7 +138,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "BOOSTER",
-      price: "₹699",
+      price: "₹3",
       originalPrice: "₹999",
       includedFeatures: [
         "One Month Access to Premium Jobs",
@@ -191,20 +191,24 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       }
 
       // Validate payment_session_id
-      if (!payment_session_id.startsWith("session_") || /[^a-zA-Z0-9_-]/.test(payment_session_id)) {
+      if (
+        !payment_session_id.startsWith("session_") ||
+        /[^a-zA-Z0-9_-]/.test(payment_session_id)
+      ) {
         console.error("Invalid payment_session_id:", payment_session_id);
-        
-        throw new Error("Invalid payment session ID format");
 
+        throw new Error("Invalid payment session ID format");
       }
 
       // Initialize Cashfree SDK
       const cashfree = new window.Cashfree({
-        mode: "production"
+        mode: "production",
       });
 
       // Set returnUrl to a page that will handle verification after redirect
-      const returnUrl = `${window.location.origin}/payment/verify?order_id=${order_id}&serviceName=${planName.toLowerCase()}`;
+      const returnUrl = `${
+        window.location.origin
+      }/payment/verify?order_id=${order_id}&serviceName=${planName.toLowerCase()}`;
 
       const checkoutOptions: {
         paymentSessionId: string;
@@ -220,7 +224,9 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       cashfree.checkout(checkoutOptions);
       setLoading(false);
     } catch (err: any) {
-      toast.error("Please enter your mobile number to proceed with the payment.");
+      toast.error(
+        "Please enter your mobile number to proceed with the payment."
+      );
       setLoading(false);
     }
   };
@@ -288,7 +294,11 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
                     className="w-full bg-[#F97316] hover:bg-orange-500 text-white mb-4 sm:mb-6"
                     disabled={loading || !sdkLoaded}
                   >
-                    {loading ? "Processing..." : !sdkLoaded ? "Loading..." : "Continue"}
+                    {loading
+                      ? "Processing..."
+                      : !sdkLoaded
+                      ? "Loading..."
+                      : "Continue"}
                   </Button>
 
                   <div className="space-y-2 sm:space-y-3">

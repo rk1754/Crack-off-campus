@@ -33,7 +33,7 @@
 //         id: 1,
 //         title: "Resume / CV Review",
 //         duration: "45 Mins",
-//         amount: 199,
+//         amount: 1,
 //         description: "Let's Switch for good company with good package offer!",
 //         includes: [
 //           "We work on your profile/resume to make it as per industry standard.",
@@ -46,7 +46,7 @@
 //         id: 2,
 //         title: "LinkedIn Review",
 //         duration: "45 Mins",
-//         amount: 199,
+//         amount: 1,
 //         description: "Turn views into interviews with a standout profile.",
 //         includes: [
 //           "We optimize your LinkedIn profile to attract recruiters.",
@@ -59,7 +59,7 @@
 //         id: 3,
 //         title: "Get a Referral",
 //         duration: "45 Mins",
-//         amount: 199,
+//         amount: 1,
 //         description: "Land interviews faster with a real referral.",
 //         includes: [
 //           "We connect you with our network of hiring partners.",
@@ -72,7 +72,7 @@
 //         id: 4,
 //         title: "Career Guidance",
 //         duration: "45 Mins",
-//         amount: 199,
+//         amount: 1,
 //         description: "Align your goals with the right opportunities.",
 //         includes: [
 //           "We analyze your skills and career aspirations.",
@@ -96,7 +96,7 @@
 //         id: 6,
 //         title: "Find Job & Internship Strategy",
 //         duration: "1 Hour",
-//         amount: 299,
+//         amount: 2,
 //         description: "Learn how to search — the smart way.",
 //         includes: [
 //           "We teach you effective job search techniques.",
@@ -108,7 +108,7 @@
 //         id: 7,
 //         title: "Get Hired on LinkedIn",
 //         duration: "45 Mins",
-//         amount: 199,
+//         amount: 1,
 //         description: "Master LinkedIn job hunting like a pro.",
 //         includes: [
 //           "Learn how to use LinkedIn's job search features effectively.",

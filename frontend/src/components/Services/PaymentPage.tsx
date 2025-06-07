@@ -32,22 +32,22 @@ export default function PaymentPage() {
       "1": {
         id: 1,
         title: "Resume / CV Review",
-        amount: 199,
+        amount: 1,
       },
       "2": {
         id: 2,
         title: "LinkedIn Review",
-        amount: 199,
+        amount: 1,
       },
       "3": {
         id: 3,
         title: "Get a Referral",
-        amount: 199,
+        amount: 1,
       },
       "4": {
         id: 4,
         title: "Career Guidance | Referral (Exp: 0-2 years)",
-        amount: 199,
+        amount: 1,
       },
       "5": {
         id: 5,
@@ -57,12 +57,12 @@ export default function PaymentPage() {
       "6": {
         id: 6,
         title: "Find Job & Internship Strategy",
-        amount: 299,
+        amount: 2,
       },
       "7": {
         id: 7,
         title: "Get Hired on LinkedIn",
-        amount: 199,
+        amount: 1,
       },
     };
 
@@ -70,7 +70,7 @@ export default function PaymentPage() {
       serviceMap[id || ""] || {
         id: Number.parseInt(id || "0"),
         title: "Service",
-        amount: 199,
+        amount: 1,
       }
     );
   };

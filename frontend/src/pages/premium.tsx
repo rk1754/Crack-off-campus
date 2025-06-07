@@ -14,9 +14,9 @@ export interface PremiumPlansModalProps {
 }
 
 const planAmountMap: Record<string, number> = {
-  BASIC: 199,
-  STANDARD: 299,
-  BOOSTER: 699,
+  BASIC: 1,
+  STANDARD: 2,
+  BOOSTER: 3,
 };
 
 const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
@@ -41,7 +41,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const plans = [
     {
       name: "BASIC",
-      price: "₹199",
+      price: "₹1",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
@@ -52,7 +52,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "STANDARD",
-      price: "₹299",
+      price: "₹2",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
@@ -65,7 +65,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "BOOSTER",
-      price: "₹699",
+      price: "₹3",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
@@ -83,13 +83,13 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   // Razorpay script loader
   React.useEffect(() => {
     if (!isOpen) return;
-  
+
     // Check if script is already loaded
     if (document.getElementById("razorpay-sdk") || window.Razorpay) {
       setRazorpayLoaded(true);
       return;
     }
-  
+
     const script = document.createElement("script");
     script.id = "razorpay-sdk";
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -104,7 +104,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       console.error("Razorpay SDK failed to load");
     };
     document.body.appendChild(script);
-  
+
     return () => {
       // Cleanup only if script is still in the DOM
       const existingScript = document.getElementById("razorpay-sdk");
@@ -133,7 +133,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         amount,
       });
       const { order_id, currency } = orderRes.data;
-  
+
       // 2. Open Razorpay checkout
       const options = {
         key: "rzp_test_GBC6wsiyhZIszp",
@@ -187,7 +187,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
           console.error("Payment failed:", response.error);
         },
       };
-  
+
       // Initialize and open Razorpay checkout
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", (response: any) => {
@@ -245,7 +245,8 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
 
                   <div className="space-y-2 sm:space-y-3">
                     {allFeatures.map((feature, i) => {
-                      const isIncluded = plan.includedFeatures.includes(feature);
+                      const isIncluded =
+                        plan.includedFeatures.includes(feature);
                       return (
                         <div
                           key={i}

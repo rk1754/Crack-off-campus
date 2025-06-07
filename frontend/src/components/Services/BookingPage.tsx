@@ -78,7 +78,7 @@ export default function BookingPage() {
         id: 1,
         title: "Resume / CV Review",
         duration: "45 Mins",
-        amount: 199,
+        amount: 1,
         moreDetails:
           "We'll help you revise your resume as per industry standards.",
         whatIncluded: [
@@ -108,7 +108,7 @@ export default function BookingPage() {
         id: 2,
         title: "LinkedIn Review",
         duration: "45 Mins",
-        amount: 199,
+        amount: 1,
         moreDetails:
           "Enhance your LinkedIn profile for better visibility and outreach.",
         whatIncluded: [
@@ -138,7 +138,7 @@ export default function BookingPage() {
         id: 3,
         title: "Get a Referral",
         duration: "45 Mins",
-        amount: 199,
+        amount: 1,
         moreDetails: "Get referred to top companies with a tailored approach.",
         whatIncluded: [
           {
@@ -167,7 +167,7 @@ export default function BookingPage() {
         id: 4,
         title: "Career Guidance ",
         duration: "45 Mins",
-        amount: 199,
+        amount: 1,
         moreDetails:
           "Discuss your career path, job options, and get referrals.",
         whatIncluded: [
@@ -198,7 +198,7 @@ export default function BookingPage() {
         id: 6,
         title: "Find Job & Internship Strategy",
         duration: "45 Minutes",
-        amount: 299,
+        amount: 2,
         moreDetails:
           "Build a complete job search roadmap to land your dream role.",
         whatIncluded: [
@@ -223,7 +223,7 @@ export default function BookingPage() {
         id: 7,
         title: "Get Hired on LinkedIn",
         duration: "45 Mins",
-        amount: 199,
+        amount: 1,
         moreDetails: "Crack the hidden job market via LinkedIn optimization.",
         whatIncluded: [
           "Profile overhaul and keyword alignment",
@@ -238,7 +238,7 @@ export default function BookingPage() {
         id: Number.parseInt(id || "0"),
         title: "Service",
         duration: "30 Mins",
-        amount: 199,
+        amount: 1,
       }
     );
   };
@@ -371,7 +371,7 @@ export default function BookingPage() {
 
                 {/* Render subtext paragraphs if whatIncluded is array of objects */}
                 {Array.isArray(service.whatIncluded) &&
-                  typeof service.whatIncluded[0] === "object" ? (
+                typeof service.whatIncluded[0] === "object" ? (
                   <div className="space-y-4 text-gray-600">
                     {(
                       service.whatIncluded as {
@@ -419,10 +419,11 @@ export default function BookingPage() {
               <button
                 key={index}
                 onClick={() => setSelectedDate(fullDate)}
-                className={`cursor-pointer rounded-lg border-2 px-4 py-2 text-center ${selectedDate === fullDate
-                  ? "bg-[#F97316] text-white border-[#F97316]"
-                  : "bg-white text-black border-gray-300"
-                  }`}
+                className={`cursor-pointer rounded-lg border-2 px-4 py-2 text-center ${
+                  selectedDate === fullDate
+                    ? "bg-[#F97316] text-white border-[#F97316]"
+                    : "bg-white text-black border-gray-300"
+                }`}
               >
                 <p className="text-sm font-semibold">{day}</p>
                 <p className="text-xs">{month}</p>
@@ -437,10 +438,11 @@ export default function BookingPage() {
               <button
                 key={i}
                 onClick={() => setSelectedTime(time)}
-                className={`cursor-pointer rounded-lg border-2 px-4 py-2 text-center ${selectedTime === time
-                  ? "bg-[#F97316] text-white border-[#F97316]"
-                  : "bg-white text-black border-gray-300"
-                  }`}
+                className={`cursor-pointer rounded-lg border-2 px-4 py-2 text-center ${
+                  selectedTime === time
+                    ? "bg-[#F97316] text-white border-[#F97316]"
+                    : "bg-white text-black border-gray-300"
+                }`}
               >
                 {time}
               </button>
@@ -456,8 +458,8 @@ export default function BookingPage() {
               {loading
                 ? "Processing..."
                 : !sdkLoaded
-                  ? "Loading..."
-                  : "Starts From 15 June"}
+                ? "Loading..."
+                : "Starts From 15 June"}
             </Button>
           </div>
         </div>

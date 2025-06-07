@@ -96,9 +96,9 @@ class PaymentController {
                 logger_1.default.info("User found for payment verification", { user_id: user.id });
                 // Map amount to subscription type
                 const subscriptionMap = {
-                    199: "basic",
-                    299: "standard",
-                    699: "booster",
+                    1: "basic",
+                    2: "standard",
+                    3: "booster",
                     99: "job",
                     79: "resume",
                     49: "other_templates"
@@ -210,9 +210,9 @@ class PaymentController {
                     return;
                 }
                 const sub = {
-                    199: "basic",
+                    1: "basic",
                     1: "standard",
-                    699: "booster",
+                    3: "booster",
                     99: "job",
                 };
                 if (!(amount in sub)) {
@@ -371,9 +371,9 @@ class PaymentController {
                 }
                 // Map amount to subscription type
                 const subscriptionMap = {
-                    199: "gold",
-                    299: "gold_plus",
-                    699: "diamond",
+                    1: "gold",
+                    2: "gold_plus",
+                    3: "diamond",
                     99: "job",
                 };
                 const subscriptionType = subscriptionMap[orderDetails.data.order_amount];
