@@ -45,7 +45,7 @@ const StudentPlacementsPage: React.FC = () => {
       company: "Amagle Software",
       image: "/lovable-uploads/Student1.jpg",
       testimonial:
-        "Crack Off Campus is a game-changer! The group provides guidance, job updates, and tips that really helped me. I landed an amazing job through it. Highly recommended!",
+        "Crack Off-Campus is a game-changer! The group provides guidance, job updates, and tips that really helped me. I landed an amazing job through it. Highly recommended!",
     },
     {
       id: 2,
@@ -72,7 +72,7 @@ const StudentPlacementsPage: React.FC = () => {
       company: "CA Monk",
       image: "/lovable-uploads/Student4.jpg",
       testimonial:
-        "Best way to grab good internships and placement opportunities. Crack Off Campus gives great info and referrals!",
+        "Best way to grab good internships and placement opportunities. Crack Off-Campus gives great info and referrals!",
     },
     {
       id: 5,
