@@ -13,10 +13,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import axios from "axios";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/redux/store";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState, AppDispatch } from "@/redux/store";
 import { useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "@/redux/config";
+import { fetchCurrentUser } from "@/redux/slices/userSlice";
 
 // Ensure the cashfree.d.ts file is included in your project
 // If not, create it as shown in the previous response
@@ -37,6 +38,12 @@ const planAmountMap: Record<string, number> = {
   BOOSTER: 1,
 };
 
+const planSubscriptionTypeMap: Record<string, string> = {
+  BASIC: "basic",
+  STANDARD: "standard",
+  BOOSTER: "booster",
+};
+
 const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   isOpen,
   onClose,
@@ -45,6 +52,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const user = useSelector((state: RootState) => state.user.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
   // Silently return null if modal is closed
   if (!isOpen) {
@@ -194,30 +202,74 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         console.error("Invalid payment_session_id:", payment_session_id);
 
         throw new Error("Invalid payment session ID format");
-      }
-
-      // Initialize Cashfree SDK
+      } // Initialize Cashfree SDK
       const cashfree = new window.Cashfree({
         mode: "production",
       });
 
-      // Set returnUrl to a page that will handle verification after redirect
-      const returnUrl = `${
-        window.location.origin
-      }/payment/verify?order_id=${order_id}&serviceName=${planName.toLowerCase()}`;
-
-      const checkoutOptions: {
-        paymentSessionId: string;
-        returnUrl: string;
-        redirectTarget?: "_self" | "_blank";
-      } = {
+      const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl,
-        redirectTarget: "_self",
+        returnUrl: `${
+          window.location.origin
+        }/payment/verify?order_id=${order_id}&serviceName=${planName.toLowerCase()}`,
+        redirectTarget: "_blank" as "_blank",
       };
 
-      // Start checkout (no .then() block, as user will be redirected)
-      cashfree.checkout(checkoutOptions);
+      // Start checkout and handle payment success
+      cashfree.checkout(checkoutOptions).then(async (result: any) => {
+        if (result.error) {
+          toast.error(`Payment error: ${result.error.message}`);
+          setLoading(false);
+        } else if (result.paymentDetails) {
+          // Payment successful, update subscription directly
+          try {
+            console.log("Payment successful, processing...", {
+              result,
+              order_id,
+              planName,
+            });
+
+            const subscriptionType = planSubscriptionTypeMap[planName];
+            console.log("Calling update-subscription with:", {
+              userId: user.id,
+              subscription_type: subscriptionType,
+              order_id: order_id,
+            });
+
+            const updateRes = await axios.post(
+              `${BACKEND_URL}/payment/update-subscription`,
+              {
+                userId: user.id,
+                subscription_type: subscriptionType,
+                order_id: order_id,
+              }
+            );
+
+            console.log("Update subscription response:", updateRes.data);
+            if (updateRes.data.success) {
+              toast.success("Payment successful! Premium activated.");
+              // Refresh user data to reflect the new subscription
+              await dispatch(fetchCurrentUser());
+              onClose();
+            } else {
+              toast.error(
+                "Payment successful but subscription update failed. Please contact support."
+              );
+            }
+          } catch (err: any) {
+            console.error("Subscription update error:", err);
+            console.error("Error response:", err?.response?.data);
+            const errorMessage =
+              err?.response?.data?.message ||
+              "Payment successful but subscription update failed. Please contact support.";
+            toast.error(errorMessage);
+          }
+          setLoading(false);
+        } else if (result.redirect) {
+          toast.info("Redirecting to Cashfree payment gateway...");
+        }
+      });
+
       setLoading(false);
     } catch (err: any) {
       console.error("Payment initiation error:", err);
