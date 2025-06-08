@@ -17,6 +17,8 @@ router.post("/login", authController.login);
 
 router.post("/register", authController.signup);
 
+router.post("/google", authController.googleAuth);
+
 router.put('/update-resume', authMiddleware, upload.single('resume'), authController.updateResume);
 
 router.get('/resume', authMiddleware, authController.downloadResume);

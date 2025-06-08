@@ -14,6 +14,8 @@ import { login as adminLogin } from "@/redux/slices/adminSlice"; // Ensure this 
 import { toast } from "sonner";
 import axios from "axios";
 import { BACKEND_URL } from "@/redux/config";
+import useGoogleAuth from "@/hooks/useGoogleAuth";
+import GoogleButton from "@/components/auth/GoogleButton";
 
 interface AuthFormProps {
   type: "login" | "register" | "employer";
@@ -141,8 +143,10 @@ const AuthForm = ({ type }: AuthFormProps) => {
     }
   };
 
-  const handleGoogleAuth = () => {
-    toast.info("Google OAuth coming soon");
+  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
+
+  const handleGoogleAuth = async () => {
+    await signInWithGoogle(redirectPath === "/profile" ? "/" : redirectPath);
   };
 
   // Check if this is an admin login attempt (visual cue, actual auth is backend)
@@ -176,7 +180,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
             />
           </div>
         )}
-
         <div>
           <Label htmlFor="email" className="text-sm font-medium text-gray-700">
             Email Address
@@ -192,7 +195,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
             placeholder="Enter your email"
           />
         </div>
-
         <div>
           <div className="flex justify-between items-center">
             <Label
@@ -221,7 +223,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
             placeholder="Enter your password"
           />
         </div>
-
         {type === "register" && (
           <div>
             <Label
@@ -241,7 +242,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
             />
           </div>
         )}
-
         {type === "register" && (
           <div>
             <Label
@@ -261,7 +261,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
             />
           </div>
         )}
-
         {type === "register" && (
           <div className="flex items-start">
             <div className="flex items-center h-5">
@@ -285,7 +284,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
             </div>
           </div>
         )}
-
         <Button
           type="submit"
           className="w-full py-2 px-4 bg-[#F97316] hover:bg-orange-600 text-white rounded-md transition-colors flex items-center justify-center"
@@ -299,11 +297,10 @@ const AuthForm = ({ type }: AuthFormProps) => {
               {isAdminLogin ? "Login as Admin" : formConfig[type].buttonText}
             </>
           )}
-        </Button>
-
+        </Button>{" "}
         {!isAdminLogin && (
           <>
-            {/* <div className="relative my-4">
+            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
@@ -312,29 +309,18 @@ const AuthForm = ({ type }: AuthFormProps) => {
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2"
-              onClick={handleGoogleAuth}
-            >
-              <img
-                src="/lovable-uploads/google.png"
-                alt="Google"
-                className="h-7 w-7"
-              />
-              Continue with Google
-            </Button> */}
+            <GoogleButton onClick={handleGoogleAuth} loading={googleLoading} />
           </>
         )}
-
         <div className="mt-6 text-center">
           <span>{formConfig[type].footerText} </span>
-          <Link to={formConfig[type].footerLink} className="text-[#9b87f5] hover:underline font-medium">
+          <Link
+            to={formConfig[type].footerLink}
+            className="text-[#9b87f5] hover:underline font-medium"
+          >
             {formConfig[type].footerLinkText}
           </Link>
         </div>
-
         {type === "employer" && (
           <div className="mt-2 text-center text-sm text-gray-600">
             {/* <p>Admin access: admin@gmail.com / admin123</p> */}
