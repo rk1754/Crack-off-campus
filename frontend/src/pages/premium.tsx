@@ -153,14 +153,17 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         handler: async function (response: any) {
           try {
             // 3. Verify and store payment via backend
-            const verifyRes = await axios.post("/api/v1/payment/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              amount,
-              currency,
-              user_id: user.id,
-            });
+            const verifyRes = await axios.post(
+              `${BACKEND_URL}/api/v1/payment/verify`,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                amount,
+                currency,
+                user_id: user.id,
+              }
+            );
 
             if (verifyRes.data.success) {
               // 4. Update user subscription after successful payment verification
