@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { BACKEND_URL } from "../redux/config";
+import { fetchCurrentUser } from "../redux/slices/userSlice";
+import { AppDispatch } from "../redux/store";
 
 export interface PremiumPlansModalProps {
   isOpen: boolean;
@@ -33,6 +35,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const user = useSelector((state: any) => state.user?.user);
+  const dispatch = useDispatch<AppDispatch>();
 
   const allFeatures = [
     "One Month Access to Premium Jobs",
@@ -135,10 +138,14 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     setLoading(true);
     try {
       const amount = planAmountMap[planName];
+      console.log("Creating order with amount:", amount);
+
       // 1. Create payment order via backend
       const orderRes = await axios.post("/api/v1/payment/create-order", {
         amount,
       });
+
+      console.log("Order creation response:", orderRes.data);
       const { order_id, currency } = orderRes.data;
 
       // 2. Open Razorpay checkout
@@ -165,9 +172,10 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
               subscription_type: subscriptionType,
               order_id: order_id,
             });
+            console.log("User object:", user);
 
             const updateRes = await axios.post(
-              `${BACKEND_URL}/payment/update-subscription`,
+              `${BACKEND_URL}/api/v1/payment/update-subscription`,
               {
                 userId: user.id,
                 subscription_type: subscriptionType,
@@ -176,9 +184,10 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
             );
 
             console.log("Update subscription response:", updateRes.data);
-
             if (updateRes.data.success) {
               toast.success("Payment successful! Premium activated.");
+              // Refresh user data to reflect the new subscription
+              await dispatch(fetchCurrentUser());
             } else {
               toast.error(
                 "Payment successful but subscription update failed. Please contact support."
@@ -188,10 +197,11 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
             onClose();
           } catch (err: any) {
             console.error("Subscription update error:", err);
-            toast.error(
+            console.error("Error response:", err?.response?.data);
+            const errorMessage =
               err?.response?.data?.message ||
-                "Payment successful but subscription update failed. Please contact support."
-            );
+              "Payment successful but subscription update failed. Please contact support.";
+            toast.error(errorMessage);
           }
         },
         prefill: {
