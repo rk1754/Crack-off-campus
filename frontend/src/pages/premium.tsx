@@ -136,9 +136,12 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     try {
       const amount = planAmountMap[planName];
       // 1. Create payment order via backend
-      const orderRes = await axios.post("/api/v1/payment/create-order", {
-        amount,
-      });
+      const orderRes = await axios.post(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          amount,
+        }
+      );
       const { order_id, currency } = orderRes.data;
 
       // 2. Open Razorpay checkout
