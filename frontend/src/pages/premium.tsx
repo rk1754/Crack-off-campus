@@ -138,8 +138,10 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     setLoading(true);
     try {
       const amount = planAmountMap[planName];
-      console.log("Creating order with amount:", amount); // 1. Create payment order via backend
-      const orderRes = await axios.post("/payment/create-order", {
+      console.log("Creating order with amount:", amount);
+
+      // 1. Create payment order via backend
+      const orderRes = await axios.post("/api/v1/payment/create-order", {
         amount,
       });
 
