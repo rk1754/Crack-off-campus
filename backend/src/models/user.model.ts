@@ -7,7 +7,7 @@ class User extends Model {
   public name?:string;
   public email!: string;
   public password!: string;
-  public phone_number!: string;
+  public phone_number?: string;
   public is_employer!: true | false;
   public google_id?: string;
   public profile_pic?: string;
@@ -60,10 +60,9 @@ User.init(
     password: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    phone_number: {
+    },    phone_number: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     is_employer: {
       type: DataTypes.BOOLEAN,

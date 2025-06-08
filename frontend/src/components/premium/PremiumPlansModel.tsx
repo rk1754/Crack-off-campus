@@ -221,9 +221,12 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       cashfree.checkout(checkoutOptions);
       setLoading(false);
     } catch (err: any) {
-      toast.error(
-        "Please enter your mobile number to proceed with the payment."
-      );
+      console.error("Payment initiation error:", err);
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Could not initiate payment. Please try again.";
+      toast.error(errorMessage);
       setLoading(false);
     }
   };

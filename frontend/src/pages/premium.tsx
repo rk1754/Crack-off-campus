@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import axios from "axios";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCurrentUser } from "../redux/slices/userSlice";
+import { AppDispatch } from "../redux/store";
 import { BACKEND_URL } from "../redux/config";
 
 export interface PremiumPlansModalProps {
@@ -33,6 +35,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const user = useSelector((state: any) => state.user?.user);
+  const dispatch = useDispatch<AppDispatch>();
 
   const allFeatures = [
     "One Month Access to Premium Jobs",
@@ -135,13 +138,15 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     setLoading(true);
     try {
       const amount = planAmountMap[planName];
+      console.log("Creating order with amount:", amount);
+
       // 1. Create payment order via backend
-      const orderRes = await axios.post(
-        `${BACKEND_URL}/api/v1/payment/create-order`,
-        {
-          amount,
-        }
-      );
+      const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
+        amount,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210", // Provide default phone if not available
+      });
       const { order_id, currency } = orderRes.data;
 
       // 2. Open Razorpay checkout
@@ -155,55 +160,49 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         order_id,
         handler: async function (response: any) {
           try {
-            // 3. Verify and store payment via backend
-            const verifyRes = await axios.post(
-              `${BACKEND_URL}/api/v1/payment/verify`,
+            console.log("Payment successful, processing...", {
+              response,
+              order_id,
+              planName,
+            });
+
+            // 3. Since payment is successful, directly update subscription
+            const subscriptionType = planSubscriptionTypeMap[planName];
+            console.log("Calling update-subscription with:", {
+              userId: user.id,
+              subscription_type: subscriptionType,
+              order_id: order_id,
+            });
+            console.log("User object:", user);
+
+            const updateRes = await axios.post(
+              `${BACKEND_URL}/payment/update-subscription`,
               {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                amount,
-                currency,
-                user_id: user.id,
+                userId: user.id,
+                subscription_type: subscriptionType,
+                order_id: order_id,
               }
             );
 
-            if (verifyRes.data.success) {
-              // 4. Update user subscription after successful payment verification
-              try {
-                const subscriptionType = planSubscriptionTypeMap[planName];
-                const updateRes = await axios.post(
-                  `${BACKEND_URL}/payment/update-subscription`,
-                  {
-                    userId: user.id,
-                    subscription_type: subscriptionType,
-                    order_id: order_id,
-                  }
-                );
-
-                if (updateRes.data.success) {
-                  toast.success("Payment successful! Premium activated.");
-                } else {
-                  toast.success(
-                    "Payment successful but subscription update may have failed. Please contact support if needed."
-                  );
-                }
-              } catch (updateErr: any) {
-                console.error("Subscription update error:", updateErr);
-                toast.success(
-                  "Payment successful but subscription update may have failed. Please contact support if needed."
-                );
-              }
-
-              onClose();
+            console.log("Update subscription response:", updateRes.data);
+            if (updateRes.data.success) {
+              toast.success("Payment successful! Premium activated.");
+              // Refresh user data to reflect the new subscription
+              await dispatch(fetchCurrentUser());
             } else {
-              toast.error("Payment verification failed.");
+              toast.error(
+                "Payment successful but subscription update failed. Please contact support."
+              );
             }
+
+            onClose();
           } catch (err: any) {
-            toast.error(
+            console.error("Subscription update error:", err);
+            console.error("Error response:", err?.response?.data);
+            const errorMessage =
               err?.response?.data?.message ||
-                "Payment verification failed. Please contact support."
-            );
+              "Payment successful but subscription update failed. Please contact support.";
+            toast.error(errorMessage);
           }
         },
         prefill: {

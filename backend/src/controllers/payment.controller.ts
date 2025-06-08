@@ -8,10 +8,9 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/config";
 import sequelize from "../config/db";
 
-class PaymentController {
-  createPaymentOrder = async (req: Request, res: Response): Promise<void> => {
+class PaymentController {  createPaymentOrder = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { amount, currency = "INR" } = req.body;
+      const { amount, currency = "INR", name, email, phone } = req.body;
       if (!amount) {
         res.status(400).json({
           success: false,
@@ -27,13 +26,17 @@ class PaymentController {
         });
         return;
       }
+      
+      // Use provided phone or fallback to user's phone or default
+      const customerPhone = phone || user.phone_number || "+919876543210";
+      
       const orderPayload = {
         order_amount: amount,
         order_currency: currency,
         customer_details: {
           customer_id: `user_${user.id || Date.now()}`,
-          customer_email: user.email || "test@example.com",
-          customer_phone: user.phone_number,
+          customer_email: email || user.email || "test@example.com",
+          customer_phone: customerPhone,
         },
         order_id: `order_${Date.now()}`,
       };
