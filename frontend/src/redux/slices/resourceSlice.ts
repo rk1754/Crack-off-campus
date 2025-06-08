@@ -29,16 +29,20 @@ export const downloadResumeTemplate = createAsyncThunk(
   "resources/downloadResumeTemplate",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/new/resume/download/templates/resume", {
-        responseType: "blob", // Important for file downloads
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Adjust based on your auth setup
-        },
-      });
-      triggerFileDownload(response.data, "resume_template.pdf");
+      // Direct download from public folder
+      const templateUrl = "/templates/resume.pdf";
+      
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = templateUrl;
+      link.download = "resume_template.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       return null; // No need to return data to the store
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || "Failed to download resume template");
+      return rejectWithValue("Failed to download resume template");
     }
   }
 );
