@@ -10,7 +10,6 @@ import { promisify } from "util";
 import bcrypt from "bcrypt";
 import cloudinary from "../config/cloudinary";
 import { transporter } from "../utils/mailer";
-import admin from "../config/firebase";
 
 const streamPipeline = promisify(pipeline);
 
@@ -819,7 +818,7 @@ class AuthController {
       });
     }
   };
-  // ...existing code...
+  
 
   downloadResume = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -870,111 +869,6 @@ class AuthController {
       return;
     }
   };
-  googleAuth = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { idToken } = req.body;
-      
-      if (!idToken) {
-        res.status(400).json({
-          success: false,
-          message: "ID token is required for Google authentication",
-        });
-        return;
-      }
-
-      // Verify the ID token using Firebase Admin SDK
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
-      
-      // Extract user information from the token
-      const { email, name, picture, uid } = decodedToken;
-      
-      if (!email) {
-        res.status(400).json({
-          success: false,
-          message: "Email not found in Google account",
-        });
-        return;
-      }
-
-      // Check if user already exists
-      let user = await User.findOne({ where: { email } });
-      
-      if (user) {
-        // Update existing user's Google information if not set
-        if (!user.google_id) {
-          user.google_id = uid;
-          user.provider = "google";
-          if (!user.profile_pic && picture) {
-            user.profile_pic = picture;
-          }
-          await user.save();
-        }
-      } else {
-        // Create new user
-        const randomPassword = Math.random().toString(36).slice(-10);
-        const hashedPassword = await bcrypt.hash(randomPassword, BCRYPT_SALT);
-        
-        user = await User.create({
-          email,
-          name: name || email.split('@')[0],
-          password: hashedPassword,
-          phone_number: "Not provided",
-          google_id: uid,
-          profile_pic: picture || null,
-          provider: "google",
-          subscription_type: "regular",
-          role: "user",
-        });
-      }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-          subscription_type: user.subscription_type,
-          subscription_type_2: user.subscription_type_2,
-          phone_number: user.phone_number,
-          // Add all resource booleans
-          resume: user.resume,
-          referral: user.referral,
-          cold_mail: user.cold_mail,
-          cover_letter: user.cover_letter,
-          hr_mail: user.hr_mail,
-          linkedin: user.linkedin,
-          cv: user.cv,
-          roadmaps: user.roadmaps,
-          interview: user.interview,
-          job: user.job,
-        },
-        JWT_SECRET,
-        {
-          expiresIn: "7d",
-        }
-      );
-
-      // Set cookie
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-
-      res.status(200).json({
-        success: true,
-        user,
-        token,
-      });
-      
-    } catch (error: any) {
-      console.error("Google authentication error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Google authentication failed",
-        error: error.message,
-      });
-    }
-  }
 }
 
 export default AuthController;
