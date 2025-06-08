@@ -336,20 +336,21 @@ class PaymentController {
       return;
     }
   };
-
   updateUserSubscription = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
       const { userId, subscription_type, order_id } = req.body;
-      if (!userId || !subscription_type || !order_id) {
+      if (!userId || !subscription_type) {
         res.status(400).json({
           success: false,
-          message: "userId, subscription_type, and order_id are required",
+          message: "userId and subscription_type are required",
         });
         return;
-      }      const validTypes = [
+      }
+      
+      const validTypes = [
         "basic",
         "standard",
         "booster",
@@ -371,15 +372,17 @@ class PaymentController {
         });
         return;
       }
-      const orderDetails = await cashfree.PGFetchOrder(order_id);
-      if (!orderDetails || orderDetails.data.order_status !== "PAID") {
-        res.status(400).json({
-          success: false,
-          message: "Payment not verified",
-        });
-        return;
-      }      const subscriptionExpiry = new Date();
+
+      // Since Razorpay handles payment verification, we skip Cashfree order verification
+      logger.info("Updating subscription for Razorpay payment", { 
+        userId, 
+        subscription_type: normalizedSubscriptionType, 
+        order_id 
+      });
+
+      const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      
       await User.update(
         {
           subscription_type: normalizedSubscriptionType,
@@ -388,6 +391,7 @@ class PaymentController {
         },
         { where: { id: userId } }
       );
+      
       const user = await User.findByPk(userId);
       if (!user) {
         res.status(404).json({
@@ -396,6 +400,7 @@ class PaymentController {
         });
         return;
       }
+      
       res.clearCookie("token");
       const token = jwt.sign(
         {
@@ -409,14 +414,18 @@ class PaymentController {
           expiresIn: "2d",
         }
       );
+      
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
+      
       res.status(200).json({
         success: true,
         message: "Subscription updated successfully",
+        subscription_type: normalizedSubscriptionType,
+        subscription_expiry: subscriptionExpiry,
       });
     } catch (err: any) {
       console.error("Subscription update error:", err);

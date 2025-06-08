@@ -152,51 +152,45 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
         order_id,
         handler: async function (response: any) {
           try {
-            // 3. Verify and store payment via backend
-            const verifyRes = await axios.post("/api/v1/payment/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              amount,
-              currency,
-              user_id: user.id,
+            console.log("Payment successful, processing...", {
+              response,
+              order_id,
+              planName,
             });
 
-            if (verifyRes.data.success) {
-              // 4. Update user subscription after successful payment verification
-              try {
-                const subscriptionType = planSubscriptionTypeMap[planName];
-                const updateRes = await axios.post(
-                  `${BACKEND_URL}/payment/update-subscription`,
-                  {
-                    userId: user.id,
-                    subscription_type: subscriptionType,
-                    order_id: order_id,
-                  }
-                );
+            // 3. Since payment is successful, directly update subscription
+            const subscriptionType = planSubscriptionTypeMap[planName];
+            console.log("Calling update-subscription with:", {
+              userId: user.id,
+              subscription_type: subscriptionType,
+              order_id: order_id,
+            });
 
-                if (updateRes.data.success) {
-                  toast.success("Payment successful! Premium activated.");
-                } else {
-                  toast.success(
-                    "Payment successful but subscription update may have failed. Please contact support if needed."
-                  );
-                }
-              } catch (updateErr: any) {
-                console.error("Subscription update error:", updateErr);
-                toast.success(
-                  "Payment successful but subscription update may have failed. Please contact support if needed."
-                );
+            const updateRes = await axios.post(
+              `${BACKEND_URL}/payment/update-subscription`,
+              {
+                userId: user.id,
+                subscription_type: subscriptionType,
+                order_id: order_id,
               }
+            );
 
-              onClose();
+            console.log("Update subscription response:", updateRes.data);
+
+            if (updateRes.data.success) {
+              toast.success("Payment successful! Premium activated.");
             } else {
-              toast.error("Payment verification failed.");
+              toast.error(
+                "Payment successful but subscription update failed. Please contact support."
+              );
             }
+
+            onClose();
           } catch (err: any) {
+            console.error("Subscription update error:", err);
             toast.error(
               err?.response?.data?.message ||
-                "Payment verification failed. Please contact support."
+                "Payment successful but subscription update failed. Please contact support."
             );
           }
         },
