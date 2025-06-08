@@ -164,9 +164,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           expiry.setDate(expiry.getDate() + 30);
           return expiry;
         })(),
-      };
-
-      // Add subscription_type update based on order amount
+      };      // Add subscription_type update based on order amount
       const subscriptionMap: SubscriptionMap = {
         1: "basic",
         2: "standard",
@@ -174,8 +172,13 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         99: "job",
       };
       const orderAmount = Number(orderDetails.data.order_amount);
-      if (orderAmount in subscriptionMap) {
+      logger.info("Order amount for subscription mapping", { orderAmount, orderData: orderDetails.data });
+      
+      if (subscriptionMap[orderAmount]) {
         updateFields.subscription_type = subscriptionMap[orderAmount];
+        logger.info("Subscription type set", { subscription_type: updateFields.subscription_type, orderAmount });
+      } else {
+        logger.warn("No subscription mapping found for order amount", { orderAmount, availableAmounts: Object.keys(subscriptionMap) });
       }
 
       // Set all relevant boolean fields to true
@@ -275,21 +278,25 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           message: "Payment not successful or not found",
         });
         return;
-      }
-      const sub: SubscriptionMap = {
+      }      const sub: SubscriptionMap = {
         1: "basic",
         2: "standard",
         3: "booster",
         99: "job",
       };
-      if (!(amount in sub)) {
+      const orderAmount = Number(amount);
+      logger.info("Order amount for subscription mapping in verifyAndStorePayment", { orderAmount, originalAmount: amount });
+      
+      if (!sub[orderAmount]) {
+        logger.warn("No subscription mapping found for order amount in verifyAndStorePayment", { orderAmount, availableAmounts: Object.keys(sub) });
         res.status(400).json({
           success: false,
           message: "Invalid Subscription amount",
         });
         return;
       }
-      const subscriptionType = sub[amount];
+      const subscriptionType = sub[orderAmount];
+      logger.info("Subscription type set in verifyAndStorePayment", { subscription_type: subscriptionType, orderAmount });
       const payment = await Transactions.create({
         user_id,
         cf_order_id,

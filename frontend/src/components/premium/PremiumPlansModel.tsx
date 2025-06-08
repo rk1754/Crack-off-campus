@@ -206,67 +206,23 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       const cashfree = new window.Cashfree({
         mode: "production",
       });
-
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
         returnUrl: `${
           window.location.origin
         }/payment/verify?order_id=${order_id}&serviceName=${planName.toLowerCase()}`,
-        redirectTarget: "_blank" as "_blank",
+        redirectTarget: "_self" as "_self", // Change to _self so it stays in same tab
       };
 
-      // Start checkout and handle payment success
+      // Start checkout
       cashfree.checkout(checkoutOptions).then(async (result: any) => {
         if (result.error) {
           toast.error(`Payment error: ${result.error.message}`);
           setLoading(false);
-        } else if (result.paymentDetails) {
-          // Payment successful, update subscription directly
-          try {
-            console.log("Payment successful, processing...", {
-              result,
-              order_id,
-              planName,
-            });
-
-            const subscriptionType = planSubscriptionTypeMap[planName];
-            console.log("Calling update-subscription with:", {
-              userId: user.id,
-              subscription_type: subscriptionType,
-              order_id: order_id,
-            });
-
-            const updateRes = await axios.post(
-              `${BACKEND_URL}/payment/update-subscription`,
-              {
-                userId: user.id,
-                subscription_type: subscriptionType,
-                order_id: order_id,
-              }
-            );
-
-            console.log("Update subscription response:", updateRes.data);
-            if (updateRes.data.success) {
-              toast.success("Payment successful! Premium activated.");
-              // Refresh user data to reflect the new subscription
-              await dispatch(fetchCurrentUser());
-              onClose();
-            } else {
-              toast.error(
-                "Payment successful but subscription update failed. Please contact support."
-              );
-            }
-          } catch (err: any) {
-            console.error("Subscription update error:", err);
-            console.error("Error response:", err?.response?.data);
-            const errorMessage =
-              err?.response?.data?.message ||
-              "Payment successful but subscription update failed. Please contact support.";
-            toast.error(errorMessage);
-          }
-          setLoading(false);
         } else if (result.redirect) {
-          toast.info("Redirecting to Cashfree payment gateway...");
+          // User will be redirected to Cashfree payment page
+          toast.info("Redirecting to payment gateway...");
+          // The verification will happen on the backend after payment
         }
       });
 
