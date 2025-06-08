@@ -349,8 +349,7 @@ class PaymentController {
           message: "userId, subscription_type, and order_id are required",
         });
         return;
-      }
-      const validTypes = [
+      }      const validTypes = [
         "basic",
         "standard",
         "booster",
@@ -359,7 +358,11 @@ class PaymentController {
         "resume",
         "other_templates",
       ];
-      if (!validTypes.includes(subscription_type)) {
+      
+      // Convert subscription_type to lowercase for case-insensitive comparison
+      const normalizedSubscriptionType = subscription_type.toLowerCase();
+      
+      if (!validTypes.includes(normalizedSubscriptionType)) {
         res.status(400).json({
           success: false,
           message: `Invalid subscription_type. Must be one of: ${validTypes.join(
@@ -375,12 +378,11 @@ class PaymentController {
           message: "Payment not verified",
         });
         return;
-      }
-      const subscriptionExpiry = new Date();
+      }      const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
       await User.update(
         {
-          subscription_type,
+          subscription_type: normalizedSubscriptionType,
           subscription_expiry: subscriptionExpiry,
           is_premium: true,
         },
