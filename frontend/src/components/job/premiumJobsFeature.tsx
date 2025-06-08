@@ -51,7 +51,9 @@ const PremiumJobsFeature: React.FC = () => {
     script.onload = () => setSdkLoaded(true);
     script.onerror = () => {
       setSdkLoaded(false);
-      toast.error("Failed to load payment gateway. Please try again or contact support@crackoffcampus.com.");
+      toast.error(
+        "Failed to load payment gateway. Please try again or contact support@crackoffcampus.com."
+      );
       console.error("Failed to load Cashfree SDK for PremiumJobsFeature");
     };
     document.body.appendChild(script);
@@ -94,7 +96,9 @@ const PremiumJobsFeature: React.FC = () => {
       toast.error("Payment failed. Please try again.");
     } else if (paymentStatus === "error") {
       toast.error(
-        `Payment error: ${message || "Unknown error"}. Please contact support@crackoffcampus.com.`
+        `Payment error: ${
+          message || "Unknown error"
+        }. Please contact support@crackoffcampus.com.`
       );
     }
   }, [dispatch, location]);
@@ -115,16 +119,13 @@ const PremiumJobsFeature: React.FC = () => {
       const amount = 99;
       // Use absolute backend URL for local testing
       const BACKEND_URL = "https://api.crackoffcampus.com";
-      const orderRes = await axios.post(
-        `${BACKEND_URL}/api/v1/payment/create-order`,
-        {
-          amount,
-          name: user.name,
-          email: user.email,
-          phone: user.phone_number || "+919876543210",
-          currency: "INR",
-        }
-      );
+      const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
+        amount,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+        currency: "INR",
+      });
       const { payment_session_id, order_id } = orderRes.data;
 
       if (!payment_session_id) {
@@ -158,7 +159,9 @@ const PremiumJobsFeature: React.FC = () => {
         })
         .catch((error: any) => {
           toast.error(
-            `Payment error: ${error.message || "Unknown error"}. Please contact support@crackoffcampus.com.`
+            `Payment error: ${
+              error.message || "Unknown error"
+            }. Please contact support@crackoffcampus.com.`
           );
           setIsUnlockModalOpen(false);
         });

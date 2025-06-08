@@ -21,13 +21,13 @@ interface ServiceDetails {
 
 export default function FormPage() {
   const navigate = useNavigate();
-  const { serviceId } = useParams<{ serviceId: string,  }>();
+  const { serviceId } = useParams<{ serviceId: string }>();
   const location = useLocation();
   // Get slot info from navigation state
   const { date, time, amount } = (location.state || {}) as {
     date?: string;
     time?: string;
-    amount: string
+    amount: string;
   };
 
   const [formData, setFormData] = useState({
@@ -48,10 +48,8 @@ export default function FormPage() {
   const subscriptionType =
     user?.subscription_type || user?.subscription_type_2 || "regular";
 
-
   const BACKEND_URL = "https://api.crackoffcampus.com";
   // const BACKEND_URL = "http://localhost:5454";
-  
 
   const getServiceTitle = (id: string | undefined): string => {
     const titleMap: Record<string, string> = {
@@ -162,15 +160,11 @@ export default function FormPage() {
           bookingForm.append("resume", formData.resume, formData.resume.name);
         }
 
-        await axios.post(
-          `${BACKEND_URL}/api/v1/session/booking/book`,
-          bookingForm,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        await axios.post(`${BACKEND_URL}/session/booking/book`, bookingForm, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
         toast.success("Booking successful! Check your email for details.");
         navigate("/services/booking/success");
       } catch (error: any) {
@@ -212,7 +206,7 @@ export default function FormPage() {
       // 1. Create Cashfree order (call your backend endpoint)
       console.log(amount);
       const paymentOrderRes = await axios.post(
-        `${BACKEND_URL}/api/v1/payment/create-order`,
+        `${BACKEND_URL}/payment/create-order`,
         {
           amount: Number(amount), // You may want to get the actual amount dynamically
           name: formData.name,
@@ -235,7 +229,13 @@ export default function FormPage() {
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&serviceId=${serviceId}&serviceName=${encodeURIComponent(serviceTitle)}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(
+          date
+        )}&time=${encodeURIComponent(
+          time
+        )}&serviceId=${serviceId}&serviceName=${encodeURIComponent(
+          serviceTitle
+        )}`,
         redirectTarget: "_blank" as "_blank",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {
@@ -254,17 +254,21 @@ export default function FormPage() {
         setError(
           "Cannot connect to the backend server. Please ensure the server is running on port 5454."
         );
-      } else if (error.message && error.message.toLowerCase().includes("unauthorized")) {
+      } else if (
+        error.message &&
+        error.message.toLowerCase().includes("unauthorized")
+      ) {
         setError("You are not authorized. Please log in again.");
       } else {
-        setError(error.message || "An error occurred while processing payment.");
+        setError(
+          error.message || "An error occurred while processing payment."
+        );
       }
       setIsSubmitting(false);
     }
   };
 
   return (
-
     <div className="min-h-screen bg-[rgb(186,175,220)] text-gray-800">
       <Navbar />
 
