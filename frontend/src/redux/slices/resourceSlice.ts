@@ -30,7 +30,7 @@ export const downloadResumeTemplate = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Direct download from public folder
-      const templateUrl = "/templates/resume.pdf";
+      const templateUrl = "/templates/resume_template.pdf";
       
       // Create a link element and trigger download
       const link = document.createElement("a");
@@ -51,16 +51,20 @@ export const downloadHrEmailTemplate = createAsyncThunk(
   "resources/downloadHrEmailTemplate",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/new/resume/download/templates/hr-email", {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      triggerFileDownload(response.data, "hr_email_template.pdf");
+      // Direct download from public folder
+      const templateUrl = "/templates/hr_email_template.pdf";
+      
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = templateUrl;
+      link.download = "hr_email_template.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       return null;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || "Failed to download HR email template");
+      return rejectWithValue("Failed to download HR email template");
     }
   }
 );
@@ -69,16 +73,20 @@ export const downloadReferralTemplate = createAsyncThunk(
   "resources/downloadReferralTemplate",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/new/resume/download/templates/referral", {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      triggerFileDownload(response.data, "referral_template.pdf");
+      // Direct download from public folder
+      const templateUrl = "/templates/referral_template.pdf";
+      
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = templateUrl;
+      link.download = "referral_template.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       return null;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || "Failed to download referral template");
+      return rejectWithValue("Failed to download referral template");
     }
   }
 );
@@ -87,16 +95,20 @@ export const downloadColdMailTemplate = createAsyncThunk(
   "resources/downloadColdMailTemplate",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/new/resume/download/templates/cold-mail", {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      triggerFileDownload(response.data, "cold_mail_template.pdf");
+      // Direct download from public folder
+      const templateUrl = "/templates/cold_mail_template.pdf";
+      
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = templateUrl;
+      link.download = "cold_mail_template.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       return null;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || "Failed to download cold mail template");
+      return rejectWithValue("Failed to download cold mail template");
     }
   }
 );
@@ -105,16 +117,20 @@ export const downloadCoverLetterTemplate = createAsyncThunk(
   "resources/downloadCoverLetterTemplate",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get("/new/resume/download/templates/cover-letter", {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      triggerFileDownload(response.data, "cover_letter_template.pdf");
+      // Direct download from public folder
+      const templateUrl = "/templates/cover_letter_template.pdf";
+      
+      // Create a link element and trigger download
+      const link = document.createElement("a");
+      link.href = templateUrl;
+      link.download = "cover_letter_template.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       return null;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || "Failed to download cover letter template");
+      return rejectWithValue("Failed to download cover letter template");
     }
   }
 );

@@ -80,7 +80,7 @@ const ResourcesPage = () => {
         requiredBoolean
       )
     ) {
-      amountInPaise = 49; // ₹49
+      amountInPaise = 2; // ₹49
     } else {
       return;
     }
