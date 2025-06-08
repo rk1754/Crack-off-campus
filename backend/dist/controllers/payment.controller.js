@@ -211,7 +211,7 @@ class PaymentController {
                 }
                 const sub = {
                     1: "basic",
-                    1: "standard",
+                    2: "standard",
                     3: "booster",
                     99: "job",
                 };
@@ -288,29 +288,34 @@ class PaymentController {
                     "job",
                     "resume",
                     "other_templates",
-                ];
-                if (!validTypes.includes(subscription_type)) {
-                    res.status(400).json({
-                        success: false,
-                        message: `Invalid subscription_type. Must be one of: ${validTypes.join(", ")}`,
-                    });
-                    return;
-                }
-                const orderDetails = await cashfree_1.cashfree.PGFetchOrder(order_id);
-                if (!orderDetails || orderDetails.data.order_status !== "PAID") {
-                    res.status(400).json({
-                        success: false,
-                        message: "Payment not verified",
-                    });
-                    return;
-                }
-                const subscriptionExpiry = new Date();
-                subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-                await user_model_1.default.update({
-                    subscription_type,
-                    subscription_expiry: subscriptionExpiry,
-                    is_premium: true,
-                }, { where: { id: userId } });
+                ];const normalizedSubscriptionType = subscription_type.toLowerCase();
+      
+      if (!validTypes.includes(normalizedSubscriptionType)) {
+        res.status(400).json({
+          success: false,
+          message: `Invalid subscription_type. Must be one of: ${validTypes.join(
+            ", "
+          )}`,
+        });
+        return;
+      }
+      const orderDetails = await cashfree.PGFetchOrder(order_id);
+      if (!orderDetails || orderDetails.data.order_status !== "PAID") {
+        res.status(400).json({
+          success: false,
+          message: "Payment not verified",
+        });
+        return;
+      }      const subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      await User.update(
+        {
+          subscription_type: normalizedSubscriptionType,
+          subscription_expiry: subscriptionExpiry,
+          is_premium: true,
+        },
+        { where: { id: userId } }
+      );
                 const user = await user_model_1.default.findByPk(userId);
                 if (!user) {
                     res.status(404).json({
