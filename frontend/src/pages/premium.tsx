@@ -141,7 +141,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       console.log("Creating order with amount:", amount);
 
       // 1. Create payment order via backend
-      const orderRes = await axios.post("api/v1/payment/create-order", {
+      const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
         amount,
         name: user.name,
         email: user.email,

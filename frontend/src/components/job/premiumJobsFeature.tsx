@@ -13,6 +13,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
 import { updateUser } from "@/redux/slices/userSlice"; // Assuming this action exists
+import { BACKEND_URL } from "@/redux/config";
 
 const PremiumJobsFeature: React.FC = () => {
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
@@ -117,8 +118,6 @@ const PremiumJobsFeature: React.FC = () => {
     setIsPaying(true);
     try {
       const amount = 99;
-      // Use absolute backend URL for local testing
-      const BACKEND_URL = "https://api.crackoffcampus.com";
       const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
         amount,
         name: user.name,

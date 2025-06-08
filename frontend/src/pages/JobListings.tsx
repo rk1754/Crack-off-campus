@@ -19,6 +19,7 @@ import {
   createPaymentOrder,
   verifyAndStorePayment,
 } from "@/redux/slices/paymentSlice";
+import { BACKEND_URL } from "@/redux/config";
 import { fetchCurrentUser } from "@/redux/slices/userSlice";
 
 // Use environment variable for Razorpay key
@@ -245,21 +246,18 @@ const JobListings = () => {
     }
     try {
       // Create order for ₹99
-      const res = await fetch(
-        "https://api.crackoffcampus.com/api/v1/payment/create-order",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            amount: 99,
-            name: user.name,
-            email: user.email,
-            phone: user.phone_number || "+919876543210",
-            currency: "INR",
-          }),
-        }
-      );
+      const res = await fetch(`${BACKEND_URL}/payment/create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          amount: 99,
+          name: user.name,
+          email: user.email,
+          phone: user.phone_number || "+919876543210",
+          currency: "INR",
+        }),
+      });
       const data = await res.json();
       const { payment_session_id, order_id } = data;
       if (!payment_session_id) {
@@ -440,10 +438,11 @@ const JobListings = () => {
                     <button
                       key={pageNumber}
                       onClick={() => paginate(pageNumber)}
-                      className={`px-4 py-2 border-t border-b border-l border-gray-300 ${currentPage === pageNumber
+                      className={`px-4 py-2 border-t border-b border-l border-gray-300 ${
+                        currentPage === pageNumber
                           ? "bg-[#9b87f5] text-white font-semibold"
                           : "bg-white text-gray-700 hover:bg-gray-50"
-                        } text-md transition-colors`}
+                      } text-md transition-colors`}
                     >
                       {pageNumber}
                     </button>
@@ -492,8 +491,8 @@ const JobListings = () => {
               {!sdkLoaded && !paymentState.loading
                 ? "Loading Payment Gateway..."
                 : paymentState.loading
-                  ? "Processing..."
-                  : "Pay ₹99 & Unlock"}
+                ? "Processing..."
+                : "Pay ₹99 & Unlock"}
             </Button>
           </DialogFooter>
         </DialogContent>

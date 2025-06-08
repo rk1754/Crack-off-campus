@@ -14,6 +14,7 @@ import {
 import { RootState, AppDispatch } from "../redux/store";
 import { toast } from "sonner";
 import axios from "axios";
+import { BACKEND_URL } from "../redux/config";
 
 const parseDescription = (desc: string) => {
   const [main, whatYouGet] = desc.split("What you get:");
@@ -87,15 +88,12 @@ const ResourcesPage = () => {
 
     setLoading(true);
     try {
-      const orderRes = await axios.post(
-        "https://api.crackoffcampus.com/api/v1/payment/create-order",
-        {
-          amount: amountInPaise,
-          name: user.name,
-          email: user.email,
-          phone: user.phone_number || "+919876543210",
-        }
-      );
+      const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
+        amount: amountInPaise,
+        name: user.name,
+        email: user.email,
+        phone: user.phone_number || "+919876543210",
+      });
       const { payment_session_id, order_id } = orderRes.data;
       if (!payment_session_id)
         throw new Error("Payment session ID not found in response");

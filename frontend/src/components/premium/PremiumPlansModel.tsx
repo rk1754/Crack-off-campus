@@ -16,6 +16,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { useNavigate } from "react-router-dom";
+import { BACKEND_URL } from "@/redux/config";
 
 // Ensure the cashfree.d.ts file is included in your project
 // If not, create it as shown in the previous response
@@ -35,8 +36,6 @@ const planAmountMap: Record<string, number> = {
   STANDARD: 1,
   BOOSTER: 1,
 };
-
-const BACKEND_URL = "https://api.crackoffcampus.com";
 
 const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   isOpen,
