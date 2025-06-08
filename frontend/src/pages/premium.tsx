@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { BACKEND_URL } from "../redux/config";
 
 export interface PremiumPlansModalProps {
   isOpen: boolean;
@@ -17,6 +18,12 @@ const planAmountMap: Record<string, number> = {
   BASIC: 1,
   STANDARD: 2,
   BOOSTER: 3,
+};
+
+const planSubscriptionTypeMap: Record<string, string> = {
+  BASIC: "basic",
+  STANDARD: "standard",
+  BOOSTER: "booster",
 };
 
 const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
@@ -154,8 +161,34 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
               currency,
               user_id: user.id,
             });
+
             if (verifyRes.data.success) {
-              toast.success("Payment successful! Premium activated.");
+              // 4. Update user subscription after successful payment verification
+              try {
+                const subscriptionType = planSubscriptionTypeMap[planName];
+                const updateRes = await axios.post(
+                  `${BACKEND_URL}/payment/update-subscription`,
+                  {
+                    userId: user.id,
+                    subscription_type: subscriptionType,
+                    order_id: order_id,
+                  }
+                );
+
+                if (updateRes.data.success) {
+                  toast.success("Payment successful! Premium activated.");
+                } else {
+                  toast.success(
+                    "Payment successful but subscription update may have failed. Please contact support if needed."
+                  );
+                }
+              } catch (updateErr: any) {
+                console.error("Subscription update error:", updateErr);
+                toast.success(
+                  "Payment successful but subscription update may have failed. Please contact support if needed."
+                );
+              }
+
               onClose();
             } else {
               toast.error("Payment verification failed.");
