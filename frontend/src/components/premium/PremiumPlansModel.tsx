@@ -34,8 +34,8 @@ export interface PremiumPlansModalProps {
 
 const planAmountMap: Record<string, number> = {
   BASIC: 1,
-  STANDARD: 1,
-  BOOSTER: 1,
+  STANDARD: 2,
+  BOOSTER: 3,
 };
 
 const planSubscriptionTypeMap: Record<string, string> = {

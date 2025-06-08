@@ -381,19 +381,42 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         userId, 
         subscription_type: normalizedSubscriptionType, 
         order_id 
-      });
-
-      const subscriptionExpiry = new Date();
+      });      const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
       
-      await User.update(
-        {
-          subscription_type: normalizedSubscriptionType,
-          subscription_expiry: subscriptionExpiry,
-          is_premium: true,
-        },
-        { where: { id: userId } }
-      );
+      // Define features based on subscription type
+      const updateData: any = {
+        subscription_type: normalizedSubscriptionType,
+        subscription_expiry: subscriptionExpiry,
+        is_premium: true,
+      };
+
+      // Set feature flags based on subscription type
+      if (normalizedSubscriptionType === "basic") {
+        updateData.job = true; // Premium Jobs access
+        updateData.cover_letter = true;
+        updateData.cold_mail = true;
+        updateData.hr_mail = true;
+      } else if (normalizedSubscriptionType === "standard") {
+        updateData.job = true; // Premium Jobs access
+        updateData.cover_letter = true;
+        updateData.cold_mail = true;
+        updateData.hr_mail = true;
+        updateData.resume = true;
+        updateData.referral = true;
+      } else if (normalizedSubscriptionType === "booster") {
+        updateData.job = true; // Premium Jobs access
+        updateData.cover_letter = true;
+        updateData.cold_mail = true;
+        updateData.hr_mail = true;
+        updateData.resume = true;
+        updateData.referral = true;
+        // Additional features for booster plan could be added here
+        // Note: "One Get a Referral Session" and "One Resume Review Session" 
+        // might need separate handling as they are service-based features
+      }
+      
+      await User.update(updateData, { where: { id: userId } });
       
       const user = await User.findByPk(userId);
       if (!user) {
@@ -475,20 +498,44 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
       if (!subscriptionType) {
-        return res.redirect("/jobs?payment=error&message=invalid_amount");
-      }
+        return res.redirect("/jobs?payment=error&message=invalid_amount");      }
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      
+      // Define features based on subscription type
+      const updateData: any = {
+        subscription_type: subscriptionType,
+        subscription_expiry: subscriptionExpiry,
+        is_premium: true,
+      };
+
+      // Set feature flags based on subscription type
+      if (subscriptionType === "basic") {
+        updateData.job = true; // Premium Jobs access
+        updateData.cover_letter = true;
+        updateData.cold_mail = true;
+        updateData.hr_mail = true;
+      } else if (subscriptionType === "standard") {
+        updateData.job = true; // Premium Jobs access
+        updateData.cover_letter = true;
+        updateData.cold_mail = true;
+        updateData.hr_mail = true;
+        updateData.resume = true;
+        updateData.referral = true;
+      } else if (subscriptionType === "booster") {
+        updateData.job = true; // Premium Jobs access
+        updateData.cover_letter = true;
+        updateData.cold_mail = true;
+        updateData.hr_mail = true;
+        updateData.resume = true;
+        updateData.referral = true;
+      } else if (subscriptionType === "job") {
+        updateData.job = true; // Premium Jobs access only
+      }
+      
       // Update user subscription and store transaction atomically
       await sequelize.transaction(async (t: any) => {
-        await User.update(
-          {
-            subscription_type: subscriptionType,
-            subscription_expiry: subscriptionExpiry,
-            is_premium: true,
-          },
-          { where: { id: user.id }, transaction: t }
-        );
+        await User.update(updateData, { where: { id: user.id }, transaction: t });
         await Transactions.create(
           {
             user_id: user.id,
