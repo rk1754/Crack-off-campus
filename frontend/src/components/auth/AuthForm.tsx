@@ -14,8 +14,6 @@ import { login as adminLogin } from "@/redux/slices/adminSlice"; // Ensure this 
 import { toast } from "sonner";
 import axios from "axios";
 import { BACKEND_URL } from "@/redux/config";
-import useGoogleAuth from "@/hooks/useGoogleAuth";
-import GoogleButton from "@/components/auth/GoogleButton";
 
 interface AuthFormProps {
   type: "login" | "register" | "employer";
@@ -141,12 +139,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
-
-  const handleGoogleAuth = async () => {
-    await signInWithGoogle(redirectPath === "/profile" ? "/" : redirectPath);
   };
 
   // Check if this is an admin login attempt (visual cue, actual auth is backend)
@@ -296,22 +288,8 @@ const AuthForm = ({ type }: AuthFormProps) => {
               {isAdminLogin ? null : formConfig[type].icon}
               {isAdminLogin ? "Login as Admin" : formConfig[type].buttonText}
             </>
-          )}
-        </Button>{" "}
-        {!isAdminLogin && (
-          <>
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or</span>
-              </div>
-            </div>
-
-            <GoogleButton onClick={handleGoogleAuth} loading={googleLoading} />
-          </>
-        )}
+          )}{" "}
+        </Button>
         <div className="mt-6 text-center">
           <span>{formConfig[type].footerText} </span>
           <Link
