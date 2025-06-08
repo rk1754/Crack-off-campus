@@ -113,16 +113,20 @@ const JobDetail = () => {
         phone: user.phone_number || "+919876543210",
         currency: "INR",
       };
-      const res = await fetch(`${BACKEND_URL}/payment/create-order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await res.json();
       if (!res.ok) {
         toast.error(
-          data?.message || "Failed to create payment order. Please try again."
+          data?.message ||
+            "Failed to create payment order. Please try again."
         );
         setIsProcessing(false);
         return;
@@ -175,8 +179,8 @@ const JobDetail = () => {
                 <span className="text-[#9b87f5] font-bold">₹99</span>
               </p>
               <p className="text-gray-600 mb-4">
-                Get exclusive access to premium job listings and boost your
-                career opportunities.
+                Get exclusive access to premium job listings and boost your career
+                opportunities.
               </p>
             </div>
             <DialogFooter>

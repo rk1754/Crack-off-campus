@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { fetchCurrentUser } from "@/redux/slices/userSlice"; // Adjust import if needed
 import { AppDispatch } from "@/redux/store";
-import { BACKEND_URL } from "@/redux/config";
 import {
   downloadResumeTemplate,
   downloadReferralTemplate,
@@ -156,7 +155,7 @@ const PaymentVerify = () => {
 
             try {
               const bookingRes = await fetch(
-                `${BACKEND_URL}/session/booking/book`,
+                "https://api.crackoffcampus.com/api/v1/session/booking/book",
                 {
                   method: "POST",
                   credentials: "include",
