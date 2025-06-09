@@ -21,6 +21,10 @@ import sequelize from './config/db';
 import logger from './utils/logger';
 import cluster from 'cluster';
 import os from 'os';
+import { updateUserSubscriptionSimple } from "./controllers/payment.controller";
+
+// Import User model for direct payment update route
+import User from './models/user.model';
 
 // Cache environment variables
 declare global {
@@ -139,6 +143,10 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   app.use('/api/v1/resume-upload', resumeUploadRoutes);
   app.use('/api/v1/payment', paymentRoutes);
   app.use('/api/v1/new/resume', new_resumeRoutes);
+  // Direct payment update route
+
+  app.post('/update', updateUserSubscriptionSimple);
+  
 
   // Global error handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {

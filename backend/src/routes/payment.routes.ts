@@ -10,7 +10,6 @@ router.post('/create-order',authMiddleware, paymentController.createPaymentOrder
 
 // Use the simple verify payment function instead
 router.post('/verify',authMiddleware, simpleVerifyPayment);
-router.post('/update', updateUserSubscriptionSimple);
 
 // Commenting out the update-subscription and verify-and-store routes
 // router.post('/update-subscription', authMiddleware, paymentController.updateUserSubscription);
