@@ -239,85 +239,17 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       setLoading(false);
     }
   };
-
   // Listen for payment verification success (e.g., via URL param or event)
   useEffect(() => {
     // Check if payment was successful (e.g., /?payment=success&order_id=...)
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success" && user) {
-      axios
-        .post(
-          `${BACKEND_URL}/payment/verify`,
-          {
-            order_id: params.get("order_id"),
-          },
-          { withCredentials: true }
-        )
-        .then((res) => {
-          if (res.data && res.data.success && res.data.service_name) {
-            axios
-              .post(
-                "https://api.crackoffcampus.com/api/v1/user-subscriptiom-simple",
-                {
-                  userId: user.id,
-                  subscription_type: res.data.service_name,
-                },
-                { withCredentials: true }
-              )
-              .then(() => {
-                toast.success("Subscription updated!");
-              })
-              .catch(() => {
-                toast.error("Failed to update subscription");
-              });
-          }
-        })
-        .catch(() => {
-          toast.error("Payment verification failed.");
-        });
+      // This logic is now handled in PaymentVerify.tsx
+      // Keeping this for backwards compatibility if needed
+      console.log("Payment success detected in PremiumPlansModal");
     }
   }, [window.location.search, user]);
-
-  useEffect(() => {
-    // On mount or when user changes, verify payment and update subscription if needed
-    const verifyAndUpdateSubscription = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const orderId = params.get("order_id");
-      if (!orderId || !user) return;
-      try {
-        // Call payment verify API
-        const verifyRes = await axios.post(
-          "https://api.crackoffcampus.com/api/v1/payment/verify",
-          {
-            order_id: orderId,
-          },
-          { withCredentials: true }
-        );
-        if (
-          verifyRes.data &&
-          verifyRes.data.success &&
-          verifyRes.data.service_name
-        )
-          console.log("Payment verified successfully:", verifyRes.data);
-        {
-          // Call user-subscriptiom-simple API with service_name as subscription_type
-          await axios.post(
-            "https://api.crackoffcampus.com/api/v1/user-subscriptiom-simple",
-            {
-              userId: user.id,
-              subscription_type: verifyRes.data.service_name,
-            },
-            { withCredentials: true }
-          );
-          toast.success("Subscription updated!");
-        }
-      } catch (err: any) {
-        // Optionally handle error
-        // toast.error("Payment verification or subscription update failed");
-      }
-    };
-    verifyAndUpdateSubscription();
-  }, [user]);
+  // Removed verifyAndUpdateSubscription useEffect as this logic is now handled in PaymentVerify.tsx
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

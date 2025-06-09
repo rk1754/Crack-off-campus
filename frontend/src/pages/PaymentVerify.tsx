@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser } from "@/redux/slices/userSlice"; // Adjust import if needed
-import { AppDispatch } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import {
   downloadResumeTemplate,
   downloadReferralTemplate,
@@ -12,11 +12,13 @@ import {
   downloadCoverLetterTemplate,
   downloadHrEmailTemplate,
 } from "@/redux/slices/resourceSlice";
+import { updateSubscriptionAfterPayment } from "@/utils/subscriptionUtils";
 
 const PaymentVerify = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state: RootState) => state.user.user);
   const [bookingInProgress, setBookingInProgress] = useState(false);
 
   useEffect(() => {
@@ -94,6 +96,15 @@ const PaymentVerify = () => {
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
           console.log("Payment verification response:", res.data);
+
+          // Update subscription after successful payment verification
+          if (user && user.id) {
+            await updateSubscriptionAfterPayment(
+              order_id,
+              serviceName,
+              user.id
+            );
+          }
 
           // Refresh user profile in Redux
           dispatch(fetchCurrentUser())
