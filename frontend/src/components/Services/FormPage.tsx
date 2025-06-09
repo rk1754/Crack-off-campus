@@ -220,12 +220,10 @@ export default function FormPage() {
           language: formData.language,
           resume_url: resumeUrl, // Store resume URL instead of file
         })
-      );
-
-      // 1. Create Cashfree order (call your backend endpoint)
+      );      // 1. Create Cashfree order (call your backend endpoint)
       console.log(amount);
       const paymentOrderRes = await axios.post(
-        `${BACKEND_URL}/payment/create-order`,
+        `${BACKEND_URL}/api/v1/payment/create-order`,
         {
           amount: Number(amount), // You may want to get the actual amount dynamically
           name: formData.name,
