@@ -165,48 +165,80 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         subscription_type: serviceName,
         subscription_type_2: serviceName,
         
-      };
-      console.log("Service name received in /payment/verify:", serviceName);
-      logger.info("Subscription types set from serviceName", { 
-        subscription_type: serviceName, 
-        subscription_type_2: serviceName 
-      });
-      console.log("Subscription types set from serviceName", { 
-        subscription_type: serviceName, 
-        subscription_type_2: serviceName});      // Set all relevant boolean fields to true
+      };      // Validate serviceName against ENUM values
+      const validSubscriptionTypes = ['basic', 'standard', 'booster', 'regular', 'job', 'resume', 'other_templates'];
+      if (!validSubscriptionTypes.includes(serviceName)) {
+        logger.warn("Invalid serviceName provided", { serviceName, validTypes: validSubscriptionTypes });
+        res.status(400).json({
+          success: false,
+          message: `Invalid serviceName. Must be one of: ${validSubscriptionTypes.join(', ')}`,
+        });
+        return;
+      }
+
+      console.log("Service name validation passed:", serviceName);
+      logger.info("Service name validation passed", { serviceName });// Set all relevant boolean fields to true
       const fieldsToSet = serviceFieldMap[serviceName];
       if (fieldsToSet && Array.isArray(fieldsToSet)) {
         for (const field of fieldsToSet) {
           updateFields[field] = true;
         }
-      }
-
-      console.log("Final updateFields before database update:", updateFields);
-      logger.info("Final updateFields before database update", updateFields);
-
-      // Update user
+      }      console.log("Final updateFields before database update:", updateFields);
+      logger.info("Final updateFields before database update", updateFields);      // Update user
       await sequelize.transaction(async (t: any) => {
-        const updateResult = await User.update(updateFields, {
-          where: { id: user.id },
-          transaction: t,
-        });
-        console.log("Database update result:", updateResult);
-        logger.info("Database update result", { updateResult, userId: user.id });
-        await Transactions.create(
-          {
-            user_id: user.id,
-            cf_order_id: order_id as string,
-            cf_payment_id: successfulPayment.cf_payment_id || "unknown",
-            amount: String(orderDetails.data.order_amount),
-            currency: orderDetails.data.order_currency as string,
-            captured: true,
-            status: "success",
-            method: "cashfree",
-            razorpay_order_id: "cashfree_dummy_order",
-            razorpay_payment_id: "cashfree_dummy_payment",
-            razorpay_signature: "cashfree_dummy_signature",
-          },          { transaction: t }
-        );
+        try {
+          // First, let's check the current user state
+          const currentUser = await User.findByPk(user.id, { transaction: t });
+          console.log("Current user state before update:", {
+            subscription_type: currentUser?.subscription_type,
+            subscription_type_2: currentUser?.subscription_type_2,
+            is_premium: currentUser?.is_premium
+          });
+          
+          const updateResult = await User.update(updateFields, {
+            where: { id: user.id },
+            transaction: t,
+          });
+          console.log("Database update result:", updateResult);
+          logger.info("Database update result", { updateResult, userId: user.id });
+          
+          // Verify that the update actually affected a row
+          if (updateResult[0] === 0) {
+            throw new Error("No rows were updated - user might not exist or update failed");
+          }
+          
+          // Check the user state immediately after update within transaction
+          const updatedUserInTransaction = await User.findByPk(user.id, { transaction: t });
+          console.log("User state immediately after update in transaction:", {
+            subscription_type: updatedUserInTransaction?.subscription_type,
+            subscription_type_2: updatedUserInTransaction?.subscription_type_2,
+            is_premium: updatedUserInTransaction?.is_premium
+          });
+          
+          // Create transaction record
+          await Transactions.create(
+            {
+              user_id: user.id,
+              cf_order_id: order_id as string,
+              cf_payment_id: successfulPayment.cf_payment_id || "unknown",
+              amount: String(orderDetails.data.order_amount),
+              currency: orderDetails.data.order_currency as string,
+              captured: true,
+              status: "success",
+              method: "cashfree",
+              razorpay_order_id: "cashfree_dummy_order",
+              razorpay_payment_id: "cashfree_dummy_payment",
+              razorpay_signature: "cashfree_dummy_signature",
+            },
+            { transaction: t }
+          );
+          
+          console.log("Transaction completed successfully");
+        } catch (transactionError) {
+          console.error("Error during transaction:", transactionError);
+          logger.error("Transaction error", { error: transactionError, userId: user.id });
+          throw transactionError; // This will cause the transaction to rollback
+        }
       });
 
       // Check what was actually saved
@@ -228,9 +260,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       if (!us) {
         res.status(500).json({ success: false, message: "User not found" });
         return;
-      }
-
-      // Update JWT token
+      }      // Update JWT token with both subscription types AND resource flags
       const token = jwt.sign(
         {
           id: us.id,
@@ -238,6 +268,17 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           subscription_type: us.subscription_type,
           subscription_type_2: us.subscription_type_2,
           phone_number: us.phone_number,
+          // Add all resource booleans to the JWT token
+          resume: us.resume,
+          referral: us.referral,
+          cold_mail: us.cold_mail,
+          cover_letter: us.cover_letter,
+          hr_mail: us.hr_mail,
+          linkedin: us.linkedin,
+          cv: us.cv,
+          roadmaps: us.roadmaps,
+          interview: us.interview,
+          job: us.job,
         },
         JWT_SECRET,
         { expiresIn: "2d" }
@@ -319,10 +360,10 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         method: "cashfree",
       });
       const subscriptionExpiry = new Date();
-      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-      await User.update(
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);      await User.update(
         {
           subscription_type: subscriptionType,
+          subscription_type_2: subscriptionType,
           subscription_expiry: subscriptionExpiry,
           is_premium: true,
         },
@@ -401,10 +442,10 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         order_id 
       });      const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-      
-      // Define features based on subscription type
+        // Define features based on subscription type
       const updateData: any = {
         subscription_type: normalizedSubscriptionType,
+        subscription_type_2: normalizedSubscriptionType,
         subscription_expiry: subscriptionExpiry,
         is_premium: true,
       };
@@ -444,14 +485,25 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         });
         return;
       }
-      
-      res.clearCookie("token");
+        res.clearCookie("token");
       const token = jwt.sign(
         {
           id: user.id,
           email: user.email,
           subscription_type: user.subscription_type,
+          subscription_type_2: user.subscription_type_2,
           phone_number: user.phone_number,
+          // Add all resource booleans to the JWT token
+          resume: user.resume,
+          referral: user.referral,
+          cold_mail: user.cold_mail,
+          cover_letter: user.cover_letter,
+          hr_mail: user.hr_mail,
+          linkedin: user.linkedin,
+          cv: user.cv,
+          roadmaps: user.roadmaps,
+          interview: user.interview,
+          job: user.job,
         },
         JWT_SECRET,
         {
@@ -519,10 +571,10 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         return res.redirect("/jobs?payment=error&message=invalid_amount");      }
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-      
-      // Define features based on subscription type
+        // Define features based on subscription type
       const updateData: any = {
         subscription_type: subscriptionType,
+        subscription_type_2: subscriptionType,
         subscription_expiry: subscriptionExpiry,
         is_premium: true,
       };
@@ -567,14 +619,26 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           },
           { transaction: t }
         );
-      });
-      // Update JWT token
+      });      // Update JWT token
+      const updatedUserForToken = await User.findByPk(user.id);
       const token = jwt.sign(
         {
           id: user.id,
           email: user.email,
           subscription_type: subscriptionType,
+          subscription_type_2: updatedUserForToken?.subscription_type_2,
           phone_number: user.phone_number,
+          // Add all resource booleans to the JWT token
+          resume: updatedUserForToken?.resume,
+          referral: updatedUserForToken?.referral,
+          cold_mail: updatedUserForToken?.cold_mail,
+          cover_letter: updatedUserForToken?.cover_letter,
+          hr_mail: updatedUserForToken?.hr_mail,
+          linkedin: updatedUserForToken?.linkedin,
+          cv: updatedUserForToken?.cv,
+          roadmaps: updatedUserForToken?.roadmaps,
+          interview: updatedUserForToken?.interview,
+          job: updatedUserForToken?.job,
         },
         JWT_SECRET,
         { expiresIn: "2d" }
