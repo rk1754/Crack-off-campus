@@ -162,6 +162,8 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   ];
 
   const handleContinue = async (planName: string) => {
+    // Store planName in sessionStorage for global access
+    sessionStorage.setItem("selectedPlanName", planName);
     console.log("handleContinue called for plan:", planName.toLowerCase());
     if (!user) {
       toast.error("Please log in to purchase a premium plan.");
@@ -198,7 +200,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       if (
         !payment_session_id.startsWith("session_") ||
         /[^a-zA-Z0-9_-]/.test(payment_session_id)
-      ) { 
+      ) {
         console.error("Invalid payment_session_id:", payment_session_id);
 
         throw new Error("Invalid payment session ID format");
@@ -237,6 +239,34 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       setLoading(false);
     }
   };
+
+  // Listen for payment verification success (e.g., via URL param or event)
+  useEffect(() => {
+    // Check if payment was successful (e.g., /?payment=success&order_id=...)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success" && user) {
+      const selectedPlanName = sessionStorage.getItem("selectedPlanName");
+      if (selectedPlanName) {
+        // Call the simple subscription update API
+        axios
+          .post(`${BACKEND_URL}/payment/update-subscription-simple`, {
+            userId: user.id,
+            subscription_type: planSubscriptionTypeMap[selectedPlanName],
+          })
+          .then((res) => {
+            toast.success("Subscription updated!");
+            // Optionally reload or update UI
+          })
+          .catch((err) => {
+            toast.error(
+              "Failed to update subscription: " +
+                (err?.response?.data?.message || err.message)
+            );
+          });
+      }
+    }
+    // eslint-disable-next-line
+  }, [window.location.search, user]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
