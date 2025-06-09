@@ -622,10 +622,28 @@ class AuthController {
             .map((s: string) => s.trim())
             .filter(Boolean);
         }
-      }
-
-      if (req.files && (req.files as any).profile_pic) {
+      }      if (req.files && (req.files as any).profile_pic) {
         const file = (req.files as any).profile_pic[0];
+        
+        // Validate file type
+        const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedImageTypes.includes(file.mimetype)) {
+          res.status(400).json({
+            success: false,
+            message: "Invalid file type for profile picture. Only JPEG, PNG, and WebP files are allowed."
+          });
+          return;
+        }
+        
+        // Validate file size (5MB limit for images)
+        if (file.size > 5 * 1024 * 1024) {
+          res.status(413).json({
+            success: false,
+            message: "Profile picture file size too large. Please upload files smaller than 5MB."
+          });
+          return;
+        }
+        
         const base64 = `data:${file.mimetype};base64,${file.buffer.toString(
           "base64"
         )}`;
@@ -637,6 +655,26 @@ class AuthController {
 
       if (req.files && (req.files as any).cover_image) {
         const file = (req.files as any).cover_image[0];
+        
+        // Validate file type
+        const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedImageTypes.includes(file.mimetype)) {
+          res.status(400).json({
+            success: false,
+            message: "Invalid file type for cover image. Only JPEG, PNG, and WebP files are allowed."
+          });
+          return;
+        }
+        
+        // Validate file size (5MB limit for images)
+        if (file.size > 5 * 1024 * 1024) {
+          res.status(413).json({
+            success: false,
+            message: "Cover image file size too large. Please upload files smaller than 5MB."
+          });
+          return;
+        }
+        
         const base64 = `data:${file.mimetype};base64,${file.buffer.toString(
           "base64"
         )}`;
@@ -678,11 +716,31 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-      res.status(200).json({ success: true, user: updatedUser });
-    } catch (err) {
+      });      res.status(200).json({ success: true, user: updatedUser });
+    } catch (err: any) {
       console.error(err);
-      res.status(500).json({ success: false, message: "Something went wrong" });
+      
+      // Handle specific multer errors
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        res.status(413).json({ 
+          success: false, 
+          message: "File size too large. Please upload files smaller than 10MB." 
+        });
+        return;
+      }
+      
+      if (err.code === 'LIMIT_FIELD_VALUE') {
+        res.status(413).json({ 
+          success: false, 
+          message: "Request entity too large. Please reduce the file size." 
+        });
+        return;
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: err.message || "Something went wrong" 
+      });
     }
   };
   setUserPremium = async (req: Request, res: Response): Promise<void> => {

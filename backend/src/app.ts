@@ -99,13 +99,12 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   });
 } else {
   const app = express();
-
   // Middleware
   app.use(compression()); // Compress responses
   app.use(limiter); // Apply rate limiting
   app.use(cors(corsOptions));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: '50mb' })); // Increased limit for file uploads
+  app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Increased limit for file uploads
   app.use(cookieParser());
 
   // Security headers with helmet
@@ -124,11 +123,20 @@ if (cluster.isPrimary && IS_PRODUCTION) {
 
   // Declare global Express types
   
-
   // Routes
   app.get('/', (req: Request, res: Response) => {
     res.status(200).json({
       message: 'Foundit API up and running',
+    });
+  });
+
+  // Test endpoint for file upload debugging
+  app.post('/test-upload', (req: Request, res: Response) => {
+    res.status(200).json({
+      success: true,
+      message: 'Upload endpoint is working',
+      bodySize: JSON.stringify(req.body).length,
+      headers: req.headers,
     });
   });
 
@@ -299,10 +307,35 @@ if (cluster.isPrimary && IS_PRODUCTION) {
     }
   });
   
-
   // Global error handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     logger.error(`${err.message} - ${req.method} ${req.url}`);
+    
+    // Handle multer errors specifically
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      res.status(413).json({
+        success: false,
+        message: 'File size too large. Please upload files smaller than 10MB.',
+      });
+      return;
+    }
+    
+    if (err.code === 'LIMIT_FIELD_VALUE') {
+      res.status(413).json({
+        success: false,
+        message: 'Request entity too large. Please reduce the file size.',
+      });
+      return;
+    }
+    
+    if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+      res.status(400).json({
+        success: false,
+        message: 'Unexpected file field. Please check your file upload.',
+      });
+      return;
+    }
+    
     res.status(err.status || 500).json({
       success: false,
       message: IS_PRODUCTION ? 'Internal Server Error' : err.message,
