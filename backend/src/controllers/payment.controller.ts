@@ -677,22 +677,40 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
 }
 
 // Standalone function to update subscription_type for a user (no duplicate imports)
-export const updateUserSubscriptionSimple = async (req: Request, res: Response) => {
+export const updateUserSubscriptionSimple = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, subscription_type } = req.body;
+    // Allowed subscription types as per User model ENUM
+    const validTypes = [
+      "basic",
+      "standard",
+      "booster",
+      "regular",
+      "job",
+      "resume",
+      "other_templates"
+    ];
     if (!userId || !subscription_type) {
-      return res.status(400).json({ success: false, message: "userId and subscription_type are required" });
+      res.status(400).json({ success: false, message: "userId and subscription_type are required" });
+      return;
+    }
+    if (!validTypes.includes(subscription_type)) {
+      res.status(400).json({ success: false, message: `Invalid subscription_type. Must be one of: ${validTypes.join(", ")}` });
+      return;
     }
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
     }
     user.subscription_type = subscription_type;
     user.subscription_type_2 = subscription_type;
     await user.save();
-    return res.status(200).json({ success: true, message: "Subscription updated", user });
+    res.status(200).json({ success: true, message: "Subscription updated", user });
+    return;
   } catch (err: any) {
-    return res.status(500).json({ success: false, message: err.message || "Server error" });
+    res.status(500).json({ success: false, message: err.message || "Server error" });
+    return;
   }
 };
 
