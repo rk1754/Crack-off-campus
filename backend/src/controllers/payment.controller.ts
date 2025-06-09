@@ -202,43 +202,63 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           const validSubscriptionTypes = ['regular', 'basic', 'standard', 'booster', 'job', 'resume', 'other_templates'];
           if (!validSubscriptionTypes.includes(serviceName)) {
             throw new Error(`Invalid serviceName: ${serviceName}. Valid values: ${validSubscriptionTypes.join(', ')}`);
+          }          // Let's try a more direct approach with individual field updates
+          console.log("=== ATTEMPTING DIRECT FIELD UPDATES ===");
+          
+          // Use the existing currentUser instead of redeclaring
+          if (!currentUser) {
+            throw new Error("User not found");
           }
           
-          const updateResult = await User.update(updateFields, {
-            where: { id: user.id },
-            transaction: t,
-            returning: true, // This helps with debugging
+          // Update fields directly on the instance
+          currentUser.subscription_type = serviceName as any;
+          currentUser.subscription_type_2 = serviceName as any;
+          currentUser.is_premium = true;
+          currentUser.subscription_expiry = updateFields.subscription_expiry;
+          
+          // Set resource fields
+          const fieldsToSet = serviceFieldMap[serviceName];
+          if (fieldsToSet && Array.isArray(fieldsToSet)) {
+            for (const field of fieldsToSet) {
+              (currentUser as any)[field] = true;
+            }
+          }
+          
+          console.log("About to save user with values:", {
+            subscription_type: currentUser.subscription_type,
+            subscription_type_2: currentUser.subscription_type_2,
+            is_premium: currentUser.is_premium
           });
-          console.log("Database update result:", updateResult);
-          logger.info("Database update result", { updateResult, userId: user.id });
           
-          // Verify that the update actually affected a row
-          if (updateResult[0] === 0) {
-            throw new Error("No rows were updated - user might not exist or update failed");
-          }
-          
-          // Check the user state immediately after update within transaction
-          const updatedUserInTransaction = await User.findByPk(user.id, { transaction: t });
-          console.log("User state immediately after update in transaction:", {
-            id: updatedUserInTransaction?.id,
-            subscription_type: updatedUserInTransaction?.subscription_type,
-            subscription_type_2: updatedUserInTransaction?.subscription_type_2,
-            is_premium: updatedUserInTransaction?.is_premium,
-            subscription_expiry: updatedUserInTransaction?.subscription_expiry
+          // Save the instance
+          const savedUser = await currentUser.save({ transaction: t });
+          console.log("User saved successfully:", {
+            subscription_type: savedUser.subscription_type,
+            subscription_type_2: savedUser.subscription_type_2,
+            is_premium: savedUser.is_premium
+          });
+            
+          // Check the user state immediately after save within transaction
+          console.log("User state immediately after save in transaction:", {
+            id: savedUser.id,
+            subscription_type: savedUser.subscription_type,
+            subscription_type_2: savedUser.subscription_type_2,
+            is_premium: savedUser.is_premium,
+            subscription_expiry: savedUser.subscription_expiry
           });
           
           // Validate the update was successful within the transaction
-          if (updatedUserInTransaction?.subscription_type !== serviceName) {
-            console.error("CRITICAL: subscription_type was not updated correctly within transaction!");
-            throw new Error(`subscription_type update failed. Expected: ${serviceName}, Got: ${updatedUserInTransaction?.subscription_type}`);
+          if (savedUser.subscription_type !== serviceName) {
+            console.error("CRITICAL: subscription_type was not saved correctly within transaction!");
+            throw new Error(`subscription_type save failed. Expected: ${serviceName}, Got: ${savedUser.subscription_type}`);
           }
           
-          if (updatedUserInTransaction?.subscription_type_2 !== serviceName) {
-            console.error("CRITICAL: subscription_type_2 was not updated correctly within transaction!");
-            throw new Error(`subscription_type_2 update failed. Expected: ${serviceName}, Got: ${updatedUserInTransaction?.subscription_type_2}`);
+          if (savedUser.subscription_type_2 !== serviceName) {
+            console.error("CRITICAL: subscription_type_2 was not saved correctly within transaction!");
+            throw new Error(`subscription_type_2 save failed. Expected: ${serviceName}, Got: ${savedUser.subscription_type_2}`);
           }
           
-          console.log("✅ Both subscription types updated correctly within transaction");
+          console.log("✅ Both subscription types saved correctly within transaction");
           
           // Create transaction record
           await Transactions.create(
