@@ -12,16 +12,20 @@ export const updateSubscriptionAfterPayment = async (
       orderId,
       subscription_type,
       userId,
-    });    // Call update API with service_name as subscription_type
-    const subscriptionRes = await axios.post(
-      `${BACKEND_URL}/payment/update`,
-      {
-        userId: userId,
-        subscription_type: subscription_type,
+    });    
+    // Use fetch instead of axios to make the POST request
+    const response = await fetch("https://api.crackoffcampus.com/update", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+      "Content-Type": "application/json",
       },
-      { withCredentials: true }
-    );
-
+      body: JSON.stringify({
+      userId: userId,
+      subscription_type: subscription_type,
+      }),
+    });
+    const subscriptionRes = await response.json();
     if (subscriptionRes.data) {
       console.log("Subscription updated successfully:", subscriptionRes.data);
       toast.success("Subscription updated successfully!");
