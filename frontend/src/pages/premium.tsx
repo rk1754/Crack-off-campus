@@ -168,33 +168,12 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
 
             // 3. Since payment is successful, directly update subscription
             const subscriptionType = planSubscriptionTypeMap[planName];
-            console.log("Calling update-subscription with:", {
-              userId: user.id,
-              subscription_type: subscriptionType,
-              order_id: order_id,
-            });
-            console.log("User object:", user);
-
-            const updateRes = await axios.post(
-              `${BACKEND_URL}/payment/update-subscription`,
-              {
-                userId: user.id,
-                subscription_type: subscriptionType,
-                order_id: order_id,
-              }
-            );
-
-            console.log("Update subscription response:", updateRes.data);
-            if (updateRes.data.success) {
-              toast.success("Payment successful! Premium activated.");
-              // Refresh user data to reflect the new subscription
-              await dispatch(fetchCurrentUser());
-            } else {
-              toast.error(
-                "Payment successful but subscription update failed. Please contact support."
-              );
-            }
-
+            // --- REMOVED: update-subscription call for Cashfree/verify flow ---
+            // Only call /payment/verify or /payment/verify-and-store for Cashfree, not update-subscription
+            // If you use Razorpay, you can keep update-subscription, but for Cashfree, do not call it again.
+            // Instead, just refresh user data:
+            await dispatch(fetchCurrentUser());
+            toast.success("Payment successful! Premium activated.");
             onClose();
           } catch (err: any) {
             console.error("Subscription update error:", err);
