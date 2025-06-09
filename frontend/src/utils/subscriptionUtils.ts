@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { BACKEND_URL } from "@/redux/config";
 
 export const updateSubscriptionAfterPayment = async (
   orderId: string,
@@ -11,11 +12,9 @@ export const updateSubscriptionAfterPayment = async (
       orderId,
       subscription_type,
       userId,
-    });
-
-    // Call user-subscription-simple API with service_name as subscription_type
+    });    // Call update-subscription-simple API with service_name as subscription_type
     const subscriptionRes = await axios.post(
-      "https://api.crackoffcampus.com/api/v1/payment/update-subscription-simple",
+      "/payment/update-subscription-simple",
       {
         userId: userId,
         subscription_type: subscription_type,
