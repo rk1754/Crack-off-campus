@@ -155,15 +155,15 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         "interview",
       ],
       // Add more mappings as needed
-    };
-
-      const updateFields: any = {
+    };      const updateFields: any = {
         is_premium: true,
         subscription_expiry: (() => {
           const expiry = new Date();
           expiry.setDate(expiry.getDate() + 30);
           return expiry;
         })(),
+        subscription_type: serviceName,
+        subscription_type_2: serviceName,
       };      // Add subscription_type update based on order amount
       const subscriptionMap: SubscriptionMap = {
         1: "basic",
@@ -176,6 +176,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       
       if (subscriptionMap[orderAmount]) {
         updateFields.subscription_type = subscriptionMap[orderAmount];
+        updateFields.subscription_type_2 = subscriptionMap[orderAmount];
         logger.info("Subscription type set", { subscription_type: updateFields.subscription_type, orderAmount });
       } else {
         logger.warn("No subscription mapping found for order amount", { orderAmount, availableAmounts: Object.keys(subscriptionMap) });
