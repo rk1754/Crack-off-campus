@@ -93,26 +93,79 @@ const PaymentVerify = () => {
         );
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
+          console.log("Payment verification response:", res.data);
 
-          console.log("Payment verification response:", res.data); // Refresh user profile in Redux
-          dispatch(fetchCurrentUser()).then(() => {
-            console.log("User profile refreshed after payment verification");
-            // Log the updated user data from the API
-            axios
-              .get("/auth/me", { withCredentials: true })
-              .then((userRes) => {
-                console.log("Updated user data after payment:", {
-                  subscription_type: userRes.data.user?.subscription_type,
-                  subscription_type_2: userRes.data.user?.subscription_type_2,
-                  is_premium: userRes.data.user?.is_premium,
-                  subscription_expiry: userRes.data.user?.subscription_expiry,
-                  serviceName_sent: serviceName,
-                });
-              })
-              .catch((err) =>
-                console.error("Error fetching updated user data:", err)
-              );
-          });
+          // Refresh user profile in Redux
+          dispatch(fetchCurrentUser())
+            .then(() => {
+              console.log("User profile refreshed after payment verification");
+
+              // Add a small delay to ensure database changes are reflected
+              setTimeout(() => {
+                // Log the updated user data from the API
+                axios
+                  .get("/auth/me", { withCredentials: true })
+                  .then((userRes) => {
+                    console.log("=== COMPLETE USER DATA AFTER PAYMENT ===");
+                    console.log("Full response:", userRes.data);
+                    console.log("User object:", userRes.data.user);
+                    console.log("=== SUBSCRIPTION DETAILS ===");
+                    console.log(
+                      "subscription_type:",
+                      userRes.data.user?.subscription_type
+                    );
+                    console.log(
+                      "subscription_type_2:",
+                      userRes.data.user?.subscription_type_2
+                    );
+                    console.log("is_premium:", userRes.data.user?.is_premium);
+                    console.log(
+                      "subscription_expiry:",
+                      userRes.data.user?.subscription_expiry
+                    );
+                    console.log("serviceName sent:", serviceName);
+                    console.log("===================================");
+
+                    // Verify the update was successful
+                    if (userRes.data.user?.subscription_type === serviceName) {
+                      console.log(
+                        "✅ SUCCESS: subscription_type updated correctly!"
+                      );
+                    } else {
+                      console.log(
+                        "❌ PROBLEM: subscription_type not updated!",
+                        {
+                          expected: serviceName,
+                          actual: userRes.data.user?.subscription_type,
+                        }
+                      );
+                    }
+
+                    if (
+                      userRes.data.user?.subscription_type_2 === serviceName
+                    ) {
+                      console.log(
+                        "✅ SUCCESS: subscription_type_2 updated correctly!"
+                      );
+                    } else {
+                      console.log(
+                        "❌ PROBLEM: subscription_type_2 not updated!",
+                        {
+                          expected: serviceName,
+                          actual: userRes.data.user?.subscription_type_2,
+                        }
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    console.error("Error fetching updated user data:", err);
+                    console.error("Error details:", err.response?.data);
+                  });
+              }, 2000); // 2 second delay to ensure database changes are reflected
+            })
+            .catch((reduxErr) => {
+              console.error("Error refreshing Redux user data:", reduxErr);
+            });
 
           // Handle resource type purchase and trigger automatic download
           if (resourceType) {

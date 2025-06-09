@@ -189,15 +189,25 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         try {
           // First, let's check the current user state
           const currentUser = await User.findByPk(user.id, { transaction: t });
+          console.log("=== TRANSACTION START ===");
           console.log("Current user state before update:", {
+            id: currentUser?.id,
             subscription_type: currentUser?.subscription_type,
             subscription_type_2: currentUser?.subscription_type_2,
             is_premium: currentUser?.is_premium
           });
+          console.log("Update fields to apply:", updateFields);
+          
+          // Validate that the serviceName is a valid ENUM value
+          const validSubscriptionTypes = ['regular', 'basic', 'standard', 'booster', 'job', 'resume', 'other_templates'];
+          if (!validSubscriptionTypes.includes(serviceName)) {
+            throw new Error(`Invalid serviceName: ${serviceName}. Valid values: ${validSubscriptionTypes.join(', ')}`);
+          }
           
           const updateResult = await User.update(updateFields, {
             where: { id: user.id },
             transaction: t,
+            returning: true, // This helps with debugging
           });
           console.log("Database update result:", updateResult);
           logger.info("Database update result", { updateResult, userId: user.id });
@@ -210,10 +220,25 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           // Check the user state immediately after update within transaction
           const updatedUserInTransaction = await User.findByPk(user.id, { transaction: t });
           console.log("User state immediately after update in transaction:", {
+            id: updatedUserInTransaction?.id,
             subscription_type: updatedUserInTransaction?.subscription_type,
             subscription_type_2: updatedUserInTransaction?.subscription_type_2,
-            is_premium: updatedUserInTransaction?.is_premium
+            is_premium: updatedUserInTransaction?.is_premium,
+            subscription_expiry: updatedUserInTransaction?.subscription_expiry
           });
+          
+          // Validate the update was successful within the transaction
+          if (updatedUserInTransaction?.subscription_type !== serviceName) {
+            console.error("CRITICAL: subscription_type was not updated correctly within transaction!");
+            throw new Error(`subscription_type update failed. Expected: ${serviceName}, Got: ${updatedUserInTransaction?.subscription_type}`);
+          }
+          
+          if (updatedUserInTransaction?.subscription_type_2 !== serviceName) {
+            console.error("CRITICAL: subscription_type_2 was not updated correctly within transaction!");
+            throw new Error(`subscription_type_2 update failed. Expected: ${serviceName}, Got: ${updatedUserInTransaction?.subscription_type_2}`);
+          }
+          
+          console.log("✅ Both subscription types updated correctly within transaction");
           
           // Create transaction record
           await Transactions.create(
@@ -233,17 +258,21 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
             { transaction: t }
           );
           
-          console.log("Transaction completed successfully");
+          console.log("✅ Transaction record created successfully");
+          console.log("=== TRANSACTION WILL COMMIT ===");
         } catch (transactionError) {
-          console.error("Error during transaction:", transactionError);
+          console.error("❌ Error during transaction:", transactionError);
+          console.error("=== TRANSACTION WILL ROLLBACK ===");
           logger.error("Transaction error", { error: transactionError, userId: user.id });
           throw transactionError; // This will cause the transaction to rollback
         }
       });
 
+      console.log("=== CHECKING FINAL STATE AFTER TRANSACTION COMMIT ===");
       // Check what was actually saved
       const updatedUser = await User.findByPk(user.id);
-      console.log("User data after update:", {
+      console.log("Final user data after transaction commit:", {
+        id: updatedUser?.id,
         subscription_type: updatedUser?.subscription_type,
         subscription_type_2: updatedUser?.subscription_type_2,
         is_premium: updatedUser?.is_premium,
@@ -254,40 +283,69 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         subscription_type_2: updatedUser?.subscription_type_2,
         is_premium: updatedUser?.is_premium,
         subscription_expiry: updatedUser?.subscription_expiry
-      });
-
+      });      console.log("=== VALIDATING FINAL DATA FOR JWT TOKEN ===");
       const us = await User.findByPk(user.id);
       if (!us) {
+        console.error("❌ CRITICAL: User not found for JWT token generation!");
         res.status(500).json({ success: false, message: "User not found" });
         return;
-      }      // Update JWT token with both subscription types AND resource flags
-      const token = jwt.sign(
-        {
-          id: us.id,
-          email: us.email,
-          subscription_type: us.subscription_type,
-          subscription_type_2: us.subscription_type_2,
-          phone_number: us.phone_number,
-          // Add all resource booleans to the JWT token
-          resume: us.resume,
-          referral: us.referral,
-          cold_mail: us.cold_mail,
-          cover_letter: us.cover_letter,
-          hr_mail: us.hr_mail,
-          linkedin: us.linkedin,
-          cv: us.cv,
-          roadmaps: us.roadmaps,
-          interview: us.interview,
-          job: us.job,
-        },
-        JWT_SECRET,
-        { expiresIn: "2d" }
-      );
+      }
+      
+      console.log("User data for JWT token:", {
+        id: us.id,
+        email: us.email,
+        subscription_type: us.subscription_type,
+        subscription_type_2: us.subscription_type_2,
+        is_premium: us.is_premium,
+        subscription_expiry: us.subscription_expiry
+      });
+      
+      // Validate the user data before creating JWT
+      if (us.subscription_type !== serviceName) {
+        console.error("❌ CRITICAL: User subscription_type is still incorrect before JWT generation!");
+        console.error("Expected:", serviceName, "Got:", us.subscription_type);
+      } else {
+        console.log("✅ subscription_type is correct for JWT");
+      }
+      
+      if (us.subscription_type_2 !== serviceName) {
+        console.error("❌ CRITICAL: User subscription_type_2 is still incorrect before JWT generation!");
+        console.error("Expected:", serviceName, "Got:", us.subscription_type_2);
+      } else {
+        console.log("✅ subscription_type_2 is correct for JWT");
+      }
+
+      // Update JWT token with both subscription types AND resource flags
+      const tokenPayload = {
+        id: us.id,
+        email: us.email,
+        subscription_type: us.subscription_type,
+        subscription_type_2: us.subscription_type_2,
+        phone_number: us.phone_number,
+        // Add all resource booleans to the JWT token
+        resume: us.resume,
+        referral: us.referral,
+        cold_mail: us.cold_mail,
+        cover_letter: us.cover_letter,
+        hr_mail: us.hr_mail,
+        linkedin: us.linkedin,
+        cv: us.cv,
+        roadmaps: us.roadmaps,
+        interview: us.interview,
+        job: us.job,
+      };
+      
+      console.log("JWT token payload:", tokenPayload);
+      
+      const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "2d" });
+      
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
+      
+      console.log("✅ JWT token updated with new subscription data");
 
       logger.info("Payment verified and subscription updated", {
         user_id: user.id,
