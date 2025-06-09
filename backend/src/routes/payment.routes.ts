@@ -2,7 +2,6 @@ import express from "express";
 import PaymentController from "../controllers/payment.controller";
 import { simpleVerifyPayment } from "../controllers/simplePayment.controller";
 import authMiddleware from "../middleware/auth.middleware";
-import { updateUserSubscriptionSimple } from "../controllers/payment.controller";
 
 const router = express.Router();
 const paymentController = new PaymentController();

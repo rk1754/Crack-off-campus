@@ -21,10 +21,10 @@ import sequelize from './config/db';
 import logger from './utils/logger';
 import cluster from 'cluster';
 import os from 'os';
-import { updateUserSubscriptionSimple } from "./controllers/payment.controller";
-
 // Import User model for direct payment update route
 import User from './models/user.model';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from './config/config';
 
 // Cache environment variables
 declare global {
@@ -141,11 +141,163 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   app.use('/api/v1/session/booking', sessionBookingRoutes);
   app.use('/api/v1/resume', resumeRoutes);
   app.use('/api/v1/resume-upload', resumeUploadRoutes);
-  app.use('/api/v1/payment', paymentRoutes);
-  app.use('/api/v1/new/resume', new_resumeRoutes);
-  // Direct payment update route
-
-  app.post('/update', updateUserSubscriptionSimple);
+  app.use('/api/v1/payment', paymentRoutes);  app.use('/api/v1/new/resume', new_resumeRoutes);
+  
+  // Direct payment update route - accessible without auth
+  app.post('/update', async (req: Request, res: Response): Promise<void> => {
+    try {
+      console.log('=== /update route called ===');
+      console.log('Request body:', req.body);
+      console.log('Request headers:', req.headers);
+      
+      const { userId, subscription_type } = req.body;
+      
+      // Allowed subscription types as per User model ENUM
+      const validTypes = [
+        "basic",
+        "standard", 
+        "booster",
+        "regular",
+        "job",
+        "resume",
+        "other_templates"
+      ];
+      
+      if (!userId || !subscription_type) {
+        console.log('Missing required fields:', { userId, subscription_type });
+        res.status(400).json({ 
+          success: false, 
+          message: "userId and subscription_type are required" 
+        });
+        return;
+      }
+      
+      if (!validTypes.includes(subscription_type)) {
+        console.log('Invalid subscription type:', subscription_type);
+        res.status(400).json({ 
+          success: false, 
+          message: `Invalid subscription_type. Must be one of: ${validTypes.join(", ")}` 
+        });
+        return;
+      }
+      
+      console.log('Finding user with ID:', userId);
+      const user = await User.findByPk(userId);
+      if (!user) {
+        console.log('User not found:', userId);
+        res.status(404).json({ 
+          success: false, 
+          message: "User not found" 
+        });
+        return;
+      }
+      
+      console.log('Current user subscription:', {
+        current_subscription_type: user.subscription_type,
+        current_subscription_type_2: user.subscription_type_2,
+        new_subscription_type: subscription_type
+      });
+      
+      // Update subscription types
+      user.subscription_type = subscription_type;
+      user.subscription_type_2 = subscription_type;
+      user.is_premium = true;
+      
+      // Set expiry date
+      const subscriptionExpiry = new Date();
+      subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
+      user.subscription_expiry = subscriptionExpiry;
+      
+      // Set resource booleans based on subscription type
+      if (subscription_type === "basic") {
+        user.cold_mail = true;
+        user.cover_letter = true;
+        user.hr_mail = true;
+        user.job = true;
+      } else if (subscription_type === "standard" || subscription_type === "booster") {
+        user.resume = true;
+        user.referral = true;
+        user.cold_mail = true;
+        user.cover_letter = true;
+        user.hr_mail = true;
+        user.linkedin = true;
+        user.cv = true;
+        user.roadmaps = true;
+        user.interview = true;
+        user.job = true;
+      } else if (subscription_type === "job") {
+        user.job = true;
+      }
+      
+      console.log('About to save user with:', {
+        subscription_type: user.subscription_type,
+        subscription_type_2: user.subscription_type_2,
+        is_premium: user.is_premium,
+        subscription_expiry: user.subscription_expiry
+      });
+      
+      await user.save();
+      
+      console.log('User saved successfully');
+      
+      // Generate new JWT token
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          subscription_type: user.subscription_type,
+          subscription_type_2: user.subscription_type_2,
+          phone_number: user.phone_number,
+          is_premium: user.is_premium,
+          // Add all resource booleans to the JWT token
+          resume: user.resume,
+          referral: user.referral,
+          cold_mail: user.cold_mail,
+          cover_letter: user.cover_letter,
+          hr_mail: user.hr_mail,
+          linkedin: user.linkedin,
+          cv: user.cv,
+          roadmaps: user.roadmaps,
+          interview: user.interview,
+          job: user.job,
+        },
+        JWT_SECRET,
+        {
+          expiresIn: "7d",
+        }
+      );
+      
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      
+      console.log('=== /update route success ===');
+      res.status(200).json({ 
+        success: true, 
+        message: "Subscription updated successfully", 
+        user: {
+          id: user.id,
+          email: user.email,
+          subscription_type: user.subscription_type,
+          subscription_type_2: user.subscription_type_2,
+          is_premium: user.is_premium,
+          subscription_expiry: user.subscription_expiry
+        }
+      });
+      return;
+    } catch (err: any) {
+      console.error('=== /update route error ===');
+      console.error('Error details:', err);
+      res.status(500).json({ 
+        success: false, 
+        message: err.message || "Server error" 
+      });
+      return;
+    }
+  });
   
 
   // Global error handler
