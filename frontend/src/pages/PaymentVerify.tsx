@@ -70,6 +70,15 @@ const PaymentVerify = () => {
         return;
       }
       try {
+        console.log("About to send payment verification request with:", {
+          order_id,
+          serviceName,
+          resourceType,
+          serviceId,
+          date,
+          time,
+        });
+
         const res = await axios.post(
           "/payment/verify",
           {
@@ -85,8 +94,25 @@ const PaymentVerify = () => {
         if (res.data.success) {
           toast.success(res.data.message || "Payment successful!");
 
-          // Refresh user profile in Redux
-          dispatch(fetchCurrentUser());
+          console.log("Payment verification response:", res.data); // Refresh user profile in Redux
+          dispatch(fetchCurrentUser()).then(() => {
+            console.log("User profile refreshed after payment verification");
+            // Log the updated user data from the API
+            axios
+              .get("/auth/me", { withCredentials: true })
+              .then((userRes) => {
+                console.log("Updated user data after payment:", {
+                  subscription_type: userRes.data.user?.subscription_type,
+                  subscription_type_2: userRes.data.user?.subscription_type_2,
+                  is_premium: userRes.data.user?.is_premium,
+                  subscription_expiry: userRes.data.user?.subscription_expiry,
+                  serviceName_sent: serviceName,
+                });
+              })
+              .catch((err) =>
+                console.error("Error fetching updated user data:", err)
+              );
+          });
 
           // Handle resource type purchase and trigger automatic download
           if (resourceType) {
