@@ -173,9 +173,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       });
       console.log("Subscription types set from serviceName", { 
         subscription_type: serviceName, 
-        subscription_type_2: serviceName});
-
-      // Set all relevant boolean fields to true
+        subscription_type_2: serviceName});      // Set all relevant boolean fields to true
       const fieldsToSet = serviceFieldMap[serviceName];
       if (fieldsToSet && Array.isArray(fieldsToSet)) {
         for (const field of fieldsToSet) {
@@ -183,12 +181,17 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         }
       }
 
+      console.log("Final updateFields before database update:", updateFields);
+      logger.info("Final updateFields before database update", updateFields);
+
       // Update user
       await sequelize.transaction(async (t: any) => {
-        await User.update(updateFields, {
+        const updateResult = await User.update(updateFields, {
           where: { id: user.id },
           transaction: t,
         });
+        console.log("Database update result:", updateResult);
+        logger.info("Database update result", { updateResult, userId: user.id });
         await Transactions.create(
           {
             user_id: user.id,
@@ -202,9 +205,23 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
             razorpay_order_id: "cashfree_dummy_order",
             razorpay_payment_id: "cashfree_dummy_payment",
             razorpay_signature: "cashfree_dummy_signature",
-          },
-          { transaction: t }
+          },          { transaction: t }
         );
+      });
+
+      // Check what was actually saved
+      const updatedUser = await User.findByPk(user.id);
+      console.log("User data after update:", {
+        subscription_type: updatedUser?.subscription_type,
+        subscription_type_2: updatedUser?.subscription_type_2,
+        is_premium: updatedUser?.is_premium,
+        subscription_expiry: updatedUser?.subscription_expiry
+      });
+      logger.info("User data after update", {
+        subscription_type: updatedUser?.subscription_type,
+        subscription_type_2: updatedUser?.subscription_type_2,
+        is_premium: updatedUser?.is_premium,
+        subscription_expiry: updatedUser?.subscription_expiry
       });
 
       const us = await User.findByPk(user.id);
