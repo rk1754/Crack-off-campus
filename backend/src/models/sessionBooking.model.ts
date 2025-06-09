@@ -9,6 +9,7 @@ class SessionBooking extends Model {
     public service_name!: string;
     public date!: string; // ISO date string
     public time!: string; // e.g. "09:00 PM"
+    public resume_url?: string; // Resume URL from file upload
     public meet_link?: string;
     public cancelled!: boolean;
     public payment_status!: string;
@@ -41,10 +42,13 @@ SessionBooking.init({
     date: {
         type: DataTypes.STRING,
         allowNull: false,
-    },
-    time: {
+    },    time: {
         type: DataTypes.STRING,
         allowNull: false,
+    },
+    resume_url: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     meet_link : {
         type : DataTypes.STRING,

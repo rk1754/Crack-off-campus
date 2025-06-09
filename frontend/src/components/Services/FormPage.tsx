@@ -13,6 +13,7 @@ import { Textarea } from "../ui/textarea";
 import axios from "axios";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
+import { useResumeUpload } from "../../hooks/useResumeUpload";
 
 interface ServiceDetails {
   id: number;
@@ -29,12 +30,12 @@ export default function FormPage() {
     time?: string;
     amount: string;
   };
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
     resume: null as File | null,
+    resumeUrl: "" as string,
     state: "",
     targetRole: "",
     language: "Hinglish",
@@ -42,6 +43,9 @@ export default function FormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+
+  // Resume upload hook
+  const { uploadResume, isUploading, uploadProgress } = useResumeUpload();
 
   // Get user from Redux store
   const user = useSelector((state: any) => state.user?.user);
@@ -118,7 +122,6 @@ export default function FormPage() {
       setSdkLoaded(false);
     };
   }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -136,56 +139,72 @@ export default function FormPage() {
       return;
     }
 
-    // Booster user direct booking for Resume Review or Referral
-    if (
-      subscriptionType === "booster" &&
-      (serviceId === "1" || serviceId === "3")
-    ) {
-      setIsSubmitting(true);
-      setError(null);
-      try {
-        // Direct booking API call (replace endpoint as needed)
-        const bookingForm = new FormData();
-        bookingForm.append("serviceId", serviceId || "");
-        bookingForm.append("service_name", serviceTitle);
-        bookingForm.append("date", date);
-        bookingForm.append("time", time);
-        bookingForm.append("name", formData.name);
-        bookingForm.append("phone", formData.phone);
-        bookingForm.append("email", formData.email);
-        bookingForm.append("state", formData.state);
-        bookingForm.append("targetRole", formData.targetRole);
-        bookingForm.append("language", formData.language);
-        if (formData.resume) {
-          bookingForm.append("resume", formData.resume, formData.resume.name);
-        }
-
-        await axios.post(`${BACKEND_URL}/session/booking/book`, bookingForm, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        toast.success("Booking successful! Check your email for details.");
-        navigate("/services/booking/success");
-      } catch (error: any) {
-        setError(
-          error?.response?.data?.message ||
-            error.message ||
-            "An error occurred while booking."
-        );
-      }
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!sdkLoaded || !window.Cashfree) {
-      setError("Payment gateway is not available. Please try again later.");
-      return;
-    }
     setIsSubmitting(true);
     setError(null);
 
     try {
+      // First, upload the resume and get the URL
+      const resumeUrl = await uploadResume(formData.resume);
+
+      // Update form data with resume URL
+      setFormData((prev) => ({ ...prev, resumeUrl }));
+
+      // Booster user direct booking for Resume Review or Referral
+      if (
+        subscriptionType === "booster" &&
+        (serviceId === "1" || serviceId === "3")
+      ) {
+        // Direct booking API call with resume URL
+        const bookingData = {
+          serviceId: serviceId || "",
+          service_name: serviceTitle,
+          date,
+          time,
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          state: formData.state,
+          targetRole: formData.targetRole,
+          language: formData.language,
+          resume_url: resumeUrl,
+        };
+
+        await axios.post(
+          `${BACKEND_URL}/api/v1/session/booking/book`,
+          bookingData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        toast.success("Booking successful! Check your email for details.");
+        navigate("/services/booking/success");
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (error: any) {
+      setError(
+        error?.response?.data?.message ||
+          error.message ||
+          "An error occurred while uploading resume or booking."
+      );
+      setIsSubmitting(false);
+      return;
+    }
+    if (!sdkLoaded || !window.Cashfree) {
+      setError("Payment gateway is not available. Please try again later.");
+      return;
+    }
+
+    try {
+      // First upload resume and get URL if not already uploaded
+      let resumeUrl = formData.resumeUrl;
+      if (!resumeUrl && formData.resume) {
+        resumeUrl = await uploadResume(formData.resume);
+        setFormData((prev) => ({ ...prev, resumeUrl }));
+      }
+
       // Store booking form data in sessionStorage for use after payment
       sessionStorage.setItem(
         "serviceBookingData",
@@ -199,7 +218,7 @@ export default function FormPage() {
           state: formData.state,
           targetRole: formData.targetRole,
           language: formData.language,
-          // Resume file cannot be stored, will be handled after payment if needed
+          resume_url: resumeUrl, // Store resume URL instead of file
         })
       );
 
@@ -360,7 +379,6 @@ export default function FormPage() {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">
                 Email <span className="text-red-500">*</span>
@@ -375,13 +393,12 @@ export default function FormPage() {
                 required
                 className="border-gray-300"
               />
-            </div>
-
+            </div>{" "}
             <div className="space-y-2">
               <Label htmlFor="resume" className="text-gray-700">
                 Upload your resume <span className="text-red-500">*</span>
                 <span className="text-sm text-gray-500 ml-2">
-                  (less than 2 MB)
+                  (PDF, DOC, DOCX - less than 2 MB)
                 </span>
               </Label>
               <div className="flex">
@@ -393,25 +410,35 @@ export default function FormPage() {
                   onChange={handleFileChange}
                   required
                   className="border-gray-300"
+                  disabled={isUploading}
                 />
-                {/* Remove or disable the custom Browse button, or wire it to trigger the file input */}
-                {/* <Button
-                  type="button"
-                  variant="secondary"
-                  className="ml-2 bg-[#F97316] text-white hover:bg-orange-600"
-                  onClick={() => document.getElementById('resume')?.click()}
-                >
-                  Browse
-                </Button> */}
               </div>
+
               {/* Show selected file name */}
               {formData.resume && (
                 <div className="text-sm text-gray-600 mt-1">
                   Selected file: {formData.resume.name}
+                  {formData.resumeUrl && (
+                    <span className="text-green-600 ml-2">✓ Uploaded</span>
+                  )}
+                </div>
+              )}
+
+              {/* Show upload progress */}
+              {isUploading && (
+                <div className="mt-2">
+                  <div className="bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-[#F97316] h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Uploading... {uploadProgress}%
+                  </p>
                 </div>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="state" className="text-gray-700">
                 Select Your State <span className="text-red-500">*</span>
@@ -426,7 +453,6 @@ export default function FormPage() {
                 className="border-gray-300"
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="language" className="text-gray-700">
                 Select the Language <span className="text-red-500">*</span>
@@ -439,19 +465,24 @@ export default function FormPage() {
                 disabled
                 className="border-gray-300 bg-gray-100 cursor-not-allowed"
               />
-            </div>
-
+            </div>{" "}
             <div className="pt-4">
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 className="w-full bg-[#F97316] hover:bg-orange-600 text-white"
               >
-                {isSubmitting ? "Processing..." : "Confirm Details"}
+                {isUploading
+                  ? "Uploading Resume..."
+                  : isSubmitting
+                  ? "Processing..."
+                  : "Confirm Details"}
               </Button>
-              {isSubmitting && (
+              {(isSubmitting || isUploading) && (
                 <p className="text-sm text-gray-600 mt-2">
-                  Submission in progress...
+                  {isUploading
+                    ? "Please wait while we upload your resume..."
+                    : "Processing your request..."}
                 </p>
               )}
             </div>

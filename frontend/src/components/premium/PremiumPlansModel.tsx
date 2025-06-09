@@ -198,7 +198,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
       if (
         !payment_session_id.startsWith("session_") ||
         /[^a-zA-Z0-9_-]/.test(payment_session_id)
-      ) {
+      ) { 
         console.error("Invalid payment_session_id:", payment_session_id);
 
         throw new Error("Invalid payment session ID format");

@@ -10,6 +10,7 @@ import paymentRoutes from './routes/payment.routes';
 import sessionRoutes from './routes/session.route';
 import sessionBookingRoutes from './routes/sessionBooking.route';
 import resumeRoutes from './routes/resume.route';
+import resumeUploadRoutes from './routes/resumeUpload.route';
 import new_resumeRoutes from './routes/new_resume.route';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -132,10 +133,10 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   app.use('/api/v1/education', educationRoutes);
   app.use('/api/v1/experience', experienceRoutes);
   app.use('/api/v1/job', jobRoutes);
-  app.use('/api/v1/analytics', analyticsRoutes);
-  app.use('/api/v1/session', sessionRoutes);
+  app.use('/api/v1/analytics', analyticsRoutes);  app.use('/api/v1/session', sessionRoutes);
   app.use('/api/v1/session/booking', sessionBookingRoutes);
   app.use('/api/v1/resume', resumeRoutes);
+  app.use('/api/v1/resume-upload', resumeUploadRoutes);
   app.use('/api/v1/payment', paymentRoutes);
   app.use('/api/v1/new/resume', new_resumeRoutes);
 

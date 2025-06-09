@@ -11,7 +11,7 @@ class SlotBookingController {
   // Book a slot (service_id, date, time)
   bookSlot = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { serviceId, date, service_name, time } = req.body;
+      const { serviceId, date, service_name, time, resumeUrl } = req.body;
       const userId = req.user?.id;
       if (!userId) {
         res.status(400).json({
@@ -20,7 +20,7 @@ class SlotBookingController {
         });
         return;
       }
-      logger.info("Logging input data of slot booking", serviceId, date, service_name, time);
+      logger.info("Logging input data of slot booking", serviceId, date, service_name, time, resumeUrl);
       // Validate input
       if (!serviceId || !date || !time) {
         res.status(400).json({
@@ -45,14 +45,13 @@ class SlotBookingController {
           message: "Slot already booked",
         });
         return;
-      }
-
-      const booking = await SessionBooking.create({
+      }      const booking = await SessionBooking.create({
         userId,
         service_id: serviceId,
         service_name: service_name,
         date,
         time,
+        resume_url: resumeUrl || null,
         cancelled: false,
       });
 
@@ -85,11 +84,11 @@ class SlotBookingController {
         timeZone: "Asia/Kolkata",
       };
       const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
-      console.log(service_name, date, time, formattedDateTime);
-      // User email
+      console.log(service_name, date, time, formattedDateTime);      // User email
       const userHtml = `
         <p>Dear ${user.name},</p>
         <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
+        ${resumeUrl ? `<p>Your resume: <a href="${resumeUrl}" target="_blank" style="color: #007bff; text-decoration: none;">View Resume</a></p>` : ''}
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best Regards,</p>
@@ -106,33 +105,20 @@ class SlotBookingController {
       logger.info(
         `Slot booked successfully for user ${user.name} (${user.email}) on ${date} at ${time}`
       );
-      logger.info(`Notification email sent to user ${user.email}`);
-
-      // Admin email
+      logger.info(`Notification email sent to user ${user.email}`);      // Admin email
       const adminHTML = `
         <p>Dear Admin,</p>
         <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${date} ${time}</b>.</p>
         <p>User Contact: ${user.phone_number}</p>
+        ${resumeUrl ? `<p>Resume: <a href="${resumeUrl}" target="_blank" style="color: #007bff; text-decoration: none;">View Resume</a></p>` : '<p>No resume uploaded</p>'}
         <p>Thank you.</p>
         <p>Best Regards,</p>
         <p>Team Crack Off-Campus</p>
-      `;
-
-      // Attach resume if uploaded
-      const attachments = [];
-      if (req.file) {
-        attachments.push({
-          filename: req.file.originalname,
-          path: req.file.path,
-        });
-      }
-
-      await transporter.sendMail({
+      `;      await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: "crackoffcampus63@gmail.com",
         subject: "New Slot Booking",
         html: adminHTML,
-        attachments,
       });
 
       logger.info(

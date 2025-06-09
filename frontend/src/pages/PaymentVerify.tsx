@@ -132,8 +132,7 @@ const PaymentVerify = () => {
             let bookingData: any = {};
             if (bookingDataRaw) {
               bookingData = JSON.parse(bookingDataRaw);
-            }
-            // Compose FormData for booking (resume upload not supported after payment)
+            } // Compose FormData for booking with resume URL
             const formData = new FormData();
             formData.append("serviceId", serviceId);
             formData.append("date", date);
@@ -143,6 +142,7 @@ const PaymentVerify = () => {
               "service_name",
               serviceName || bookingData.name || ""
             );
+            formData.append("name", bookingData.name || "");
             formData.append("phone", bookingData.phone || "");
             formData.append("email", bookingData.email || "");
             formData.append("state", bookingData.state || "");
@@ -151,7 +151,11 @@ const PaymentVerify = () => {
             formData.append("payment_status", "paid");
             formData.append("order_id", order_id);
 
-            // Note: Resume file cannot be attached after payment unless handled via backend or upload before payment
+            // Add resume URL if available
+            if (bookingData.resume_url) {
+              formData.append("resume_url", bookingData.resume_url);
+            }
+            // Resume URL is now included in the booking data from sessionStorage
 
             try {
               const bookingRes = await fetch(
