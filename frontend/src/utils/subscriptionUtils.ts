@@ -12,9 +12,9 @@ export const updateSubscriptionAfterPayment = async (
       orderId,
       subscription_type,
       userId,
-    });    // Call update-subscription-simple API with service_name as subscription_type
+    });    // Call update API with service_name as subscription_type
     const subscriptionRes = await axios.post(
-      `${BACKEND_URL}/payment/update-subscription-simple`,
+      `${BACKEND_URL}/payment/update`,
       {
         userId: userId,
         subscription_type: subscription_type,
