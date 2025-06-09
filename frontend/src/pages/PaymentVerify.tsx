@@ -26,6 +26,7 @@ const PaymentVerify = () => {
     const verifyPayment = async () => {
       const params = new URLSearchParams(location.search);
       const order_id = params.get("order_id");
+      const subscription_type = params.get("serviceName");
       // Try to get serviceName from both serviceName and job as fallback
       let serviceName = params.get("serviceName");
       if (!serviceName) {
@@ -101,7 +102,7 @@ const PaymentVerify = () => {
           if (user && user.id) {
             await updateSubscriptionAfterPayment(
               order_id,
-              serviceName,
+              subscription_type,
               user.id
             );
           }

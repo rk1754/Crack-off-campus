@@ -3,22 +3,22 @@ import { toast } from "sonner";
 
 export const updateSubscriptionAfterPayment = async (
   orderId: string,
-  serviceName: string,
+  subscription_type: string,
   userId: string
 ) => {
   try {
     console.log("Updating subscription after payment:", {
       orderId,
-      serviceName,
+      subscription_type,
       userId,
     });
 
     // Call user-subscription-simple API with service_name as subscription_type
     const subscriptionRes = await axios.post(
-      "https://api.crackoffcampus.com/api/v1/user-subscriptiom-simple",
+      "https://api.crackoffcampus.com/api/v1/payment/update-subscription-simple",
       {
         userId: userId,
-        subscription_type: serviceName,
+        subscription_type: subscription_type,
       },
       { withCredentials: true }
     );
