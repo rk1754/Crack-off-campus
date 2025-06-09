@@ -529,10 +529,14 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
     }
   };
 
-  verifyPayment = async (req: Request, res: Response): Promise<void> => {
+  verifyPayment = async (req: Request, res: Response): Promise<any> => {
     try {
       const { order_id } = req.query;
       if (!order_id) {
+        // Support JSON error for AJAX
+        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+          return res.status(400).json({ success: false, message: "order_id_missing" });
+        }
         return res.redirect("/jobs?payment=error&message=order_id_missing");
       }
       // Fetch order details from Cashfree
@@ -563,7 +567,11 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       };
       const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
       if (!subscriptionType) {
-        return res.redirect("/jobs?payment=error&message=invalid_amount");      }
+        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+          return res.status(400).json({ success: false, message: "invalid_amount" });
+        }
+        return res.redirect("/jobs?payment=error&message=invalid_amount");
+      }
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
         // Define features based on subscription type
@@ -614,7 +622,8 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           },
           { transaction: t }
         );
-      });      // Update JWT token
+      });
+      // Update JWT token
       const updatedUserForToken = await User.findByPk(user.id);
       const token = jwt.sign(
         {
@@ -623,7 +632,6 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           subscription_type: subscriptionType,
           subscription_type_2: updatedUserForToken?.subscription_type_2,
           phone_number: user.phone_number,
-          // Add all resource booleans to the JWT token
           resume: updatedUserForToken?.resume,
           referral: updatedUserForToken?.referral,
           cold_mail: updatedUserForToken?.cold_mail,
@@ -643,10 +651,22 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
+      // If AJAX or ?json=1, return JSON with updated user
+      if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+        return res.status(200).json({
+          success: true,
+          message: "Payment verified and service updated",
+          user: updatedUserForToken,
+        });
+      }
+      // Default: redirect
       res.redirect("/jobs?payment=success");
     } catch (err: any) {
       console.error("Payment verification error:", err);
       logger.error("Payment verification error:", err);
+      if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+        return res.status(500).json({ success: false, message: err.message || "server_error" });
+      }
       res.redirect(
         `/jobs?payment=error&message=${encodeURIComponent(
           err.message || "server_error"
