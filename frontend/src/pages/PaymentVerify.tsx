@@ -37,10 +37,10 @@ const PaymentVerify = () => {
         "HR Mail": "hr_mail",
         "Cover Letter": "cover_letter",
         "LinkedIn Review": "linkedin",
-        CV: "cv",
-        Roadmaps: "roadmaps",
-        Interview: "interview",
-        job: "job",
+        "CV": "cv",
+        "Roadmaps": "roadmaps",
+        "Interview": "interview",
+        "job": "job",
         // Add more mappings as needed
       };
       if (!serviceName && resourceType) {

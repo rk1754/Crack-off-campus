@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const BACKEND_URL = "https://api.crackoffcampus.com"; // or your prod URL
-
+// const BACKEND_URL = "http://localhost:5454"; // or your local URL
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();

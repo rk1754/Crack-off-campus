@@ -161,7 +161,6 @@ export default function FormPage() {
         // if (formData.resume) {
         //   bookingForm.append("resume", formData.resume);
         // }
-
         await axios.post(
           `${BACKEND_URL}/api/v1/session/booking/book`,
           { 
@@ -238,8 +237,8 @@ export default function FormPage() {
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&serviceId=${serviceId}&serviceName=${encodeURIComponent(serviceTitle)}`,
-        redirectTarget: "_blank" as "_blank",
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${date}&time=${time}&serviceId=${serviceId}&serviceName=${serviceTitle}`,
+        redirectTarget: "_self" as "_self",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {

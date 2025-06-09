@@ -115,6 +115,7 @@ const PremiumJobsFeature: React.FC = () => {
       const amount = 99;
       // Use absolute backend URL for local testing
       const BACKEND_URL = "https://api.crackoffcampus.com";
+      // const BACKEND_URL = "http://localhost:5454"; // Change this to your backend URL
       const orderRes = await axios.post(
         `${BACKEND_URL}/api/v1/payment/create-order`,
         {
@@ -146,7 +147,7 @@ const PremiumJobsFeature: React.FC = () => {
 
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=job&resourceType=job`,
         redirectTarget: "_self" as "_self",
       };
 
