@@ -164,12 +164,16 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         })(),
         subscription_type: serviceName,
         subscription_type_2: serviceName,
+        
       };
-
+      console.log("Service name received in /payment/verify:", serviceName);
       logger.info("Subscription types set from serviceName", { 
         subscription_type: serviceName, 
         subscription_type_2: serviceName 
       });
+      console.log("Subscription types set from serviceName", { 
+        subscription_type: serviceName, 
+        subscription_type_2: serviceName});
 
       // Set all relevant boolean fields to true
       const fieldsToSet = serviceFieldMap[serviceName];
