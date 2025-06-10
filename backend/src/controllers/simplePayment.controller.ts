@@ -23,13 +23,8 @@ export const simpleVerifyPayment = async (req: Request, res: Response): Promise<
     if (!user) {
       res.status(401).json({ success: false, message: "Unauthorized" });
       return;
-    }
-
-    // Verify payment with Cashfree (simplified)
-    const orderDetails = await cashfree.PGFetchOrder(
-      process.env.CASHFREE_ORDER_ID || "2022-09-01",
-      order_id
-    );
+    }    // Verify payment with Cashfree (simplified)
+    const orderDetails = await cashfree.PGFetchOrder(order_id);
     
     if (!orderDetails || orderDetails.data?.order_status !== "PAID") {
       res.status(400).json({ success: false, message: "Order is not paid" });
@@ -128,13 +123,12 @@ export const simpleVerifyPayment = async (req: Request, res: Response): Promise<
       service_name: serviceName,
       subscription_expiry: verifyUser?.subscription_expiry,
     });
-
   } catch (error: any) {
     console.error("❌ ERROR in payment verification:", error);
     res.status(500).json({
       success: false,
       message: "Payment verification failed",
-      error: error.message,
+      error: error.message || "Unknown error",
     });
   }
 };

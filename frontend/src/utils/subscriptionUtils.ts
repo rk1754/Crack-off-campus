@@ -13,8 +13,7 @@ export const updateSubscriptionAfterPayment = async (
       subscription_type,
       userId,
     });
-    
-    // Use the direct /update endpoint that's now in app.ts without any auth restrictions
+      // Use the direct /update endpoint that's now in app.ts without any auth restrictions
     const response = await fetch("https://api.crackoffcampus.com/update", {
       method: "POST",
       credentials: "include",
