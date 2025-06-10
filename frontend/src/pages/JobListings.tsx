@@ -21,6 +21,7 @@ import {
 } from "@/redux/slices/paymentSlice";
 import { BACKEND_URL } from "@/redux/config";
 import { fetchCurrentUser } from "@/redux/slices/userSlice";
+import { updateSubscriptionAfterPayment } from "@/utils/subscriptionUtils";
 
 // Use environment variable for Razorpay key
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
@@ -46,9 +47,11 @@ const JobListings = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 10;
-
   // Premium Modal State
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+
+  // Payment state
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
   // Razorpay script loading state
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
@@ -189,7 +192,7 @@ const JobListings = () => {
       userSubscriptionType === "booster" ||
       userSubscriptionType === "standard" ||
       userSubscriptionType === "basic" ||
-      userSubscriptionType === "job" // Added "job" to skip modal for job plan users
+      userSubscriptionType === "job"
     ) {
       setIsPremiumModalOpen(false);
       return;
@@ -260,6 +263,10 @@ const JobListings = () => {
       });
       const data = await res.json();
       const { payment_session_id, order_id } = data;
+
+      // Store order_id for later use
+      setCurrentOrderId(order_id);
+
       if (!payment_session_id) {
         alert("Payment session ID not found in response");
         return;
@@ -278,15 +285,72 @@ const JobListings = () => {
         returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}&resourceType=${order_type}`,
         redirectTarget: "_self" as "_self",
       };
-      cashfree.checkout(checkoutOptions).then((result: any) => {
+      cashfree.checkout(checkoutOptions).then(async (result: any) => {
         if (result.error) {
           alert(`Payment error: ${result.error.message}`);
         } else if (result.redirect) {
-          // Cashfree will handle redirect
+          // Cashfree will handle redirect        } else if (result.success) {
+          // Payment was successful, update subscription
+          console.log(
+            "Payment successful, updating subscription for job access"
+          );
+          try {
+            if (user && user.id && currentOrderId) {
+              console.log("Calling updateSubscriptionAfterPayment with:", {
+                orderId: currentOrderId,
+                subscription_type: "job",
+                userId: user.id,
+              });
+
+              const subscriptionUpdated = await updateSubscriptionAfterPayment(
+                currentOrderId,
+                "job", // subscription_type as job
+                user.id
+              );
+
+              if (subscriptionUpdated) {
+                console.log(
+                  "Subscription update successful, refreshing user data"
+                );
+                // Refresh user data to reflect the subscription change
+                dispatch(fetchCurrentUser());
+                // Close the premium modal
+                setIsPremiumModalOpen(false);
+                // Clear the order ID
+                setCurrentOrderId(null);
+                // Show success message
+                alert(
+                  "Payment successful! You now have access to premium jobs."
+                );
+              } else {
+                console.error("Subscription update failed");
+                alert(
+                  "Payment successful but subscription update failed. Please contact support."
+                );
+              }
+            } else {
+              console.error("Missing required data for subscription update:", {
+                user: !!user,
+                userId: user?.id,
+                currentOrderId,
+              });
+            }
+          } catch (updateError) {
+            console.error(
+              "Error updating subscription after payment:",
+              updateError
+            );
+            alert(
+              "Payment successful but there was an issue updating your subscription. Please contact support."
+            );
+          }
         }
       });
     } catch (err) {
+      console.error("Payment initiation error:", err);
       alert("Payment failed to start. Please try again.");
+      // Clear any stored order ID on error
+      setCurrentOrderId(null);
     }
   };
 

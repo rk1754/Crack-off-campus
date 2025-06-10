@@ -195,7 +195,7 @@ const PaymentVerify = () => {
                       userRes.data.user?.subscription_type_2 === serviceName
                     ) {
                       console.log(
-                        "✅ SUCCESS: subscription_type_2 updated correctly!"
+                         "✅ SUCCESS: subscription_type_2 updated correctly!"
                       );
                     } else {
                       console.log(
