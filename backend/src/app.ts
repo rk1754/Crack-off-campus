@@ -99,8 +99,7 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   });
 } else {
   const app = express();
-  // Middleware
-  app.use(compression()); // Compress responses
+  // Middleware  app.use(compression()); // Compress responses
   app.use(limiter); // Apply rate limiting
   app.use(cors(corsOptions));
   app.use(express.json({ limit: '50mb' })); // Increased limit for file uploads

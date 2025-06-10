@@ -9,6 +9,19 @@ const router = express.Router();
 
 const authController = new AuthController();
 
+// Special upload configuration for large requests
+const largeUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB per file
+    fieldSize: 10 * 1024 * 1024, // 10MB per field
+    fieldNameSize: 100,
+    fields: 30, // Increased for more fields
+    files: 5, // Allow more files
+    parts: 100, // Allow more parts
+  }
+});
+
 router.get("/all", adminMiddleware, authController.findAllUser);
 
 router.get("/set_user_premium", authMiddleware, authController.setUserPremium);
@@ -49,7 +62,7 @@ router.get("/logout", authMiddleware, authController.logout);
 
 router.put(
   "/update-me",
-  upload.fields([
+  largeUpload.fields([
     { name: "profile_pic", maxCount: 1 },
     { name: "cover_image", maxCount: 1 },
   ]),
