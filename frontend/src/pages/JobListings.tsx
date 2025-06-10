@@ -58,7 +58,6 @@ const JobListings = () => {
 
   // Cashfree payment SDK loading state
   const [sdkLoaded, setSdkLoaded] = useState(false);
-
   useEffect(() => {
     dispatch(fetchCurrentUser());
     // eslint-disable-next-line
@@ -161,9 +160,15 @@ const JobListings = () => {
       window.scrollTo(0, 0);
     }
   };
-
   let userSubscriptionType = "regular";
   if (user) {
+    console.log("User subscription data:", {
+      subscription_type: user.subscription_type,
+      subscription_type_2: user.subscription_type_2,
+      is_premium: user.is_premium,
+      job: (user as any).job,
+    });
+
     // Check both subscription_type and subscription_type_2
     if (
       user.subscription_type === "booster" ||
@@ -179,24 +184,59 @@ const JobListings = () => {
       user.subscription_type_2 === "job" // Added "job" to recognize it as premium
     ) {
       userSubscriptionType = user.subscription_type_2;
+    } else if (user.is_premium === true) {
+      // If user has is_premium flag, treat as premium
+      userSubscriptionType = "premium";
+    } else if ((user as any).job === true) {
+      // If user has job access flag, treat as job subscription
+      userSubscriptionType = "job";
     } else {
       userSubscriptionType =
         user.subscription_type || user.subscription_type_2 || "regular";
     }
-  }
-
+    console.log("Final userSubscriptionType:", userSubscriptionType);
+  } // Auto-close premium modal if user has premium subscription
+  useEffect(() => {
+    if (
+      user &&
+      (userSubscriptionType === "booster" ||
+        userSubscriptionType === "standard" ||
+        userSubscriptionType === "basic" ||
+        userSubscriptionType === "job" ||
+        userSubscriptionType === "premium" || // Handle when we set it to "premium"
+        user.is_premium === true ||
+        (user as any).job === true) // Check for job access flag (using any to bypass type checking)
+    ) {
+      console.log("User has premium/job access, auto-closing modal");
+      setIsPremiumModalOpen(false);
+    }
+  }, [user, userSubscriptionType]);
   const handleOpenPremiumModal = () => {
+    console.log("handleOpenPremiumModal called");
+    console.log("User exists:", !!user);
+    console.log("userSubscriptionType:", userSubscriptionType);
+    console.log("user.is_premium:", user?.is_premium);
+    console.log("user.job:", (user as any)?.job);
+
     if (!user) {
+      console.log("No user, redirecting to login");
       navigate("/login?redirect=/jobs");
     } else if (
       userSubscriptionType === "booster" ||
       userSubscriptionType === "standard" ||
       userSubscriptionType === "basic" ||
-      userSubscriptionType === "job"
+      userSubscriptionType === "job" ||
+      userSubscriptionType === "premium" || // Handle when we set it to "premium"
+      user.is_premium === true || // Also check is_premium field
+      (user as any).job === true // Check for job access flag
     ) {
+      console.log(
+        "User has premium subscription or job access, not showing modal"
+      );
       setIsPremiumModalOpen(false);
       return;
     } else {
+      console.log("User does not have premium subscription, showing modal");
       setIsPremiumModalOpen(true);
     }
   };
