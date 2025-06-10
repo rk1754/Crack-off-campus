@@ -88,7 +88,28 @@ class SlotBookingController {
       const userHtml = `
         <p>Dear ${user.name},</p>
         <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
-        ${resumeUrl ? `<p>Your resume: <a href="${resumeUrl}" target="_blank" style="color: #007bff; text-decoration: none;">View Resume</a></p>` : ''}
+        ${resumeUrl ? `
+        <div style="margin: 20px 0;">
+          <p>Your uploaded resume:</p>
+          <a href="${resumeUrl.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '.pdf')}" 
+             download="${user.name}_Resume.pdf" 
+             target="_blank" 
+             style="display: inline-block; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 8px; 
+                    font-weight: 600; 
+                    font-size: 14px; 
+                    text-align: center; 
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); 
+                    transition: all 0.3s ease; 
+                    border: none; 
+                    cursor: pointer;">
+            <span style="margin-right: 8px;">📄</span>Click here to view Resume
+          </a>
+        </div>` : ''}
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
         <p>Best Regards,</p>
@@ -110,11 +131,31 @@ class SlotBookingController {
         <p>Dear Admin,</p>
         <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${date} ${time}</b>.</p>
         <p>User Contact: ${user.phone_number}</p>
-        ${resumeUrl ? `<p>Resume: <a href="${resumeUrl}" target="_blank" style="color: #007bff; text-decoration: none;">View Resume</a></p>` : '<p>No resume uploaded</p>'}
+        ${resumeUrl ? `
+        <div style="margin: 20px 0;">
+          <a href="${resumeUrl.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '.pdf')}" 
+             download="${user.name}_Resume.pdf" 
+             target="_blank" 
+             style="display: inline-block; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 8px; 
+                    font-weight: 600; 
+                    font-size: 14px; 
+                    text-align: center; 
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); 
+                    transition: all 0.3s ease; 
+                    border: none; 
+                    cursor: pointer;">
+            <span style="margin-right: 8px;">📄</span>Click here to view Resume
+          </a>
+        </div>` : '<p style="color: #666; font-style: italic;">No resume uploaded</p>'}
         <p>Thank you.</p>
         <p>Best Regards,</p>
         <p>Team Crack Off-Campus</p>
-      `;      await transporter.sendMail({
+      `;await transporter.sendMail({
         from: process.env.SMTP_FROM_EMAIL,
         to: "crackoffcampus63@gmail.com",
         subject: "New Slot Booking",
