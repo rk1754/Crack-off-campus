@@ -1,6 +1,4 @@
-import axios from "axios";
 import { toast } from "sonner";
-import { BACKEND_URL } from "@/redux/config";
 
 export const updateSubscriptionAfterPayment = async (
   orderId: string,
@@ -13,8 +11,13 @@ export const updateSubscriptionAfterPayment = async (
       subscription_type,
       userId,
     });
-      // Use the direct /update endpoint that's now in app.ts without any auth restrictions
-    const response = await fetch("https://api.crackoffcampus.com/update", {
+    
+    // Use the base domain without /api/v1 since /update is a direct route in app.ts
+    const baseUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5454' 
+      : 'https://api.crackoffcampus.com';
+    
+    const response = await fetch(`${baseUrl}/update`, {
       method: "POST",
       credentials: "include",
       headers: {

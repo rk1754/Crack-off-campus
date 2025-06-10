@@ -97,24 +97,34 @@ const PaymentVerify = () => {
         );
 
         if (verifyRes.data.success) {
-          console.log("Payment verification successful:", verifyRes.data);
-          // Step 2: Update subscription after successful payment verification
+          console.log("Payment verification successful:", verifyRes.data); // Step 2: Update subscription after successful payment verification
           try {
-            const updateRes = await axios.post(
-              "/update",
-              {
+            // Use fetch instead of axios to avoid /api/v1 prefix for the direct /update route
+            const baseUrl =
+              window.location.hostname === "localhost"
+                ? "http://localhost:5454"
+                : "https://api.crackoffcampus.com";
+
+            const updateResponse = await fetch(`${baseUrl}/update`, {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
                 userId: user.id,
                 subscription_type: serviceName,
                 order_id: order_id,
-              },
-              { withCredentials: true }
-            );
+              }),
+            });
 
-            if (updateRes.data.success) {
+            const updateRes = await updateResponse.json();
+
+            if (updateResponse.ok && updateRes.success) {
               toast.success("Payment successful and subscription updated!");
-              console.log("Subscription update response:", updateRes.data);
+              console.log("Subscription update response:", updateRes);
             } else {
-              console.warn("Subscription update failed:", updateRes.data);
+              console.warn("Subscription update failed:", updateRes);
               toast.warning(
                 "Payment verified but subscription update failed. Contact support."
               );
