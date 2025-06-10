@@ -138,6 +138,30 @@ export default function FormPage() {
       return;
     }
 
+    // Upload resume for all users before payment
+    let resumePath = "";
+    try {
+      const resumeForm = new FormData();
+      resumeForm.append("resume", formData.resume as File);
+      const res = await axios.post(
+        `${BACKEND_URL}/api/v1/session/booking/upload-resume`,
+        resumeForm,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      resumePath = res.data.resumePath;
+    } catch (error: any) {
+      setError(
+        error?.response?.data?.message ||
+          error.message ||
+          "Failed to upload resume."
+      );
+      return;
+    }
+
     // Booster user direct booking for Resume Review or Referral
     if (
       subscriptionType === "booster" &&
@@ -146,30 +170,24 @@ export default function FormPage() {
       setIsSubmitting(true);
       setError(null);
       try {
-        // Direct booking API call (replace endpoint as needed)
-        const bookingForm = new FormData();
-        bookingForm.append("serviceId", serviceId || "");
-        bookingForm.append("service_name", serviceTitle);
-        bookingForm.append("date", date);
-        bookingForm.append("time", time);
-        bookingForm.append("name", formData.name);
-        bookingForm.append("phone", formData.phone);
-        bookingForm.append("email", formData.email);
-        bookingForm.append("state", formData.state);
-        bookingForm.append("targetRole", formData.targetRole);
-        bookingForm.append("language", formData.language);
-        // if (formData.resume) {
-        //   bookingForm.append("resume", formData.resume);
-        // }
         await axios.post(
           `${BACKEND_URL}/api/v1/session/booking/book`,
-          { 
-          bookingForm,
-          resume: formData.resume,
+          {
+            serviceId,
+            service_name: serviceTitle,
+            date,
+            time,
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            state: formData.state,
+            targetRole: formData.targetRole,
+            language: formData.language,
+            resumePath, // Use uploaded resumePath
           },
           {
             headers: {
-              "Content-Type": "multipart/form-data",
+              "Content-Type": "application/json",
             },
           }
         );
@@ -207,7 +225,7 @@ export default function FormPage() {
           state: formData.state,
           targetRole: formData.targetRole,
           language: formData.language,
-          // Resume file cannot be stored, will be handled after payment if needed
+          resumePath, // Store resumePath for use after payment
         })
       );
 
@@ -216,7 +234,7 @@ export default function FormPage() {
       const paymentOrderRes = await axios.post(
         `${BACKEND_URL}/api/v1/payment/create-order`,
         {
-          amount: Number(amount), // You may want to get the actual amount dynamically
+          amount: Number(amount),
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -237,7 +255,10 @@ export default function FormPage() {
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&date=${date}&time=${time}&serviceId=${serviceId}&serviceName=${serviceTitle}`,
+        returnUrl:
+          `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}` +
+          `&date=${date}&time=${time}&serviceId=${serviceId}` +
+          `&serviceName=${serviceTitle}&resumePath=${encodeURIComponent(resumePath)}`,
         redirectTarget: "_self" as "_self",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {

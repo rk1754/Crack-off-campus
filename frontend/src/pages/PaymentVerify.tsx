@@ -99,6 +99,7 @@ const PaymentVerify = () => {
             formData.append("serviceId", serviceId);
             formData.append("date", date);
             formData.append("time", time);
+            formData.append("resumePath", bookingData.resumePath);
             // Ensure service_name is always set
             formData.append(
               "service_name",

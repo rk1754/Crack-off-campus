@@ -19,6 +19,7 @@
     "@types/cors": "^2.8.18",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.1",
+    "@types/express-session": "^1.18.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
@@ -37,6 +38,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
@@ -47,6 +49,7 @@
     "pg-hstore": "^2.3.4",
     "razorpay": "^2.9.6",
     "sequelize": "^6.37.7",
+    "streamifier": "^0.1.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "uuid": "^11.1.0",
@@ -54,6 +57,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "@types/archiver": "^6.0.3"
+    "@types/archiver": "^6.0.3",
+    "@types/streamifier": "^0.1.2"
   }
 }
