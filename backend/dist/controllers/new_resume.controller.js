@@ -8,41 +8,51 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 // Directory where static templates are stored
 const TEMPLATE_DIR = path_1.default.join(__dirname, '../static/templates');
-// Subscription types
-const SUBSCRIPTION_RESUME = 'resume';
-const SUBSCRIPTION_TEMPLATES = 'other_templates';
-// Helper to check subscription
-function hasSubscription(user, requiredType) {
-    // Check all possible subscription columns
-    const types = [
-        user?.subscription_type,
-        user?.subscription_type_2,
-    ].filter(Boolean);
-    if (types.length === 0) {
-        return false; // Handle case where user or subscription_type is undefined
-    }
-    if (requiredType === SUBSCRIPTION_RESUME) {
-        return types.includes('resume') ||
-            types.includes('booster') ||
-            types.includes('standard');
-    }
-    return types.includes('other_templates') ||
-        types.includes('booster') ||
-        types.includes('standard');
+// Helper type guard for user booleans
+function isUserWithResourceFlags(user) {
+    return typeof user === 'object' && user !== null;
 }
-function hasBasicSubscription(user, requiredType) {
-    // Check both subscription_type and subscription_type_2
-    const types = [
-        user?.subscription_type,
-        user?.subscription_type_2,
-    ].filter(Boolean);
-    if (types.length === 0) {
-        return false; // Handle case where user or subscription_type is undefined
+// Helper to check access for individual resources based on user.model.ts booleans
+function hasResourceAccess(user, resource) {
+    if (!isUserWithResourceFlags(user))
+        return false;
+    // Normalize resource name to use underscores
+    const normalized = resource.replace(/-/g, "_");
+    switch (normalized) {
+        case 'resume':
+            // Debug log
+            console.log('Checking resume access:', user.resume);
+            return user.resume === true;
+        case 'referral':
+            console.log('Checking referral access:', user.referral);
+            return user.referral === true;
+        case 'cold_mail':
+            console.log('Checking cold_mail access:', user.cold_mail);
+            return user.cold_mail === true;
+        case 'cover_letter':
+            console.log('Checking cover_letter access:', user.cover_letter);
+            return user.cover_letter === true;
+        case 'hr_mail':
+            console.log('Checking hr_mail access:', user.hr_mail);
+            return user.hr_mail === true;
+        case 'linkedin':
+            console.log('Checking linkedin access:', user.linkedin);
+            return user.linkedin === true;
+        case 'cv':
+            console.log('Checking cv access:', user.cv);
+            return user.cv === true;
+        case 'roadmaps':
+            console.log('Checking roadmaps access:', user.roadmaps);
+            return user.roadmaps === true;
+        case 'interview':
+            console.log('Checking interview access:', user.interview);
+            return user.interview === true;
+        case 'job':
+            console.log('Checking job access:', user.job);
+            return user.job === true;
+        default:
+            return false;
     }
-    if (requiredType === SUBSCRIPTION_RESUME) {
-        return types.some((type) => ['resume', 'booster', 'standard', 'basic'].includes(type));
-    }
-    return types.some((type) => ['other_templates', 'booster', 'standard', 'basic'].includes(type));
 }
 // Download Resume Template
 const downloadResumeTemplate = (req, res) => {
@@ -51,22 +61,17 @@ const downloadResumeTemplate = (req, res) => {
         res.status(401).json({ error: 'Unauthorized: User not authenticated.' });
         return;
     }
-    if (!hasSubscription(user, SUBSCRIPTION_RESUME)) {
-        console.log(user.subscription_type, user.subscription_type_2);
-        res.status(403).json({ error: 'Resume template requires resume subscription (99 rs).' });
+    if (!hasResourceAccess(user, 'resume')) {
+        res.status(403).json({ error: 'Resume template requires purchase or access.' });
         return;
     }
     const filePath = path_1.default.join(TEMPLATE_DIR, 'resume_template.pdf');
-    // Remove debug log for production
-    // console.log('File path:', filePath);
     if (!fs_1.default.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found.' });
         return;
     }
-    // Set headers for file download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="resume_template.pdf"');
-    // Stream the file
     const fileStream = fs_1.default.createReadStream(filePath);
     fileStream.pipe(res).on('error', (err) => {
         console.error('Error streaming file:', err);
@@ -77,20 +82,17 @@ exports.downloadResumeTemplate = downloadResumeTemplate;
 // Download HR Email Template
 const downloadHrEmailTemplate = (req, res) => {
     const user = req.user;
-    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
-        res.status(403).json({ error: 'HR email template requires templates subscription (49 rs).' });
+    if (!hasResourceAccess(user, 'hr_mail')) {
+        res.status(403).json({ error: 'HR email template requires purchase or access.' });
         return;
     }
     const filePath = path_1.default.join(TEMPLATE_DIR, 'hr_email_template.pdf');
-    // Check if the file exists
     if (!fs_1.default.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found.' });
         return;
     }
-    // Set headers for file download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="hr_email_template.pdf"');
-    // Send the file
     res.download(filePath, (err) => {
         if (err) {
             console.error('Error downloading file:', err);
@@ -102,20 +104,17 @@ exports.downloadHrEmailTemplate = downloadHrEmailTemplate;
 // Download Referral Template
 const downloadReferralTemplate = (req, res) => {
     const user = req.user;
-    if (!hasSubscription(user, SUBSCRIPTION_TEMPLATES)) {
-        res.status(403).json({ error: 'Referral template requires templates subscription (49 rs).' });
+    if (!hasResourceAccess(user, 'referral')) {
+        res.status(403).json({ error: 'Referral template requires purchase or access.' });
         return;
     }
     const filePath = path_1.default.join(TEMPLATE_DIR, 'referral_template.pdf');
-    // Check if the file exists
     if (!fs_1.default.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found.' });
         return;
     }
-    // Set headers for file download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="referral_template.pdf"');
-    // Send the file
     res.download(filePath, (err) => {
         if (err) {
             console.error('Error downloading file:', err);
@@ -127,20 +126,17 @@ exports.downloadReferralTemplate = downloadReferralTemplate;
 // Download Cold Mail Template
 const downloadColdMailTemplate = (req, res) => {
     const user = req.user;
-    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
-        res.status(403).json({ error: 'Cold mail template requires templates subscription (49 rs).' });
+    if (!hasResourceAccess(user, 'cold_mail')) {
+        res.status(403).json({ error: 'Cold mail template requires purchase or access.' });
         return;
     }
     const filePath = path_1.default.join(TEMPLATE_DIR, 'cold_mail_template.pdf');
-    // Check if the file exists
     if (!fs_1.default.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found.' });
         return;
     }
-    // Set headers for file download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="cold_mail_template.pdf"');
-    // Send the file
     res.download(filePath, (err) => {
         if (err) {
             console.error('Error downloading file:', err);
@@ -152,20 +148,17 @@ exports.downloadColdMailTemplate = downloadColdMailTemplate;
 // Download Cover Letter Template
 const downloadCoverLetterTemplate = (req, res) => {
     const user = req.user;
-    if (!hasBasicSubscription(user, SUBSCRIPTION_TEMPLATES)) {
-        res.status(403).json({ error: 'Cover letter template requires templates subscription (49 rs).' });
+    if (!hasResourceAccess(user, 'cover_letter')) {
+        res.status(403).json({ error: 'Cover letter template requires purchase or access.' });
         return;
     }
     const filePath = path_1.default.join(TEMPLATE_DIR, 'cover_letter_template.pdf');
-    // Check if the file exists
     if (!fs_1.default.existsSync(filePath)) {
         res.status(404).json({ error: 'File not found.' });
         return;
     }
-    // Set headers for file download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="cover_letter_template.pdf"');
-    // Send the file
     res.download(filePath, (err) => {
         if (err) {
             console.error('Error downloading file:', err);

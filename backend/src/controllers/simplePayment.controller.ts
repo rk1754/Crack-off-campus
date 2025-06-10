@@ -23,8 +23,27 @@ export const simpleVerifyPayment = async (req: Request, res: Response): Promise<
     if (!user) {
       res.status(401).json({ success: false, message: "Unauthorized" });
       return;
-    }    // Verify payment with Cashfree (simplified)
-    const orderDetails = await cashfree.PGFetchOrder(order_id);
+    }
+
+    // Verify payment with Cashfree (simplified) with proper error handling
+    let orderDetails;
+    try {
+      orderDetails = await cashfree.PGFetchOrder(order_id);
+    } catch (cashfreeError: any) {
+      console.error("❌ Cashfree API error:", {
+        message: cashfreeError.message,
+        status: cashfreeError.response?.status,
+        statusText: cashfreeError.response?.statusText,
+        data: cashfreeError.response?.data
+      });
+      
+      res.status(500).json({
+        success: false,
+        message: "Cashfree order fetch failed",
+        error: cashfreeError.message || "Failed to fetch order from Cashfree"
+      });
+      return;
+    }
     
     if (!orderDetails || orderDetails.data?.order_status !== "PAID") {
       res.status(400).json({ success: false, message: "Order is not paid" });
@@ -122,13 +141,24 @@ export const simpleVerifyPayment = async (req: Request, res: Response): Promise<
       message: "Payment verified and service updated",
       service_name: serviceName,
       subscription_expiry: verifyUser?.subscription_expiry,
+    });  } catch (error: any) {
+    console.error("❌ ERROR in payment verification:", {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      } : undefined
     });
-  } catch (error: any) {
-    console.error("❌ ERROR in payment verification:", error);
+    
     res.status(500).json({
       success: false,
       message: "Payment verification failed",
       error: error.message || "Unknown error",
+      name: error.name,
+      stack: error.stack
     });
   }
 };

@@ -29,8 +29,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       
       // Use provided phone or fallback to user's phone or default
       const customerPhone = phone || user.phone_number || "+919876543210";
-      
-      const orderPayload = {
+        const orderPayload = {
         order_amount: amount,
         order_currency: currency,
         customer_details: {
@@ -40,8 +39,28 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         },
         order_id: `order_${Date.now()}`,
       };
-      const order = await cashfree.PGCreateOrder(orderPayload);
-      logger.info("Order created:", order.data);
+      
+      let order;
+      try {
+        order = await cashfree.PGCreateOrder(orderPayload);
+        logger.info("Order created:", order.data);
+      } catch (cashfreeError: any) {
+        console.error("❌ Cashfree PGCreateOrder error:", {
+          message: cashfreeError.message,
+          status: cashfreeError.response?.status,
+          statusText: cashfreeError.response?.statusText,
+          data: cashfreeError.response?.data
+        });
+        
+        logger.error("Error creating payment order:", cashfreeError);
+        res.status(500).json({
+          success: false,
+          message: "Cashfree order creation failed",
+          error: cashfreeError.message || "Failed to create order with Cashfree"
+        });
+        return;
+      }
+      
       res.status(201).json({
         success: true,
         order_id: orderPayload.order_id,
@@ -49,18 +68,22 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         redirect_url: `https://payments.cashfree.com/pg/checkout?payment_session_id=${order.data.payment_session_id}`,
       });
       return;
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("General error in createPaymentOrder:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack
+      });
       logger.error("Error creating payment order:", err);
       res.status(500).json({
         success: false,
         message:
           "Problems occurring with payment, if amount is debited it will be sent back. \nThank You",
+        error: err.message
       });
       return;
     }
   };
-
   verifyPaymentAPI = async (req: Request, res: Response): Promise<void> => {
     try {
       logger.info("/payment/verify called", { body: req.body, user: req.user });
@@ -76,9 +99,27 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         return;
       }
 
-      // Fetch order details from Cashfree
-      const orderDetails = await cashfree.PGFetchOrder(order_id as string);
-      logger.info("Cashfree order details", { order_id, orderDetails });
+      // Fetch order details from Cashfree with proper error handling
+      let orderDetails;
+      try {
+        orderDetails = await cashfree.PGFetchOrder(order_id as string);
+        logger.info("Cashfree order details", { order_id, orderDetails });
+      } catch (cashfreeError: any) {
+        console.error("❌ Cashfree PGFetchOrder error:", {
+          message: cashfreeError.message,
+          status: cashfreeError.response?.status,
+          statusText: cashfreeError.response?.statusText,
+          data: cashfreeError.response?.data
+        });
+        
+        res.status(500).json({
+          success: false,
+          message: "Cashfree order fetch failed",
+          error: cashfreeError.message || "Failed to fetch order from Cashfree"
+        });
+        return;
+      }
+      
       if (!orderDetails || orderDetails.data.order_status !== "PAID") {
         logger.warn("Order not paid", { order_id, orderDetails });
         res
@@ -87,11 +128,28 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         return;
       }
 
-      // Fetch payment details to get cf_payment_id
-      const paymentDetails = await cashfree.PGOrderFetchPayments(
-        order_id as string
-      );
-      logger.info("Cashfree payment details", { order_id, paymentDetails });
+      // Fetch payment details to get cf_payment_id with proper error handling
+      let paymentDetails;
+      try {
+        paymentDetails = await cashfree.PGOrderFetchPayments(
+          order_id as string
+        );
+        logger.info("Cashfree payment details", { order_id, paymentDetails });
+      } catch (cashfreeError: any) {
+        console.error("❌ Cashfree PGOrderFetchPayments error:", {
+          message: cashfreeError.message,
+          status: cashfreeError.response?.status,
+          statusText: cashfreeError.response?.statusText,
+          data: cashfreeError.response?.data
+        });
+        
+        res.status(500).json({
+          success: false,
+          message: "Cashfree payment details fetch failed",
+          error: cashfreeError.message || "Failed to fetch payment details from Cashfree"
+        });
+        return;
+      }
       const successfulPayment = paymentDetails.data.find(
         (payment: any) => payment.payment_status === "SUCCESS"
       );
@@ -377,17 +435,31 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         message: "Payment verified and service updated",
         service_name: serviceName,
         subscription_expiry: updateFields.subscription_expiry,
-      });
-    } catch (err: any) {
+      });    } catch (err: any) {
       logger.error("Payment verification error in /payment/verify", {
-        error: err,
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+        response: err.response ? {
+          status: err.response.status,
+          statusText: err.response.statusText,
+          data: err.response.data
+        } : undefined,
         body: req.body,
-        user: req.user,
+        user: req.user ? { id: req.user.id, email: req.user.email } : undefined,
       });
-      console.error("Payment verification error:", err);
+      
+      console.error("Payment verification error:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack
+      });
+      
       res.status(500).json({
         success: false,
         message: err.message || "Server error",
+        error: err.message,
+        name: err.name
       });
     }
   };
@@ -528,7 +600,6 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       });
     }
   };
-
   verifyPayment = async (req: Request, res: Response): Promise<any> => {
     try {
       const { order_id } = req.query;
@@ -539,15 +610,56 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         }
         return res.redirect("/jobs?payment=error&message=order_id_missing");
       }
-      // Fetch order details from Cashfree
-      const orderDetails = await cashfree.PGFetchOrder(order_id as string);
+      
+      // Fetch order details from Cashfree with proper error handling
+      let orderDetails;
+      try {
+        orderDetails = await cashfree.PGFetchOrder(order_id as string);
+      } catch (cashfreeError: any) {
+        console.error("❌ Cashfree PGFetchOrder error in verifyPayment:", {
+          message: cashfreeError.message,
+          status: cashfreeError.response?.status,
+          statusText: cashfreeError.response?.statusText,
+          data: cashfreeError.response?.data
+        });
+        
+        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+          return res.status(500).json({ 
+            success: false, 
+            message: "Cashfree order fetch failed",
+            error: cashfreeError.message 
+          });
+        }
+        return res.redirect("/jobs?payment=error&message=cashfree_error");
+      }
+      
       if (!orderDetails || orderDetails.data.order_status !== "PAID") {
         return res.redirect("/jobs?payment=failed");
       }
-      // Fetch payment details to get cf_payment_id
-      const paymentDetails = await cashfree.PGOrderFetchPayments(
-        order_id as string
-      );
+      
+      // Fetch payment details to get cf_payment_id with proper error handling
+      let paymentDetails;
+      try {
+        paymentDetails = await cashfree.PGOrderFetchPayments(
+          order_id as string
+        );
+      } catch (cashfreeError: any) {
+        console.error("❌ Cashfree PGOrderFetchPayments error in verifyPayment:", {
+          message: cashfreeError.message,
+          status: cashfreeError.response?.status,
+          statusText: cashfreeError.response?.statusText,
+          data: cashfreeError.response?.data
+        });
+        
+        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+          return res.status(500).json({ 
+            success: false, 
+            message: "Cashfree payment details fetch failed",
+            error: cashfreeError.message 
+          });
+        }        return res.redirect("/jobs?payment=error&message=cashfree_error");
+      }
+      
       const successfulPayment = paymentDetails.data.find(
         (payment: any) => payment.payment_status === "SUCCESS"
       );
@@ -660,12 +772,31 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         });
       }
       // Default: redirect
-      res.redirect("/jobs?payment=success");
-    } catch (err: any) {
-      console.error("Payment verification error:", err);
-      logger.error("Payment verification error:", err);
+      res.redirect("/jobs?payment=success");    } catch (err: any) {
+      console.error("Payment verification error:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack
+      });
+      
+      logger.error("Payment verification error:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+        response: err.response ? {
+          status: err.response.status,
+          statusText: err.response.statusText,
+          data: err.response.data
+        } : undefined
+      });
+      
       if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
-        return res.status(500).json({ success: false, message: err.message || "server_error" });
+        return res.status(500).json({ 
+          success: false, 
+          message: err.message || "server_error",
+          error: err.message,
+          name: err.name
+        });
       }
       res.redirect(
         `/jobs?payment=error&message=${encodeURIComponent(

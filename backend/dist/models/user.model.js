@@ -30,10 +30,9 @@ User.init({
     password: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
-    },
-    phone_number: {
+    }, phone_number: {
         type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     is_employer: {
         type: sequelize_1.DataTypes.BOOLEAN,
@@ -101,6 +100,56 @@ User.init({
     updated_at: {
         type: sequelize_1.DataTypes.DATE,
         defaultValue: sequelize_1.DataTypes.NOW,
+    },
+    job: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true,
+    },
+    resume: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true,
+    },
+    referral: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true,
+    },
+    cold_mail: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true,
+    },
+    cover_letter: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
+    hr_mail: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
+    linkedin: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
+    cv: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
+    roadmaps: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
+    interview: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
     },
 }, {
     sequelize: db_1.default,

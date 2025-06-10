@@ -17,7 +17,7 @@ const authMiddleware = async (req, res, next) => {
         }
         const decoded = jsonwebtoken_1.default.verify(token, config_1.JWT_SECRET);
         console.log(decoded);
-        req.user = { id: decoded.id, email: decoded.email, subscription_type: decoded.subscription_type, phone_number: decoded.phone_number, subscription_type_2: decoded.subscription_type_2 };
+        req.user = { id: decoded.id, email: decoded.email, subscription_type: decoded.subscription_type, phone_number: decoded.phone_number, subscription_type_2: decoded.subscription_type_2, resume: decoded.resume, referral: decoded.referral, cold_mail: decoded.cold_mail, cover_letter: decoded.cover_letter, hr_mail: decoded.hr_mail, linkedin: decoded.linkedin, cv: decoded.cv, roadmaps: decoded.roadmaps, interview: decoded.interview, job: decoded.job };
         next();
     }
     catch (err) {

@@ -15,9 +15,13 @@ const mailer_1 = require("../utils/mailer");
 const streamPipeline = (0, util_1.promisify)(stream_1.pipeline);
 class AuthController {
     constructor() {
+        this.FRONTEND_URL = process.env.FRONTEND_URL || "https://www.crackoffcampus.com";
         this.signup = async (req, res) => {
             const data = req.body;
-            if (!data.email || !data.password || !data.phone_number || data.phone_number === "Not provided") {
+            if (!data.email ||
+                !data.password ||
+                !data.phone_number ||
+                data.phone_number === "Not provided") {
                 res.status(400).json({
                     success: false,
                     message: "Please provide complete data to register",
@@ -25,6 +29,15 @@ class AuthController {
                 return;
             }
             try {
+                // Check if user already exists
+                const existingUser = await user_model_1.default.findOne({ where: { email: data.email } });
+                if (existingUser) {
+                    res.status(409).json({
+                        success: false,
+                        message: "This email is already registered. Please login instead.",
+                    });
+                    return;
+                }
                 const hashedPassword = await bcrypt_1.default.hash(data.password, config_1.BCRYPT_SALT);
                 data.password = hashedPassword;
                 const user = await user_model_1.default.create({
@@ -48,6 +61,17 @@ class AuthController {
                     subscription_type: user.subscription_type,
                     subscription_type_2: user.subscription_type_2,
                     phone_number: user.phone_number,
+                    // Add all resource booleans
+                    resume: user.resume,
+                    referral: user.referral,
+                    cold_mail: user.cold_mail,
+                    cover_letter: user.cover_letter,
+                    hr_mail: user.hr_mail,
+                    linkedin: user.linkedin,
+                    cv: user.cv,
+                    roadmaps: user.roadmaps,
+                    interview: user.interview,
+                    job: user.job,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
                 });
@@ -100,6 +124,17 @@ class AuthController {
                     subscription_type: user.subscription_type,
                     subscription_type_2: user.subscription_type_2,
                     phone_number: user.phone_number,
+                    // Add all resource booleans
+                    resume: user.resume,
+                    referral: user.referral,
+                    cold_mail: user.cold_mail,
+                    cover_letter: user.cover_letter,
+                    hr_mail: user.hr_mail,
+                    linkedin: user.linkedin,
+                    cv: user.cv,
+                    roadmaps: user.roadmaps,
+                    interview: user.interview,
+                    job: user.job,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
                 });
@@ -192,12 +227,59 @@ class AuthController {
                 return;
             }
         };
+        // forgotPassword = async (req: Request, res: Response): Promise<void> => {
+        //   const { email } = req.body;
+        //   if (!email) {
+        //     res.status(400).json({
+        //       success: false,
+        //       message: "Please provide an email address",
+        //     });
+        //     return;
+        //   }
+        //   try {
+        //     const user = await User.findOne({ where: { email } });
+        //     if (!user) {
+        //       res.status(404).json({
+        //         success: false,
+        //         message: "User with this email does not exist",
+        //       });
+        //       return;
+        //     }
+        //     const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, {
+        //       expiresIn: "1h",
+        //     });
+        //     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+        //     await transporter.sendMail({
+        //       from: process.env.SMTP_FROM_EMAIL,
+        //       to: user.email,
+        //       subject: "Password Reset Request",
+        //       html: `
+        //                   <p>Hello ${user.name},</p>
+        //                   <p>You requested to reset your password. Click the link below to reset it:</p>
+        //                   <a href="${resetLink}">${resetLink}</a>
+        //                   <p>If you did not request this, please ignore this email.</p>
+        //                   <p> Your token is : ${resetToken}</p>
+        //                   <p>Thank you!</p>
+        //               `,
+        //     });
+        //     res.status(200).json({
+        //       success: true,
+        //       message: "Password reset email sent successfully",
+        //     });
+        //   } catch (err) {
+        //     console.error(err);
+        //     res.status(500).json({
+        //       success: false,
+        //       message: "Something went wrong while sending the email",
+        //     });
+        //   }
+        // };
         this.forgotPassword = async (req, res) => {
             const { email } = req.body;
             if (!email) {
                 res.status(400).json({
                     success: false,
-                    message: "Please provide an email address",
+                    message: 'Please provide an email address',
                 });
                 return;
             }
@@ -206,7 +288,7 @@ class AuthController {
                 if (!user) {
                     res.status(404).json({
                         success: false,
-                        message: "User with this email does not exist",
+                        message: 'User with this email does not exist',
                     });
                     return;
                 }
@@ -215,28 +297,27 @@ class AuthController {
                 });
                 const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
                 await mailer_1.transporter.sendMail({
-                    from: process.env.SMTP_FROM_EMAIL,
+                    from: config_1.SMTP_USER,
                     to: user.email,
-                    subject: "Password Reset Request",
+                    subject: 'Password Reset Request',
                     html: `
-                    <p>Hello ${user.name},</p>
-                    <p>You requested to reset your password. Click the link below to reset it:</p>
-                    <a href="${resetLink}">${resetLink}</a>
-                    <p>If you did not request this, please ignore this email.</p>
-                    <p> Your token is : ${resetToken}</p>
-                    <p>Thank you!</p>
-                `,
+        <p>Hello ${user.name},</p>
+        <p>You requested to reset your password. Click the link below to reset it:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Your token is: ${resetToken}</p>
+        <p>Thank you!</p>
+      `,
                 });
                 res.status(200).json({
                     success: true,
-                    message: "Password reset email sent successfully",
+                    message: 'Password reset email sent successfully',
                 });
             }
             catch (err) {
-                console.error(err);
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong while sending the email",
+                    message: 'Something went wrong while sending the email',
                 });
             }
         };
@@ -466,6 +547,23 @@ class AuthController {
                 }
                 if (req.files && req.files.profile_pic) {
                     const file = req.files.profile_pic[0];
+                    // Validate file type
+                    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                    if (!allowedImageTypes.includes(file.mimetype)) {
+                        res.status(400).json({
+                            success: false,
+                            message: "Invalid file type for profile picture. Only JPEG, PNG, and WebP files are allowed."
+                        });
+                        return;
+                    }
+                    // Validate file size (5MB limit for images)
+                    if (file.size > 5 * 1024 * 1024) {
+                        res.status(413).json({
+                            success: false,
+                            message: "Profile picture file size too large. Please upload files smaller than 5MB."
+                        });
+                        return;
+                    }
                     const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
                     const result = await cloudinary_1.default.uploader.upload(base64, {
                         folder: "job-portal/profiles",
@@ -474,6 +572,23 @@ class AuthController {
                 }
                 if (req.files && req.files.cover_image) {
                     const file = req.files.cover_image[0];
+                    // Validate file type
+                    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                    if (!allowedImageTypes.includes(file.mimetype)) {
+                        res.status(400).json({
+                            success: false,
+                            message: "Invalid file type for cover image. Only JPEG, PNG, and WebP files are allowed."
+                        });
+                        return;
+                    }
+                    // Validate file size (5MB limit for images)
+                    if (file.size > 5 * 1024 * 1024) {
+                        res.status(413).json({
+                            success: false,
+                            message: "Cover image file size too large. Please upload files smaller than 5MB."
+                        });
+                        return;
+                    }
                     const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
                     const result = await cloudinary_1.default.uploader.upload(base64, {
                         folder: "job-portal/covers",
@@ -488,6 +603,17 @@ class AuthController {
                     subscription_type: user.subscription_type,
                     subscription_type_2: user.subscription_type_2,
                     phone_number: user.phone_number,
+                    // Add all resource booleans
+                    resume: user.resume,
+                    referral: user.referral,
+                    cold_mail: user.cold_mail,
+                    cover_letter: user.cover_letter,
+                    hr_mail: user.hr_mail,
+                    linkedin: user.linkedin,
+                    cv: user.cv,
+                    roadmaps: user.roadmaps,
+                    interview: user.interview,
+                    job: user.job,
                 }, config_1.JWT_SECRET, {
                     expiresIn: "2d",
                 });
@@ -500,7 +626,25 @@ class AuthController {
             }
             catch (err) {
                 console.error(err);
-                res.status(500).json({ success: false, message: "Something went wrong" });
+                // Handle specific multer errors
+                if (err.code === 'LIMIT_FILE_SIZE') {
+                    res.status(413).json({
+                        success: false,
+                        message: "File size too large. Please upload files smaller than 10MB."
+                    });
+                    return;
+                }
+                if (err.code === 'LIMIT_FIELD_VALUE') {
+                    res.status(413).json({
+                        success: false,
+                        message: "Request entity too large. Please reduce the file size."
+                    });
+                    return;
+                }
+                res.status(500).json({
+                    success: false,
+                    message: err.message || "Something went wrong"
+                });
             }
         };
         this.setUserPremium = async (req, res) => {
@@ -517,8 +661,8 @@ class AuthController {
                     subscription_type: "booster",
                 }, {
                     where: {
-                        id: user.id
-                    }
+                        id: user.id,
+                    },
                 });
                 res.clearCookie("token");
                 const token = jsonwebtoken_1.default.sign({
@@ -534,7 +678,7 @@ class AuthController {
                     maxAge: 7 * 24 * 60 * 60 * 1000,
                 });
                 res.status(200).json({
-                    success: true
+                    success: true,
                 });
             }
             catch (err) {
@@ -624,7 +768,6 @@ class AuthController {
                 });
             }
         };
-        // ...existing code...
         this.downloadResume = async (req, res) => {
             try {
                 const user = req.user;
@@ -657,8 +800,8 @@ class AuthController {
                     url: resumeUrl,
                     responseType: "stream",
                 });
-                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-                res.setHeader('Content-Type', response.headers['content-type']);
+                res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+                res.setHeader("Content-Type", response.headers["content-type"]);
                 await streamPipeline(response.data, res);
                 return;
             }

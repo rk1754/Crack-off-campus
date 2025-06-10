@@ -8,7 +8,7 @@ class EducationController {
     constructor() {
         this.addEducation = async (req, res) => {
             try {
-                const { education, start_year, end_year, specialization } = req.body;
+                const { education, start_year, end_year, location, specialization } = req.body;
                 const user = req.user;
                 if (!user) {
                     res.status(403).json({
@@ -29,6 +29,7 @@ class EducationController {
                     start_year,
                     end_year,
                     specialization,
+                    location,
                     user_id: user.id
                 });
                 if (!userEducation) {

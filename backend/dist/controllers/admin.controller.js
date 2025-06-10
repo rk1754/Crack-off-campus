@@ -4,9 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const admin_model_1 = __importDefault(require("../models/admin.model"));
+const user_model_1 = __importDefault(require("../models/user.model"));
+const experience_model_1 = __importDefault(require("../models/experience.model"));
+const education_model_1 = __importDefault(require("../models/education.model"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const config_1 = require("../config/config");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const transaction_model_1 = __importDefault(require("../models/transaction.model"));
+const sessionBooking_model_1 = __importDefault(require("../models/sessionBooking.model"));
 class AdminController {
     constructor() {
         // Admin signup method
@@ -191,6 +196,34 @@ class AdminController {
                     message: "Something went wrong"
                 });
                 return;
+            }
+        };
+        /**
+         * Delete any user by ID (admin only)
+         */
+        this.deleteUserById = async (req, res) => {
+            try {
+                const { id } = req.params;
+                if (!id) {
+                    res.status(400).json({ success: false, message: "User ID is required" });
+                    return;
+                }
+                const user = await user_model_1.default.findByPk(id);
+                if (!user) {
+                    res.status(404).json({ success: false, message: "User not found" });
+                    return;
+                }
+                // Delete related experience and education
+                await experience_model_1.default.destroy({ where: { user_id: id } });
+                await education_model_1.default.destroy({ where: { user_id: id } });
+                await sessionBooking_model_1.default.destroy({ where: { userId: id } });
+                await transaction_model_1.default.destroy({ where: { user_id: id } });
+                await user.destroy();
+                res.status(200).json({ success: true, message: "User deleted successfully" });
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).json({ success: false, message: "Something went wrong" });
             }
         };
     }

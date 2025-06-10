@@ -12,8 +12,7 @@ class SlotBookingController {
         // Book a slot (service_id, date, time)
         this.bookSlot = async (req, res) => {
             try {
-                console.log(req.body);
-                const { serviceId, date, service_name, time } = req.body;
+                const { serviceId, date, service_name, time, resumeUrl } = req.body;
                 const userId = req.user?.id;
                 if (!userId) {
                     res.status(400).json({
@@ -22,6 +21,8 @@ class SlotBookingController {
                     });
                     return;
                 }
+                logger_1.default.info("Logging input data of slot booking", serviceId, date, service_name, time, resumeUrl);
+                // Validate input
                 if (!serviceId || !date || !time) {
                     res.status(400).json({
                         success: false,
@@ -51,6 +52,7 @@ class SlotBookingController {
                     service_name: service_name,
                     date,
                     time,
+                    resume_url: resumeUrl || null,
                     cancelled: false,
                 });
                 const u = req.user;
@@ -69,18 +71,49 @@ class SlotBookingController {
                     });
                     return;
                 }
-                // Fetch service details
-                const serviceName = booking.service_name;
+                // Format date and time to Indian Standard Time (IST) for email
+                const istDateObj = new Date(`${date}T${time}:00Z`);
+                const options = {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                    timeZone: "Asia/Kolkata",
+                };
+                const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
+                console.log(service_name, date, time, formattedDateTime); // User email
                 const userHtml = `
         <p>Dear ${user.name},</p>
-        <p>Your slot has been booked successfully for <b>${serviceName}</b> on ${date} at ${time}.</p>
+        <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
+        ${resumeUrl ? `
+        <div style="margin: 20px 0;">
+          <p>Your uploaded resume:</p>
+          <a href="${resumeUrl.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '.pdf')}" 
+             download="${user.name}_Resume.pdf" 
+             target="_blank" 
+             style="display: inline-block; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 8px; 
+                    font-weight: 600; 
+                    font-size: 14px; 
+                    text-align: center; 
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); 
+                    transition: all 0.3s ease; 
+                    border: none; 
+                    cursor: pointer;">
+            <span style="margin-right: 8px;">📄</span>Click here to view Resume
+          </a>
+        </div>` : ''}
         <p>You will receive the link to join the session on your registered email.</p>
         <p>Thank you for choosing our services.</p>
-        <p>Best regards,</p>
-        <p>Team Crack-Off-Campus</p>
-                `;
-                // Optionally send confirmation email here...
-                console.log("User HTML: ", userHtml);
+        <p>Best Regards,</p>
+        <p>Team Crack Off-Campus</p>
+      `;
                 await mailer_1.transporter.sendMail({
                     from: process.env.SMTP_FROM_EMAIL,
                     to: user.email,
@@ -88,36 +121,52 @@ class SlotBookingController {
                     html: userHtml,
                 });
                 logger_1.default.info(`Slot booked successfully for user ${user.name} (${user.email}) on ${date} at ${time}`);
-                logger_1.default.info(`Notification email sent to user ${user.email}`);
+                logger_1.default.info(`Notification email sent to user ${user.email}`); // Admin email
                 const adminHTML = `
         <p>Dear Admin,</p>
-        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${serviceName}</b> on ${date} at ${time}.</p>
-        <p> User Contact: ${user.phone_number}</p>
+        <p>A new slot has been booked by ${user.name} (${user.email}) for <b>${service_name}</b> on <b>${date} ${time}</b>.</p>
+        <p>User Contact: ${user.phone_number}</p>
+        ${resumeUrl ? `
+        <div style="margin: 20px 0;">
+          <a href="${resumeUrl.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '.pdf')}" 
+             download="${user.name}_Resume.pdf" 
+             target="_blank" 
+             style="display: inline-block; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    color: white; 
+                    padding: 12px 24px; 
+                    text-decoration: none; 
+                    border-radius: 8px; 
+                    font-weight: 600; 
+                    font-size: 14px; 
+                    text-align: center; 
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); 
+                    transition: all 0.3s ease; 
+                    border: none; 
+                    cursor: pointer;">
+            <span style="margin-right: 8px;">📄</span>Click here to view Resume
+          </a>
+        </div>` : '<p style="color: #666; font-style: italic;">No resume uploaded</p>'}
         <p>Thank you.</p>
-        <p>Best regards,</p>
-        <p>Team Crack-Off-Campus</p>
-                `;
-                console.log("Admin HTML: ", adminHTML);
-                // Attach resume if uploaded
-                const attachments = [];
-                if (req.file) {
-                    attachments.push({
-                        filename: req.file.originalname,
-                        path: req.file.path,
-                    });
-                }
+        <p>Best Regards,</p>
+        <p>Team Crack Off-Campus</p>
+      `;
                 await mailer_1.transporter.sendMail({
                     from: process.env.SMTP_FROM_EMAIL,
                     to: "crackoffcampus63@gmail.com",
                     subject: "New Slot Booking",
                     html: adminHTML,
-                    attachments,
                 });
                 logger_1.default.info(`Notification email sent to admin about new booking by ${user.email}`);
+                // Format booking for response
                 res.status(201).json({
                     success: true,
                     message: "Slot booked successfully",
-                    booking,
+                    booking: {
+                        ...booking.toJSON(),
+                        date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null, // YYYY-MM-DD
+                        time: booking.time ? booking.time.slice(0, 5) : null, // HH:mm
+                    },
                 });
             }
             catch (err) {

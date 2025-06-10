@@ -33,7 +33,19 @@ Education.init({
     end_year: {
         type: sequelize_1.DataTypes.DATE,
         allowNull: false
-    }
+    },
+    specialization: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    college: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    location: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
 }, {
     sequelize: db_1.default,
     modelName: "education",

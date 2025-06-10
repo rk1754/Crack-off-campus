@@ -19,7 +19,7 @@ Experience.init({
         type: sequelize_1.DataTypes.UUID,
         references: {
             model: user_model_1.default,
-            key: "id"
+            key: "id",
         },
         allowNull: false,
     },
@@ -34,8 +34,8 @@ Experience.init({
     experience_duration: {
         type: sequelize_1.DataTypes.VIRTUAL,
         get() {
-            const start = this.getDataValue('start_date');
-            const end = this.getDataValue('end_date');
+            const start = this.getDataValue("start_date");
+            const end = this.getDataValue("end_date");
             if (!start)
                 return null;
             const months = (0, date_fns_1.differenceInMonths)(new Date(end), new Date(start));
@@ -60,12 +60,12 @@ Experience.init({
         allowNull: true,
     },
     employment_type: {
-        type: sequelize_1.DataTypes.ENUM('internship', 'full_time'),
-        allowNull: false
+        type: sequelize_1.DataTypes.ENUM("internship", "full_time"),
+        allowNull: false,
     },
 }, {
     sequelize: db_1.default,
     modelName: "experience",
-    tableName: "experience"
+    tableName: "experience",
 });
 exports.default = Experience;

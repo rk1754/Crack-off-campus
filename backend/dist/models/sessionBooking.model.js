@@ -34,10 +34,13 @@ SessionBooking.init({
     date: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
-    },
-    time: {
+    }, time: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
+    },
+    resume_url: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
     },
     meet_link: {
         type: sequelize_1.DataTypes.STRING,

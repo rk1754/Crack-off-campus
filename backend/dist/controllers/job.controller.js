@@ -22,7 +22,7 @@ class JobController {
                     return;
                 }
                 const job = await job_model_1.default.create({
-                    ...data, // includes ctc_stipend, passout_year, experience if provided
+                    ...data,
                     admin_id: req.admin?.id,
                     status: data.status ? data.status : "open",
                 });
