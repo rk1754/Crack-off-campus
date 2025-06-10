@@ -82,7 +82,8 @@ const PaymentVerify = () => {
           time,
         });
 
-        const res = await axios.post(
+        // Step 1: Verify payment
+        const verifyRes = await axios.post(
           "/payment/verify",
           {
             order_id,
@@ -94,11 +95,38 @@ const PaymentVerify = () => {
           },
           { withCredentials: true }
         );
-        if (res.data.success) {
-          toast.success(res.data.message || "Payment successful!");
-          console.log("Payment verification response:", res.data);
 
-          // Update subscription after successful payment verification
+        if (verifyRes.data.success) {
+          console.log("Payment verification successful:", verifyRes.data);
+          // Step 2: Update subscription after successful payment verification
+          try {
+            const updateRes = await axios.post(
+              "/update",
+              {
+                userId: user.id,
+                subscription_type: serviceName,
+                order_id: order_id,
+              },
+              { withCredentials: true }
+            );
+
+            if (updateRes.data.success) {
+              toast.success("Payment successful and subscription updated!");
+              console.log("Subscription update response:", updateRes.data);
+            } else {
+              console.warn("Subscription update failed:", updateRes.data);
+              toast.warning(
+                "Payment verified but subscription update failed. Contact support."
+              );
+            }
+          } catch (updateError: any) {
+            console.error("Subscription update error:", updateError);
+            toast.warning(
+              "Payment verified but subscription update failed. Contact support."
+            );
+          }
+
+          // Continue with the rest of the flow
           if (user && user.id) {
             await updateSubscriptionAfterPayment(
               order_id,
@@ -289,7 +317,7 @@ const PaymentVerify = () => {
             navigate("/profile");
           }
         } else {
-          toast.error(res.data.message || "Payment verification failed.");
+          toast.error(verifyRes.data.message || "Payment verification failed.");
           // Redirect based on context
           if (resourceType) {
             navigate(`/resources?error=1&type=${resourceType}`);

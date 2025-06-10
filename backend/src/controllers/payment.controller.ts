@@ -43,16 +43,18 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       let order;
       try {
         order = await cashfree.PGCreateOrder(orderPayload);
-        logger.info("Order created:", order.data);
-      } catch (cashfreeError: any) {
+        logger.info("Order created:", order.data);      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGCreateOrder error:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
-          statusText: cashfreeError.response?.statusText,
-          data: cashfreeError.response?.data
+          statusText: cashfreeError.response?.statusText
         });
         
-        logger.error("Error creating payment order:", cashfreeError);
+        logger.error("Error creating payment order:", {
+          message: cashfreeError.message,
+          name: cashfreeError.name,
+          stack: cashfreeError.stack
+        });
         res.status(500).json({
           success: false,
           message: "Cashfree order creation failed",
@@ -67,14 +69,16 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         payment_session_id: order.data.payment_session_id,
         redirect_url: `https://payments.cashfree.com/pg/checkout?payment_session_id=${order.data.payment_session_id}`,
       });
-      return;
-    } catch (err: any) {
+      return;    } catch (err: any) {
       console.error("General error in createPaymentOrder:", {
+        message: err.message,
+        name: err.name
+      });
+      logger.error("Error creating payment order:", {
         message: err.message,
         name: err.name,
         stack: err.stack
       });
-      logger.error("Error creating payment order:", err);
       res.status(500).json({
         success: false,
         message:
@@ -103,13 +107,11 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       let orderDetails;
       try {
         orderDetails = await cashfree.PGFetchOrder(order_id as string);
-        logger.info("Cashfree order details", { order_id, orderDetails });
-      } catch (cashfreeError: any) {
+        logger.info("Cashfree order details", { order_id, orderDetails });      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGFetchOrder error:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
-          statusText: cashfreeError.response?.statusText,
-          data: cashfreeError.response?.data
+          statusText: cashfreeError.response?.statusText
         });
         
         res.status(500).json({
@@ -134,13 +136,11 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         paymentDetails = await cashfree.PGOrderFetchPayments(
           order_id as string
         );
-        logger.info("Cashfree payment details", { order_id, paymentDetails });
-      } catch (cashfreeError: any) {
+        logger.info("Cashfree payment details", { order_id, paymentDetails });      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGOrderFetchPayments error:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
-          statusText: cashfreeError.response?.statusText,
-          data: cashfreeError.response?.data
+          statusText: cashfreeError.response?.statusText
         });
         
         res.status(500).json({
@@ -337,11 +337,18 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           );
           
           console.log("✅ Transaction record created successfully");
-          console.log("=== TRANSACTION WILL COMMIT ===");
-        } catch (transactionError) {
-          console.error("❌ Error during transaction:", transactionError);
+          console.log("=== TRANSACTION WILL COMMIT ===");        } catch (transactionError: any) {
+          console.error("❌ Error during transaction:", {
+            message: transactionError.message,
+            name: transactionError.name
+          });
           console.error("=== TRANSACTION WILL ROLLBACK ===");
-          logger.error("Transaction error", { error: transactionError, userId: user.id });
+          logger.error("Transaction error", { 
+            message: transactionError.message,
+            name: transactionError.name,
+            stack: transactionError.stack,
+            userId: user.id 
+          });
           throw transactionError; // This will cause the transaction to rollback
         }
       });
@@ -440,19 +447,13 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         message: err.message,
         name: err.name,
         stack: err.stack,
-        response: err.response ? {
-          status: err.response.status,
-          statusText: err.response.statusText,
-          data: err.response.data
-        } : undefined,
         body: req.body,
         user: req.user ? { id: req.user.id, email: req.user.email } : undefined,
       });
-      
+
       console.error("Payment verification error:", {
         message: err.message,
-        name: err.name,
-        stack: err.stack
+        name: err.name
       });
       
       res.status(500).json({
@@ -589,10 +590,16 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         message: "Subscription updated successfully",
         subscription_type: normalizedSubscriptionType,
         subscription_expiry: subscriptionExpiry,
+      });    } catch (err: any) {
+      console.error("Subscription update error:", {
+        message: err.message,
+        name: err.name
       });
-    } catch (err: any) {
-      console.error("Subscription update error:", err);
-      logger.error("Subscription update error:", err);
+      logger.error("Subscription update error:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack
+      });
       res.status(500).json({
         success: false,
         message: "Failed to update subscription",
@@ -614,13 +621,11 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       // Fetch order details from Cashfree with proper error handling
       let orderDetails;
       try {
-        orderDetails = await cashfree.PGFetchOrder(order_id as string);
-      } catch (cashfreeError: any) {
+        orderDetails = await cashfree.PGFetchOrder(order_id as string);      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGFetchOrder error in verifyPayment:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
-          statusText: cashfreeError.response?.statusText,
-          data: cashfreeError.response?.data
+          statusText: cashfreeError.response?.statusText
         });
         
         if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
@@ -642,13 +647,11 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       try {
         paymentDetails = await cashfree.PGOrderFetchPayments(
           order_id as string
-        );
-      } catch (cashfreeError: any) {
+        );      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGOrderFetchPayments error in verifyPayment:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
-          statusText: cashfreeError.response?.statusText,
-          data: cashfreeError.response?.data
+          statusText: cashfreeError.response?.statusText
         });
         
         if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
@@ -775,19 +778,13 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       res.redirect("/jobs?payment=success");    } catch (err: any) {
       console.error("Payment verification error:", {
         message: err.message,
-        name: err.name,
-        stack: err.stack
+        name: err.name
       });
       
       logger.error("Payment verification error:", {
         message: err.message,
         name: err.name,
-        stack: err.stack,
-        response: err.response ? {
-          status: err.response.status,
-          statusText: err.response.statusText,
-          data: err.response.data
-        } : undefined
+        stack: err.stack
       });
       
       if (req.headers.accept?.includes("application/json") || req.query.json === "1") {

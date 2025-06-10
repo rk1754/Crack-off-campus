@@ -5,16 +5,17 @@ import authMiddleware from "../middleware/auth.middleware";
 
 const router = express.Router();
 const paymentController = new PaymentController();
-router.post('/create-order',authMiddleware, paymentController.createPaymentOrder);
 
-// Use the simple verify payment function instead
-router.post('/verify',authMiddleware, simpleVerifyPayment);
+// Create order route
+router.post('/create-order', authMiddleware, paymentController.createPaymentOrder);
 
-// Commenting out the update-subscription and verify-and-store routes
-// router.post('/update-subscription', authMiddleware, paymentController.updateUserSubscription);
+// Simple verify payment route - only verifies payment, doesn't update subscription
+router.post('/verify', authMiddleware, simpleVerifyPayment);
+
+// Subscription update route - separate route for updating subscription after payment verification
+router.post('/update', authMiddleware, paymentController.updateUserSubscription);
+
+// Disabled routes (use simple approach instead)
 // router.post('/verify-and-store', authMiddleware, paymentController.verifyAndStorePayment);
-
-// Add a simple subscription update endpoint (no auth)
-
 
 export default router;
