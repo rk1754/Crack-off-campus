@@ -174,69 +174,76 @@ const PremiumJobsFeature: React.FC = () => {
       setIsPaying(false);
     }
   };
-
   return (
     <>
-      <div
-        className="w-full mx-auto rounded-xl text-white shadow-lg"
-        style={{ backgroundColor: "rgb(186, 175, 220)" }}
-      >
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-            <div>
-              <p className="text-sm md:text-base text-black">
-                Struggling with getting shortlist after applying from career
-                portal of company
-              </p>
-              <h2 className="text-2xl md:text-3xl font-bold mt-1 text-black">
-                Need Premium Jobs Access
-              </h2>
-              <p className="text-sm md:text-base mt-1 text-black">
-                You will get multiple features to apply job opportunities
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleOpenUnlockModal}
-              className="mt-4 md:mt-0 bg-orange-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors shadow hover:shadow-md"
-            >
-              Unlock Premium Jobs
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
-              <p className="text-[#9b87f5] font-semibold">#Feature 1</p>
-              <h3 className="font-bold text-lg mt-1">
-                Apply via Internal Hiring Form
-              </h3>
-              <p className="text-gray-700 mt-1 text-sm">
-                Directly apply by submitting internal hiring forms. Just fill in
-                your details.
-              </p>
+      {/* Only show premium banner if user has no subscription or "regular" subscription */}
+      {(!user ||
+        ((!user.subscription_type || user.subscription_type === "regular") &&
+          (!user.subscription_type_2 ||
+            user.subscription_type_2 === "regular") &&
+          !user.is_premium &&
+          !(user as any).job)) && (
+        <div
+          className="w-full mx-auto rounded-xl text-white shadow-lg"
+          style={{ backgroundColor: "rgb(186, 175, 220)" }}
+        >
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+              <div>
+                <p className="text-sm md:text-base text-black">
+                  Struggling with getting shortlist after applying from career
+                  portal of company
+                </p>
+                <h2 className="text-2xl md:text-3xl font-bold mt-1 text-black">
+                  Need Premium Jobs Access
+                </h2>
+                <p className="text-sm md:text-base mt-1 text-black">
+                  You will get multiple features to apply job opportunities
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleOpenUnlockModal}
+                className="mt-4 md:mt-0 bg-orange-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors shadow hover:shadow-md"
+              >
+                Unlock Premium Jobs
+              </button>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
-              <p className="text-[#9b87f5] font-semibold">#Feature 2</p>
-              <h3 className="font-bold text-lg mt-1">Apply via Referral</h3>
-              <p className="text-gray-700 mt-1 text-sm">
-                Fill a referral form and connect with employees who can refer
-                you.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
+                <p className="text-[#9b87f5] font-semibold">#Feature 1</p>
+                <h3 className="font-bold text-lg mt-1">
+                  Apply via Internal Hiring Form
+                </h3>
+                <p className="text-gray-700 mt-1 text-sm">
+                  Directly apply by submitting internal hiring forms. Just fill
+                  in your details.
+                </p>
+              </div>
 
-            <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
-              <p className="text-[#9b87f5] font-semibold">#Feature 3</p>
-              <h3 className="font-bold text-lg mt-1">
-                Apply via Sending Resume
-              </h3>
-              <p className="text-gray-700 mt-1 text-sm">
-                Send your resume directly on recruiter email.
-              </p>
+              <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
+                <p className="text-[#9b87f5] font-semibold">#Feature 2</p>
+                <h3 className="font-bold text-lg mt-1">Apply via Referral</h3>
+                <p className="text-gray-700 mt-1 text-sm">
+                  Fill a referral form and connect with employees who can refer
+                  you.
+                </p>
+              </div>
+
+              <div className="bg-white/90 backdrop-blur-sm text-gray-800 p-4 rounded-lg shadow">
+                <p className="text-[#9b87f5] font-semibold">#Feature 3</p>
+                <h3 className="font-bold text-lg mt-1">
+                  Apply via Sending Resume
+                </h3>{" "}
+                <p className="text-gray-700 mt-1 text-sm">
+                  Send your resume directly on recruiter email.
+                </p>{" "}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <Dialog open={isUnlockModalOpen} onOpenChange={setIsUnlockModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -267,7 +274,7 @@ const PremiumJobsFeature: React.FC = () => {
                 : !sdkLoaded
                 ? "Loading Gateway..."
                 : "Pay ₹99 & Unlock"}
-            </Button>
+            </Button>{" "}
           </DialogFooter>
         </DialogContent>
       </Dialog>

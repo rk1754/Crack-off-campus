@@ -195,50 +195,51 @@ const JobListings = () => {
         user.subscription_type || user.subscription_type_2 || "regular";
     }
     console.log("Final userSubscriptionType:", userSubscriptionType);
-  } // Auto-close premium modal if user has premium subscription
+  } // Auto-close premium modal if user has any premium subscription
   useEffect(() => {
-    if (
-      user &&
-      (userSubscriptionType === "booster" ||
-        userSubscriptionType === "standard" ||
-        userSubscriptionType === "basic" ||
-        userSubscriptionType === "job" ||
-        userSubscriptionType === "premium" || // Handle when we set it to "premium"
+    if (user) {
+      // If user has ANY subscription type other than "regular", close modal
+      if (
+        (user.subscription_type && user.subscription_type !== "regular") ||
+        (user.subscription_type_2 && user.subscription_type_2 !== "regular") ||
         user.is_premium === true ||
-        (user as any).job === true) // Check for job access flag (using any to bypass type checking)
-    ) {
-      console.log("User has premium/job access, auto-closing modal");
-      setIsPremiumModalOpen(false);
+        (user as any).job === true
+      ) {
+        console.log("User has non-regular subscription, auto-closing modal");
+        setIsPremiumModalOpen(false);
+      }
     }
-  }, [user, userSubscriptionType]);
+  }, [user]);
   const handleOpenPremiumModal = () => {
     console.log("handleOpenPremiumModal called");
     console.log("User exists:", !!user);
     console.log("userSubscriptionType:", userSubscriptionType);
+    console.log("user.subscription_type:", user?.subscription_type);
+    console.log("user.subscription_type_2:", user?.subscription_type_2);
     console.log("user.is_premium:", user?.is_premium);
     console.log("user.job:", (user as any)?.job);
 
     if (!user) {
       console.log("No user, redirecting to login");
       navigate("/login?redirect=/jobs");
-    } else if (
-      userSubscriptionType === "booster" ||
-      userSubscriptionType === "standard" ||
-      userSubscriptionType === "basic" ||
-      userSubscriptionType === "job" ||
-      userSubscriptionType === "premium" || // Handle when we set it to "premium"
-      user.is_premium === true || // Also check is_premium field
-      (user as any).job === true // Check for job access flag
+      return;
+    }
+
+    // If user has ANY subscription type other than "regular", don't show modal
+    if (
+      (user.subscription_type && user.subscription_type !== "regular") ||
+      (user.subscription_type_2 && user.subscription_type_2 !== "regular") ||
+      user.is_premium === true ||
+      (user as any).job === true
     ) {
-      console.log(
-        "User has premium subscription or job access, not showing modal"
-      );
+      console.log("User has premium subscription, not showing modal");
       setIsPremiumModalOpen(false);
       return;
-    } else {
-      console.log("User does not have premium subscription, showing modal");
-      setIsPremiumModalOpen(true);
     }
+
+    // Only show modal for users with no subscription or "regular" subscription
+    console.log("User has regular/no subscription, showing premium modal");
+    setIsPremiumModalOpen(true);
   };
 
   useEffect(() => {
