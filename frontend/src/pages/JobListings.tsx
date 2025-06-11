@@ -5,7 +5,7 @@ import JobCard from "../components/job/JobCard";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchAllJobs, Job } from "@/redux/slices/jobSlice";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import PremiumJobsFeature from "@/components/job/premiumJobsFeature";
 import {
   Dialog,
@@ -29,6 +29,7 @@ const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 const JobListings = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const routeLocation = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { jobs, loading, error } = useSelector((state: RootState) => state.job);
@@ -326,66 +327,17 @@ const JobListings = () => {
         returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}&resourceType=${order_type}`,
         redirectTarget: "_self" as "_self",
       };
-      cashfree.checkout(checkoutOptions).then(async (result: any) => {
+      cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {
           alert(`Payment error: ${result.error.message}`);
+          setCurrentOrderId(null); // Clear order ID on error
         } else if (result.redirect) {
-          // Cashfree will handle redirect        } else if (result.success) {
-          // Payment was successful, update subscription
-          console.log(
-            "Payment successful, updating subscription for job access"
-          );
-          try {
-            if (user && user.id && currentOrderId) {
-              console.log("Calling updateSubscriptionAfterPayment with:", {
-                orderId: currentOrderId,
-                subscription_type: "job",
-                userId: user.id,
-              });
-
-              const subscriptionUpdated = await updateSubscriptionAfterPayment(
-                currentOrderId,
-                "job", // subscription_type as job
-                user.id
-              );
-
-              if (subscriptionUpdated) {
-                console.log(
-                  "Subscription update successful, refreshing user data"
-                );
-                // Refresh user data to reflect the subscription change
-                dispatch(fetchCurrentUser());
-                // Close the premium modal
-                setIsPremiumModalOpen(false);
-                // Clear the order ID
-                setCurrentOrderId(null);
-                // Show success message
-                alert(
-                  "Payment successful! You now have access to premium jobs."
-                );
-              } else {
-                console.error("Subscription update failed");
-                alert(
-                  "Payment successful but subscription update failed. Please contact support."
-                );
-              }
-            } else {
-              console.error("Missing required data for subscription update:", {
-                user: !!user,
-                userId: user?.id,
-                currentOrderId,
-              });
-            }
-          } catch (updateError) {
-            console.error(
-              "Error updating subscription after payment:",
-              updateError
-            );
-            alert(
-              "Payment successful but there was an issue updating your subscription. Please contact support."
-            );
-          }
+          // Cashfree will handle redirect to payment gateway
+          // After payment, user will be redirected to returnUrl which handles verification and update
+          console.log("Redirecting to Cashfree payment gateway...");
         }
+        // Note: result.success won't be triggered here as Cashfree redirects to returnUrl
+        // The payment verification and subscription update will be handled by PaymentVerify.tsx
       });
     } catch (err) {
       console.error("Payment initiation error:", err);
@@ -394,6 +346,45 @@ const JobListings = () => {
       setCurrentOrderId(null);
     }
   };
+  // Handle payment success from URL parameters (after Cashfree redirect)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(routeLocation.search);
+    const paymentStatus = urlParams.get("payment");
+    const paymentMessage = urlParams.get("message");
+
+    if (paymentStatus === "success") {
+      // Payment was successful, refresh user data
+      console.log("Payment success detected, refreshing user data");
+      dispatch(fetchCurrentUser());
+      setIsPremiumModalOpen(false);
+      setCurrentOrderId(null);
+
+      // Show success message
+      alert("Payment successful! You now have access to premium jobs.");
+
+      // Clean up URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    } else if (paymentStatus === "failed") {
+      alert("Payment failed. Please try again.");
+      setCurrentOrderId(null);
+
+      // Clean up URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    } else if (paymentStatus === "error") {
+      alert(
+        `Payment error: ${
+          paymentMessage || "Unknown error"
+        }. Please contact support.`
+      );
+      setCurrentOrderId(null);
+
+      // Clean up URL parameters
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [routeLocation.search, dispatch]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
