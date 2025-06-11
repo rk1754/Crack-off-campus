@@ -203,23 +203,27 @@ export default function FormPage() {
       if (!resumeUrl && formData.resume) {
         resumeUrl = await uploadResume(formData.resume);
         setFormData((prev) => ({ ...prev, resumeUrl }));
-      }
+      } // Store booking form data in both sessionStorage and localStorage for use after payment
+      const bookingFormData = {
+        serviceId,
+        date,
+        time,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        state: formData.state,
+        targetRole: formData.targetRole,
+        language: formData.language,
+        resume_url: resumeUrl, // Store resume URL instead of file
+      };
 
-      // Store booking form data in sessionStorage for use after payment
       sessionStorage.setItem(
         "serviceBookingData",
-        JSON.stringify({
-          serviceId,
-          date,
-          time,
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          state: formData.state,
-          targetRole: formData.targetRole,
-          language: formData.language,
-          resume_url: resumeUrl, // Store resume URL instead of file
-        })
+        JSON.stringify(bookingFormData)
+      );
+      localStorage.setItem(
+        "serviceBookingData",
+        JSON.stringify(bookingFormData)
       ); // 1. Create Cashfree order (call your backend endpoint)
       console.log(amount);
       const paymentOrderRes = await axios.post(

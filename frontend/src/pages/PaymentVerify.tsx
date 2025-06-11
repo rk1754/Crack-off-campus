@@ -227,21 +227,24 @@ const PaymentVerify = () => {
           } else if (serviceId && date && time) {
             // Service booking: book the slot after payment
             setBookingInProgress(true);
-            // Get booking data from sessionStorage
-            const bookingDataRaw = sessionStorage.getItem("serviceBookingData");
+
+            // Get booking data from sessionStorage or localStorage
             let bookingData: any = {};
-            if (bookingDataRaw) {
-              bookingData = JSON.parse(bookingDataRaw);
-            } // Compose FormData for booking with resume URL
+            const sessionData = sessionStorage.getItem("serviceBookingData");
+            const localData = localStorage.getItem("serviceBookingData");
+
+            if (sessionData) {
+              bookingData = JSON.parse(sessionData);
+            } else if (localData) {
+              bookingData = JSON.parse(localData);
+            }
+
+            // Compose FormData for booking with all the stored form data
             const formData = new FormData();
             formData.append("serviceId", serviceId);
             formData.append("date", date);
             formData.append("time", time);
-            // Ensure service_name is always set
-            formData.append(
-              "service_name",
-              serviceName || bookingData.name || ""
-            );
+            formData.append("service_name", serviceName || "");
             formData.append("name", bookingData.name || "");
             formData.append("phone", bookingData.phone || "");
             formData.append("email", bookingData.email || "");
@@ -249,11 +252,16 @@ const PaymentVerify = () => {
             formData.append("targetRole", bookingData.targetRole || "");
             formData.append("language", bookingData.language || "Hinglish");
             formData.append("payment_status", "paid");
-            formData.append("order_id", order_id);
-
-            // Add resume URL if available
+            formData.append("order_id", order_id); // Add resume URL if available
             if (bookingData.resume_url) {
               formData.append("resume_url", bookingData.resume_url);
+            }
+
+            // Debug: Log what we're sending
+            console.log("Booking data retrieved from storage:", bookingData);
+            console.log("FormData being sent:");
+            for (let [key, value] of formData.entries()) {
+              console.log(`${key}: ${value}`);
             }
             // Resume URL is now included in the booking data from sessionStorage
 
@@ -272,9 +280,9 @@ const PaymentVerify = () => {
                   errorData.message ||
                     `Failed to book slot (Status: ${bookingRes.status})`
                 );
-              }
-              // Clear booking data from sessionStorage
+              } // Clear booking data from both sessionStorage and localStorage
               sessionStorage.removeItem("serviceBookingData");
+              localStorage.removeItem("serviceBookingData");
               setBookingInProgress(false);
               navigate(
                 `/services/${serviceId}/booking/confirmation?date=${encodeURIComponent(
