@@ -7,7 +7,7 @@ import { upload } from "../middleware/upload.middleware";
 const router = express.Router();
 const slotBookingController = new SlotBookingController();
 
-router.post('/book', authMiddleware, slotBookingController.bookSlot);
+router.post('/book', authMiddleware, upload.none(), slotBookingController.bookSlot);
 router.get('/getAll', authMiddleware, slotBookingController.findMyBookings);
 router.get('/getById/:id', authMiddleware, slotBookingController.getBookingById);
 router.delete('/cancel/:id', authMiddleware, slotBookingController.cancelSlot);

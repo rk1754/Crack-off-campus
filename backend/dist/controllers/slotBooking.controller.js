@@ -12,6 +12,10 @@ class SlotBookingController {
         // Book a slot (service_id, date, time)
         this.bookSlot = async (req, res) => {
             try {
+                console.log("=== BOOKING REQUEST DEBUG ===");
+                console.log("req.body:", req.body);
+                console.log("req.user:", req.user);
+                console.log("=== END DEBUG ===");
                 const { serviceId, date, service_name, time, resumeUrl } = req.body;
                 const userId = req.user?.id;
                 if (!userId) {
@@ -163,17 +167,22 @@ class SlotBookingController {
                     success: true,
                     message: "Slot booked successfully",
                     booking: {
-                        ...booking.toJSON(),
-                        date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null, // YYYY-MM-DD
+                        ...booking.toJSON(), date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null, // YYYY-MM-DD
                         time: booking.time ? booking.time.slice(0, 5) : null, // HH:mm
                     },
                 });
             }
             catch (err) {
-                console.error(err);
+                console.error("Booking error:", err);
+                logger_1.default.error("Booking error:", {
+                    message: err.message,
+                    name: err.name,
+                    stack: err.stack
+                });
                 res.status(500).json({
                     success: false,
                     message: "Something went wrong",
+                    error: process.env.NODE_ENV === "development" ? err.message : undefined
                 });
             }
         };

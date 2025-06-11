@@ -228,42 +228,40 @@ const PaymentVerify = () => {
             // Service booking: book the slot after payment
             setBookingInProgress(true);
 
-            // Get booking data from sessionStorage or localStorage
+            // Get booking data from localStorage (priority) or sessionStorage
             let bookingData: any = {};
-            const sessionData = sessionStorage.getItem("serviceBookingData");
             const localData = localStorage.getItem("serviceBookingData");
+            const sessionData = sessionStorage.getItem("serviceBookingData");
 
-            if (sessionData) {
-              bookingData = JSON.parse(sessionData);
-            } else if (localData) {
+            if (localData) {
               bookingData = JSON.parse(localData);
+            } else if (sessionData) {
+              bookingData = JSON.parse(sessionData);
             }
 
-            // Compose FormData for booking with all the stored form data
-            const formData = new FormData();
-            formData.append("serviceId", serviceId);
-            formData.append("date", date);
-            formData.append("time", time);
-            formData.append("service_name", serviceName || "");
-            formData.append("name", bookingData.name || "");
-            formData.append("phone", bookingData.phone || "");
-            formData.append("email", bookingData.email || "");
-            formData.append("state", bookingData.state || "");
-            formData.append("targetRole", bookingData.targetRole || "");
-            formData.append("language", bookingData.language || "Hinglish");
-            formData.append("payment_status", "paid");
-            formData.append("order_id", order_id); // Add resume URL if available
-            if (bookingData.resume_url) {
-              formData.append("resume_url", bookingData.resume_url);
-            }
+            // Get resume URL from localStorage if not in booking data
+            const resumeUrl =
+              bookingData.resume_url || localStorage.getItem("resumeUrl");
 
-            // Debug: Log what we're sending
+            // Create the booking payload as JSON object (not FormData)
+            const bookingPayload = {
+              serviceId: serviceId,
+              date: date,
+              time: time,
+              service_name: serviceName || "",
+              name: bookingData.name || "",
+              phone: bookingData.phone || "",
+              email: bookingData.email || "",
+              state: bookingData.state || "",
+              targetRole: bookingData.targetRole || "",
+              language: bookingData.language || "Hinglish",
+              payment_status: "paid",
+              order_id: order_id,
+              resumeUrl: resumeUrl || "", // Include resume URL from localStorage
+            }; // Debug: Log what we're sending
             console.log("Booking data retrieved from storage:", bookingData);
-            console.log("FormData being sent:");
-            for (let [key, value] of formData.entries()) {
-              console.log(`${key}: ${value}`);
-            }
-            // Resume URL is now included in the booking data from sessionStorage
+            console.log("Resume URL from localStorage:", resumeUrl);
+            console.log("Final booking payload:", bookingPayload);
 
             try {
               const bookingRes = await fetch(
@@ -271,7 +269,10 @@ const PaymentVerify = () => {
                 {
                   method: "POST",
                   credentials: "include",
-                  body: formData,
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(bookingPayload),
                 }
               );
               if (!bookingRes.ok) {
@@ -280,9 +281,12 @@ const PaymentVerify = () => {
                   errorData.message ||
                     `Failed to book slot (Status: ${bookingRes.status})`
                 );
-              } // Clear booking data from both sessionStorage and localStorage
-              sessionStorage.removeItem("serviceBookingData");
+              }
+
+              // Clear booking data from localStorage and sessionStorage after successful booking
               localStorage.removeItem("serviceBookingData");
+              localStorage.removeItem("resumeUrl");
+              sessionStorage.removeItem("serviceBookingData");
               setBookingInProgress(false);
               navigate(
                 `/services/${serviceId}/booking/confirmation?date=${encodeURIComponent(

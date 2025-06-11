@@ -141,10 +141,12 @@ export default function FormPage() {
 
     setIsSubmitting(true);
     setError(null);
-
     try {
       // First, upload the resume and get the URL
       const resumeUrl = await uploadResume(formData.resume);
+
+      // Save resume URL to localStorage immediately after upload
+      localStorage.setItem("resumeUrl", resumeUrl);
 
       // Update form data with resume URL
       setFormData((prev) => ({ ...prev, resumeUrl }));
@@ -196,14 +198,17 @@ export default function FormPage() {
       setError("Payment gateway is not available. Please try again later.");
       return;
     }
-
     try {
       // First upload resume and get URL if not already uploaded
       let resumeUrl = formData.resumeUrl;
       if (!resumeUrl && formData.resume) {
         resumeUrl = await uploadResume(formData.resume);
+        // Save resume URL to localStorage immediately after upload
+        localStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
-      } // Store booking form data in both sessionStorage and localStorage for use after payment
+      }
+
+      // Store booking form data in localStorage for use after payment
       const bookingFormData = {
         serviceId,
         date,
@@ -217,10 +222,6 @@ export default function FormPage() {
         resume_url: resumeUrl, // Store resume URL instead of file
       };
 
-      sessionStorage.setItem(
-        "serviceBookingData",
-        JSON.stringify(bookingFormData)
-      );
       localStorage.setItem(
         "serviceBookingData",
         JSON.stringify(bookingFormData)
@@ -244,9 +245,7 @@ export default function FormPage() {
         /[^a-zA-Z0-9_-]/.test(payment_session_id)
       ) {
         throw new Error("Invalid payment session ID format");
-      }
-
-      // 2. Trigger Cashfree checkout
+      } // 2. Trigger Cashfree checkout
       const cashfree = new window.Cashfree({ mode: "production" });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
@@ -257,7 +256,7 @@ export default function FormPage() {
         )}&serviceId=${serviceId}&serviceName=${encodeURIComponent(
           serviceTitle
         )}`,
-        redirectTarget: "_blank" as "_blank",
+        redirectTarget: "_self" as "_self", // Open in same tab instead of new window
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {
         if (result.error) {
