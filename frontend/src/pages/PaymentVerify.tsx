@@ -306,8 +306,16 @@ const PaymentVerify = () => {
               );
             }
           } else {
-            // Default: premium subscription
-            navigate("/profile");
+            // Check if this is a job subscription payment
+            if (serviceName === "job") {
+              // Job subscription: redirect back to jobs page with success
+              navigate(
+                "/jobs?payment=success&message=job_subscription_activated"
+              );
+            } else {
+              // Default: other premium subscriptions
+              navigate("/profile");
+            }
           }
         } else {
           toast.error(verifyRes.data.message || "Payment verification failed.");
@@ -320,6 +328,9 @@ const PaymentVerify = () => {
                 date
               )}&time=${encodeURIComponent(time)}&error=1`
             );
+          } else if (serviceName === "job") {
+            // Job subscription failed: redirect back to jobs page with error
+            navigate("/jobs?payment=failed");
           } else {
             navigate("/faq");
           }
@@ -338,6 +349,9 @@ const PaymentVerify = () => {
               date
             )}&time=${encodeURIComponent(time)}&error=1`
           );
+        } else if (serviceName === "job") {
+          // Job subscription error: redirect back to jobs page with error
+          navigate("/jobs?payment=error&message=verification_failed");
         } else {
           navigate("/privacy-policy");
         }

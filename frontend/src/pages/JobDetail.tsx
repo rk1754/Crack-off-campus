@@ -145,7 +145,7 @@ const JobDetail = () => {
       const order_type = "job";
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}&resourceType=${order_type}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}`,
         redirectTarget: "_self" as "_self",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {

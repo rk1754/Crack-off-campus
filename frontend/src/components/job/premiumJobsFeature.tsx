@@ -117,7 +117,7 @@ const PremiumJobsFeature: React.FC = () => {
     }
     setIsPaying(true);
     try {
-      const amount = 1;
+      const amount = 99;
       const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
         amount,
         name: user.name,
@@ -143,10 +143,9 @@ const PremiumJobsFeature: React.FC = () => {
       const cashfree = new window.Cashfree({
         mode: "production", // Use "sandbox" for testing
       });
-
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=job`,
         redirectTarget: "_self" as "_self",
       };
 

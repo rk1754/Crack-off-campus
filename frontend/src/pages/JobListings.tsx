@@ -296,7 +296,7 @@ const JobListings = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          amount: 1,
+          amount: 99, // Changed from 1 to 99 to match the modal display
           name: user.name,
           email: user.email,
           phone: user.phone_number || "+919876543210",
@@ -324,7 +324,7 @@ const JobListings = () => {
       const order_type = "job";
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}&resourceType=${order_type}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}`,
         redirectTarget: "_self" as "_self",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {
@@ -345,8 +345,7 @@ const JobListings = () => {
       // Clear any stored order ID on error
       setCurrentOrderId(null);
     }
-  };
-  // Handle payment success from URL parameters (after Cashfree redirect)
+  }; // Handle payment success from URL parameters (after Cashfree redirect)
   useEffect(() => {
     const urlParams = new URLSearchParams(routeLocation.search);
     const paymentStatus = urlParams.get("payment");
@@ -359,8 +358,12 @@ const JobListings = () => {
       setIsPremiumModalOpen(false);
       setCurrentOrderId(null);
 
-      // Show success message
-      alert("Payment successful! You now have access to premium jobs.");
+      // Show specific success message for job subscription
+      if (paymentMessage === "job_subscription_activated") {
+        alert("Payment successful! You now have access to premium jobs.");
+      } else {
+        alert("Payment successful!");
+      }
 
       // Clean up URL parameters
       const newUrl = window.location.pathname;
