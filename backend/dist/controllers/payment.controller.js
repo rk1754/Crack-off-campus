@@ -203,11 +203,17 @@ class PaymentController {
                         "cold_mail",
                         "cover_letter",
                         "hr_mail",
-                        "linkedin", "cv",
-                        "roadmaps",
+                        "linkedin", "cv", "roadmaps",
                         "interview",
                     ],
-                    // Add more mappings as needed
+                    // Service names from FormPage.tsx
+                    "Resume / CV Review": ["resume"],
+                    "LinkedIn Review": ["linkedin"],
+                    "Get a Referral": ["referral"],
+                    "Personalized Projects for Your Target Role": ["roadmaps"],
+                    "Quick Chat": ["interview"],
+                    "Find Job & Internship Strategy": ["job"],
+                    "Get Hired on LinkedIn": ["linkedin"]
                 };
                 // Map individual resource names to valid subscription types
                 const resourceToSubscriptionType = {
@@ -221,7 +227,15 @@ class PaymentController {
                     "standard": "standard",
                     "booster": "booster",
                     "regular": "regular",
-                    "other_templates": "other_templates"
+                    "other_templates": "other_templates",
+                    // Service names from FormPage.tsx
+                    "Resume / CV Review": "resume",
+                    "LinkedIn Review": "linkedin",
+                    "Get a Referral": "referral",
+                    "Personalized Projects for Your Target Role": "other_templates",
+                    "Quick Chat": "other_templates",
+                    "Find Job & Internship Strategy": "job",
+                    "Get Hired on LinkedIn": "linkedin"
                 };
                 const actualSubscriptionType = resourceToSubscriptionType[serviceName];
                 if (!actualSubscriptionType) {

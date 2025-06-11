@@ -34,7 +34,6 @@ interface ServiceCardProps {
 }
 
 const ServicesPage = () => {
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
