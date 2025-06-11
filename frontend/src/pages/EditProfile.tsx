@@ -400,7 +400,6 @@ const EditProfile = () => {
       setIsUploadingCoverImage(false);
     }
   };
-
   // File change handler with automatic upload for images
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
@@ -421,11 +420,11 @@ const EditProfile = () => {
         return;
       }
 
-      // Validate file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      // Validate file size (1MB limit)
+      const maxSize = 1 * 1024 * 1024; // 1MB in bytes
       if (file.size > maxSize) {
         toast.error(
-          `File size too large. Please upload images smaller than 5MB. Current size: ${(
+          `Image size is bigger than 1MB. Please upload images smaller than 1MB. Current size: ${(
             file.size /
             (1024 * 1024)
           ).toFixed(2)}MB`
@@ -776,6 +775,9 @@ const EditProfile = () => {
                         profile stand out.{" "}
                         <span className="text-purple-600 font-medium">
                           Images are uploaded automatically.
+                        </span>{" "}
+                        <span className="text-orange-600 font-medium">
+                          (Max 1MB each)
                         </span>
                       </p>
                     </div>
