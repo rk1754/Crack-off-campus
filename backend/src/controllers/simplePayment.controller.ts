@@ -47,10 +47,7 @@ export const simpleVerifyPayment = async (req: Request, res: Response): Promise<
     }
 
     console.log("✅ Payment verified successfully!");
-
-    // ONLY VERIFY PAYMENT - DO NOT UPDATE SUBSCRIPTION TYPE
-    // The subscription update should be done via the /update route
-    
+  
     res.json({
       success: true,
       message: "Payment verified successfully",
