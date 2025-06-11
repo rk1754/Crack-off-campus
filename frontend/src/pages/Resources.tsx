@@ -33,6 +33,21 @@ const ResourcesPage = () => {
   const [loading, setLoading] = useState(false); // Only for payment
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
+  // Check for payment success in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get("success");
+    const type = urlParams.get("type");
+
+    if (success === "1" && type) {
+      toast.success(
+        `Payment successful! Your ${type} template has been downloaded.`
+      );
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   // Load Cashfree SDK
   useEffect(() => {
     const loadCashfreeSDK = async () => {
@@ -348,14 +363,41 @@ const ResourcesPage = () => {
                           user ? user[resource.requiredBoolean] : undefined
                         );
 
-                        // Check boolean field for access
-                        if (user && user[resource.requiredBoolean] === true) {
+                        // Check if user recently made a payment (from localStorage)
+                        const recentPayment = localStorage.getItem(
+                          `payment_${resource.requiredBoolean}`
+                        );
+                        const now = Date.now();
+                        const paymentTime = recentPayment
+                          ? parseInt(recentPayment)
+                          : 0;
+                        const isRecentPayment =
+                          now - paymentTime < 5 * 60 * 1000; // 5 minutes
+
+                        // Allow download if: 1) User has the boolean flag, OR 2) Recent payment was made
+                        if (
+                          (user && user[resource.requiredBoolean] === true) ||
+                          isRecentPayment
+                        ) {
+                          if (isRecentPayment) {
+                            console.log(
+                              "Allowing download due to recent payment"
+                            );
+                            toast.success(
+                              "Download started! Payment was successful."
+                            );
+                          }
                           await resource.action();
                           return;
                         }
 
                         // Otherwise, redirect to payment
                         setLoading(true);
+                        // Set a timestamp for this payment attempt
+                        localStorage.setItem(
+                          `payment_${resource.requiredBoolean}`,
+                          now.toString()
+                        );
                         await handleUpgradeSubscription(
                           resource.requiredBoolean
                         );

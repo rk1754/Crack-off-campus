@@ -80,9 +80,7 @@ const PaymentVerify = () => {
           serviceId,
           date,
           time,
-        });
-
-        // Step 1: Verify payment
+        }); // Step 1: Simple payment verification (without backend update)
         const verifyRes = await axios.post(
           "/payment/verify",
           {
@@ -95,129 +93,74 @@ const PaymentVerify = () => {
           },
           { withCredentials: true }
         );
-
         if (verifyRes.data.success) {
-          console.log("Payment verification successful:", verifyRes.data); // Step 2: Update subscription after successful payment verification
-          try {
-            // Use fetch instead of axios to avoid /api/v1 prefix for the direct /update route
-            const baseUrl =
-              window.location.hostname === "localhost"
-                ? "http://localhost:5454"
-                : "https://api.crackoffcampus.com";
+          console.log("Payment verification successful:", verifyRes.data);
+          toast.success("Payment successful!");
 
-            const updateResponse = await fetch(`${baseUrl}/update`, {
-              method: "POST",
-              credentials: "include",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                subscription_type: serviceName,
-                order_id: order_id,
-              }),
-            });
+          // Set localStorage flag for recent payment to allow immediate downloads
+          if (serviceName) {
+            localStorage.setItem(
+              `payment_${serviceName}`,
+              Date.now().toString()
+            );
+            console.log(`✅ Payment flag set for ${serviceName}`);
+          }
 
-            const updateRes = await updateResponse.json();
+          // Check if this is a subscription-type payment that needs /update route
+          const subscriptionTypes = ["basic", "standard", "booster", "job"];
+          const isSubscriptionPayment = subscriptionTypes.includes(
+            serviceName.toLowerCase()
+          );
 
-            if (updateResponse.ok && updateRes.success) {
-              toast.success("Payment successful and subscription updated!");
-              console.log("Subscription update response:", updateRes);
-            } else {
-              console.warn("Subscription update failed:", updateRes);
+          if (isSubscriptionPayment) {
+            console.log(
+              `📦 Subscription payment detected: ${serviceName}. Running /update route...`
+            );
+
+            // Step 2: Update subscription for subscription-type payments
+            try {
+              const baseUrl =
+                window.location.hostname === "localhost"
+                  ? "http://localhost:5454"
+                  : "https://api.crackoffcampus.com";
+
+              const updateResponse = await fetch(`${baseUrl}/update`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  userId: user.id,
+                  subscription_type: serviceName,
+                  order_id: order_id,
+                }),
+              });
+
+              const updateRes = await updateResponse.json();
+
+              if (updateResponse.ok && updateRes.success) {
+                toast.success("Payment successful and subscription updated!");
+                console.log("Subscription update response:", updateRes);
+              } else {
+                console.warn("Subscription update failed:", updateRes);
+                toast.warning(
+                  "Payment verified but subscription update failed. Contact support."
+                );
+              }
+            } catch (updateError: any) {
+              console.error("Subscription update error:", updateError);
               toast.warning(
                 "Payment verified but subscription update failed. Contact support."
               );
             }
-          } catch (updateError: any) {
-            console.error("Subscription update error:", updateError);
-            toast.warning(
-              "Payment verified but subscription update failed. Contact support."
+          } else {
+            console.log(
+              `🎯 Resource payment detected: ${serviceName}. Skipping /update route.`
             );
           }
 
-          // Continue with the rest of the flow
-          if (user && user.id) {
-            await updateSubscriptionAfterPayment(
-              order_id,
-              subscription_type,
-              user.id
-            );
-          }
-
-          // Refresh user profile in Redux
-          dispatch(fetchCurrentUser())
-            .then(() => {
-              console.log("User profile refreshed after payment verification");
-
-              // Add a small delay to ensure database changes are reflected
-              setTimeout(() => {
-                // Log the updated user data from the API
-                axios
-                  .get("/auth/me", { withCredentials: true })
-                  .then((userRes) => {
-                    console.log("=== COMPLETE USER DATA AFTER PAYMENT ===");
-                    console.log("Full response:", userRes.data);
-                    console.log("User object:", userRes.data.user);
-                    console.log("=== SUBSCRIPTION DETAILS ===");
-                    console.log(
-                      "subscription_type:",
-                      userRes.data.user?.subscription_type
-                    );
-                    console.log(
-                      "subscription_type_2:",
-                      userRes.data.user?.subscription_type_2
-                    );
-                    console.log("is_premium:", userRes.data.user?.is_premium);
-                    console.log(
-                      "subscription_expiry:",
-                      userRes.data.user?.subscription_expiry
-                    );
-                    console.log("serviceName sent:", serviceName);
-                    console.log("===================================");
-
-                    // Verify the update was successful
-                    if (userRes.data.user?.subscription_type === serviceName) {
-                      console.log(
-                        "✅ SUCCESS: subscription_type updated correctly!"
-                      );
-                    } else {
-                      console.log(
-                        "❌ PROBLEM: subscription_type not updated!",
-                        {
-                          expected: serviceName,
-                          actual: userRes.data.user?.subscription_type,
-                        }
-                      );
-                    }
-
-                    if (
-                      userRes.data.user?.subscription_type_2 === serviceName
-                    ) {
-                      console.log(
-                         "✅ SUCCESS: subscription_type_2 updated correctly!"
-                      );
-                    } else {
-                      console.log(
-                        "❌ PROBLEM: subscription_type_2 not updated!",
-                        {
-                          expected: serviceName,
-                          actual: userRes.data.user?.subscription_type_2,
-                        }
-                      );
-                    }
-                  })
-                  .catch((err) => {
-                    console.error("Error fetching updated user data:", err);
-                    console.error("Error details:", err.response?.data);
-                  });
-              }, 2000); // 2 second delay to ensure database changes are reflected
-            })
-            .catch((reduxErr) => {
-              console.error("Error refreshing Redux user data:", reduxErr);
-            });
-
-          // Handle resource type purchase and trigger automatic download
+          // Handle resource type purchase and trigger automatic download IMMEDIATELY
           if (resourceType) {
             const triggerDownload = () => {
               // Map resource types to the appropriate download action
@@ -233,24 +176,32 @@ const PaymentVerify = () => {
               const downloadAction = resourceTypeToDownloadAction[serviceName];
 
               if (downloadAction) {
-                // Short delay to ensure user is properly updated in Redux
-                setTimeout(() => {
-                  try {
-                    downloadAction();
-                    toast.success(
-                      `Your ${resourceType} template is being downloaded!`
-                    );
-                  } catch (err) {
-                    console.error("Download error:", err);
-                    toast.error(
-                      "There was an error downloading your template. Please try again from the Resources page."
-                    );
-                  }
-                }, 1500);
+                // Trigger download immediately after payment verification
+                try {
+                  downloadAction();
+                  toast.success(
+                    `Your ${resourceType} template is being downloaded!`
+                  );
+                  console.log(
+                    `✅ ${serviceName} template download triggered successfully!`
+                  );
+                } catch (err) {
+                  console.error("Download error:", err);
+                  toast.error(
+                    "There was an error downloading your template. Please try again from the Resources page."
+                  );
+                }
+              } else {
+                console.error(
+                  `No download action found for serviceName: ${serviceName}`
+                );
+                toast.error(
+                  "Download action not found. Please try again from the Resources page."
+                );
               }
             };
 
-            // Trigger download and navigate
+            // Trigger download immediately
             triggerDownload();
             navigate(`/resources?success=1&type=${resourceType}`);
           } else if (serviceId && date && time) {
