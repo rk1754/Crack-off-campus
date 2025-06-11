@@ -51,10 +51,13 @@ class PaymentController {
                     console.error("❌ Cashfree PGCreateOrder error:", {
                         message: cashfreeError.message,
                         status: cashfreeError.response?.status,
-                        statusText: cashfreeError.response?.statusText,
-                        data: cashfreeError.response?.data
+                        statusText: cashfreeError.response?.statusText
                     });
-                    logger_1.default.error("Error creating payment order:", cashfreeError);
+                    logger_1.default.error("Error creating payment order:", {
+                        message: cashfreeError.message,
+                        name: cashfreeError.name,
+                        stack: cashfreeError.stack
+                    });
                     res.status(500).json({
                         success: false,
                         message: "Cashfree order creation failed",
@@ -73,10 +76,13 @@ class PaymentController {
             catch (err) {
                 console.error("General error in createPaymentOrder:", {
                     message: err.message,
+                    name: err.name
+                });
+                logger_1.default.error("Error creating payment order:", {
+                    message: err.message,
                     name: err.name,
                     stack: err.stack
                 });
-                logger_1.default.error("Error creating payment order:", err);
                 res.status(500).json({
                     success: false,
                     message: "Problems occurring with payment, if amount is debited it will be sent back. \nThank You",
@@ -109,8 +115,7 @@ class PaymentController {
                     console.error("❌ Cashfree PGFetchOrder error:", {
                         message: cashfreeError.message,
                         status: cashfreeError.response?.status,
-                        statusText: cashfreeError.response?.statusText,
-                        data: cashfreeError.response?.data
+                        statusText: cashfreeError.response?.statusText
                     });
                     res.status(500).json({
                         success: false,
@@ -136,8 +141,7 @@ class PaymentController {
                     console.error("❌ Cashfree PGOrderFetchPayments error:", {
                         message: cashfreeError.message,
                         status: cashfreeError.response?.status,
-                        statusText: cashfreeError.response?.statusText,
-                        data: cashfreeError.response?.data
+                        statusText: cashfreeError.response?.statusText
                     });
                     res.status(500).json({
                         success: false,
@@ -199,13 +203,37 @@ class PaymentController {
                         "cold_mail",
                         "cover_letter",
                         "hr_mail",
-                        "linkedin",
-                        "cv",
+                        "linkedin", "cv",
                         "roadmaps",
                         "interview",
                     ],
                     // Add more mappings as needed
                 };
+                // Map individual resource names to valid subscription types
+                const resourceToSubscriptionType = {
+                    "referral": "other_templates",
+                    "cold_mail": "other_templates",
+                    "cover_letter": "other_templates",
+                    "hr_mail": "other_templates",
+                    "resume": "resume",
+                    "job": "job",
+                    "basic": "basic",
+                    "standard": "standard",
+                    "booster": "booster",
+                    "regular": "regular",
+                    "other_templates": "other_templates"
+                };
+                const actualSubscriptionType = resourceToSubscriptionType[serviceName];
+                if (!actualSubscriptionType) {
+                    logger_1.default.warn("Invalid serviceName provided", { serviceName, validTypes: Object.keys(resourceToSubscriptionType) });
+                    res.status(400).json({
+                        success: false,
+                        message: `Invalid serviceName. Must be one of: ${Object.keys(resourceToSubscriptionType).join(', ')}`,
+                    });
+                    return;
+                }
+                console.log("Service name validation passed:", serviceName, "-> mapped to:", actualSubscriptionType);
+                logger_1.default.info("Service name validation passed", { serviceName, actualSubscriptionType });
                 const updateFields = {
                     is_premium: true,
                     subscription_expiry: (() => {
@@ -213,20 +241,10 @@ class PaymentController {
                         expiry.setDate(expiry.getDate() + 30);
                         return expiry;
                     })(),
-                    subscription_type: serviceName,
-                    subscription_type_2: serviceName,
-                }; // Validate serviceName against ENUM values
-                const validSubscriptionTypes = ['basic', 'standard', 'booster', 'regular', 'job', 'resume', 'other_templates'];
-                if (!validSubscriptionTypes.includes(serviceName)) {
-                    logger_1.default.warn("Invalid serviceName provided", { serviceName, validTypes: validSubscriptionTypes });
-                    res.status(400).json({
-                        success: false,
-                        message: `Invalid serviceName. Must be one of: ${validSubscriptionTypes.join(', ')}`,
-                    });
-                    return;
-                }
-                console.log("Service name validation passed:", serviceName);
-                logger_1.default.info("Service name validation passed", { serviceName }); // Set all relevant boolean fields to true
+                    subscription_type: actualSubscriptionType,
+                    subscription_type_2: actualSubscriptionType,
+                };
+                // Set all relevant boolean fields to true
                 const fieldsToSet = serviceFieldMap[serviceName];
                 if (fieldsToSet && Array.isArray(fieldsToSet)) {
                     for (const field of fieldsToSet) {
@@ -234,7 +252,8 @@ class PaymentController {
                     }
                 }
                 console.log("Final updateFields before database update:", updateFields);
-                logger_1.default.info("Final updateFields before database update", updateFields); // Update user
+                logger_1.default.info("Final updateFields before database update", updateFields);
+                // Update user
                 await db_1.default.transaction(async (t) => {
                     try {
                         // First, let's check the current user state
@@ -247,10 +266,10 @@ class PaymentController {
                             is_premium: currentUser?.is_premium
                         });
                         console.log("Update fields to apply:", updateFields);
-                        // Validate that the serviceName is a valid ENUM value
+                        // Validate that the actualSubscriptionType is a valid ENUM value
                         const validSubscriptionTypes = ['regular', 'basic', 'standard', 'booster', 'job', 'resume', 'other_templates'];
-                        if (!validSubscriptionTypes.includes(serviceName)) {
-                            throw new Error(`Invalid serviceName: ${serviceName}. Valid values: ${validSubscriptionTypes.join(', ')}`);
+                        if (!validSubscriptionTypes.includes(actualSubscriptionType)) {
+                            throw new Error(`Invalid actualSubscriptionType: ${actualSubscriptionType}. Valid values: ${validSubscriptionTypes.join(', ')}`);
                         } // Let's try a more direct approach with individual field updates
                         console.log("=== ATTEMPTING DIRECT FIELD UPDATES ===");
                         // Use the existing currentUser instead of redeclaring
@@ -258,8 +277,8 @@ class PaymentController {
                             throw new Error("User not found");
                         }
                         // Update fields directly on the instance
-                        currentUser.subscription_type = serviceName;
-                        currentUser.subscription_type_2 = serviceName;
+                        currentUser.subscription_type = actualSubscriptionType;
+                        currentUser.subscription_type_2 = actualSubscriptionType;
                         currentUser.is_premium = true;
                         currentUser.subscription_expiry = updateFields.subscription_expiry;
                         // Set resource fields
@@ -290,13 +309,13 @@ class PaymentController {
                             subscription_expiry: savedUser.subscription_expiry
                         });
                         // Validate the update was successful within the transaction
-                        if (savedUser.subscription_type !== serviceName) {
+                        if (savedUser.subscription_type !== actualSubscriptionType) {
                             console.error("CRITICAL: subscription_type was not saved correctly within transaction!");
-                            throw new Error(`subscription_type save failed. Expected: ${serviceName}, Got: ${savedUser.subscription_type}`);
+                            throw new Error(`subscription_type save failed. Expected: ${actualSubscriptionType}, Got: ${savedUser.subscription_type}`);
                         }
-                        if (savedUser.subscription_type_2 !== serviceName) {
+                        if (savedUser.subscription_type_2 !== actualSubscriptionType) {
                             console.error("CRITICAL: subscription_type_2 was not saved correctly within transaction!");
-                            throw new Error(`subscription_type_2 save failed. Expected: ${serviceName}, Got: ${savedUser.subscription_type_2}`);
+                            throw new Error(`subscription_type_2 save failed. Expected: ${actualSubscriptionType}, Got: ${savedUser.subscription_type_2}`);
                         }
                         console.log("✅ Both subscription types saved correctly within transaction");
                         // Create transaction record
@@ -317,9 +336,17 @@ class PaymentController {
                         console.log("=== TRANSACTION WILL COMMIT ===");
                     }
                     catch (transactionError) {
-                        console.error("❌ Error during transaction:", transactionError);
+                        console.error("❌ Error during transaction:", {
+                            message: transactionError.message,
+                            name: transactionError.name
+                        });
                         console.error("=== TRANSACTION WILL ROLLBACK ===");
-                        logger_1.default.error("Transaction error", { error: transactionError, userId: user.id });
+                        logger_1.default.error("Transaction error", {
+                            message: transactionError.message,
+                            name: transactionError.name,
+                            stack: transactionError.stack,
+                            userId: user.id
+                        });
                         throw transactionError; // This will cause the transaction to rollback
                     }
                 });
@@ -413,18 +440,12 @@ class PaymentController {
                     message: err.message,
                     name: err.name,
                     stack: err.stack,
-                    response: err.response ? {
-                        status: err.response.status,
-                        statusText: err.response.statusText,
-                        data: err.response.data
-                    } : undefined,
                     body: req.body,
                     user: req.user ? { id: req.user.id, email: req.user.email } : undefined,
                 });
                 console.error("Payment verification error:", {
                     message: err.message,
-                    name: err.name,
-                    stack: err.stack
+                    name: err.name
                 });
                 res.status(500).json({
                     success: false,
@@ -547,8 +568,15 @@ class PaymentController {
                 });
             }
             catch (err) {
-                console.error("Subscription update error:", err);
-                logger_1.default.error("Subscription update error:", err);
+                console.error("Subscription update error:", {
+                    message: err.message,
+                    name: err.name
+                });
+                logger_1.default.error("Subscription update error:", {
+                    message: err.message,
+                    name: err.name,
+                    stack: err.stack
+                });
                 res.status(500).json({
                     success: false,
                     message: "Failed to update subscription",
@@ -559,6 +587,8 @@ class PaymentController {
         this.verifyPayment = async (req, res) => {
             try {
                 const { order_id } = req.query;
+                const serviceName = req.query.serviceName;
+                const resourceType = req.query.resourceType;
                 if (!order_id) {
                     // Support JSON error for AJAX
                     if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
@@ -575,8 +605,7 @@ class PaymentController {
                     console.error("❌ Cashfree PGFetchOrder error in verifyPayment:", {
                         message: cashfreeError.message,
                         status: cashfreeError.response?.status,
-                        statusText: cashfreeError.response?.statusText,
-                        data: cashfreeError.response?.data
+                        statusText: cashfreeError.response?.statusText
                     });
                     if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
                         return res.status(500).json({
@@ -599,8 +628,7 @@ class PaymentController {
                     console.error("❌ Cashfree PGOrderFetchPayments error in verifyPayment:", {
                         message: cashfreeError.message,
                         status: cashfreeError.response?.status,
-                        statusText: cashfreeError.response?.statusText,
-                        data: cashfreeError.response?.data
+                        statusText: cashfreeError.response?.statusText
                     });
                     if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
                         return res.status(500).json({
@@ -617,21 +645,60 @@ class PaymentController {
                 }
                 const user = req.user;
                 if (!user) {
+                    if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+                        return res.status(401).json({ success: false, message: "unauthorized" });
+                    }
                     return res.redirect("/jobs?payment=error&message=unauthorized");
                 }
-                // Map amount to subscription type
-                const subscriptionMap = {
-                    1: "basic",
-                    2: "standard",
-                    3: "booster",
-                    99: "job",
-                };
-                const subscriptionType = subscriptionMap[orderDetails.data.order_amount];
-                if (!subscriptionType) {
-                    if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
-                        return res.status(400).json({ success: false, message: "invalid_amount" });
+                // Determine subscription type based on serviceName/resourceType or payment amount
+                let subscriptionType;
+                if (serviceName) {
+                    // Map individual resource names to valid subscription types
+                    const resourceToSubscriptionType = {
+                        "referral": "other_templates",
+                        "cold_mail": "other_templates",
+                        "cover_letter": "other_templates",
+                        "hr_mail": "other_templates",
+                        "resume": "resume",
+                        "job": "job",
+                        "basic": "basic",
+                        "standard": "standard",
+                        "booster": "booster",
+                        "regular": "regular",
+                        "other_templates": "other_templates"
+                    };
+                    const mappedType = resourceToSubscriptionType[serviceName];
+                    if (!mappedType) {
+                        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+                            return res.status(400).json({
+                                success: false,
+                                message: `Invalid serviceName: ${serviceName}. Valid values: ${Object.keys(resourceToSubscriptionType).join(', ')}`
+                            });
+                        }
+                        return res.redirect("/jobs?payment=error&message=invalid_service");
                     }
-                    return res.redirect("/jobs?payment=error&message=invalid_amount");
+                    subscriptionType = mappedType;
+                }
+                else if (resourceType) {
+                    // Use resourceType if provided 
+                    subscriptionType = resourceType;
+                }
+                else {
+                    // Fallback to amount-based mapping for backward compatibility
+                    const subscriptionMap = {
+                        1: "basic",
+                        2: "standard",
+                        3: "booster",
+                        4: "resume", // ₹4 for resume template
+                        99: "job",
+                    };
+                    subscriptionType = subscriptionMap[orderDetails.data.order_amount];
+                    if (!subscriptionType) {
+                        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+                            return res.status(400).json({ success: false, message: "invalid_amount" });
+                        }
+                        return res.redirect("/jobs?payment=error&message=invalid_amount");
+                    }
                 }
                 const subscriptionExpiry = new Date();
                 subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
@@ -641,8 +708,7 @@ class PaymentController {
                     subscription_type_2: subscriptionType,
                     subscription_expiry: subscriptionExpiry,
                     is_premium: true,
-                };
-                // Set feature flags based on subscription type
+                }; // Set feature flags based on subscription type AND original serviceName
                 if (subscriptionType === "basic") {
                     updateData.job = true; // Premium Jobs access
                     updateData.cover_letter = true;
@@ -667,6 +733,24 @@ class PaymentController {
                 }
                 else if (subscriptionType === "job") {
                     updateData.job = true; // Premium Jobs access only
+                }
+                else if (subscriptionType === "resume") {
+                    updateData.resume = true; // Resume template access only
+                }
+                else if (subscriptionType === "other_templates") {
+                    // For other_templates, set the specific resource boolean based on original serviceName
+                    if (serviceName === "referral") {
+                        updateData.referral = true;
+                    }
+                    else if (serviceName === "cold_mail") {
+                        updateData.cold_mail = true;
+                    }
+                    else if (serviceName === "cover_letter") {
+                        updateData.cover_letter = true;
+                    }
+                    else if (serviceName === "hr_mail") {
+                        updateData.hr_mail = true;
+                    }
                 }
                 // Update user subscription and store transaction atomically
                 await db_1.default.transaction(async (t) => {
@@ -720,18 +804,12 @@ class PaymentController {
             catch (err) {
                 console.error("Payment verification error:", {
                     message: err.message,
-                    name: err.name,
-                    stack: err.stack
+                    name: err.name
                 });
                 logger_1.default.error("Payment verification error:", {
                     message: err.message,
                     name: err.name,
-                    stack: err.stack,
-                    response: err.response ? {
-                        status: err.response.status,
-                        statusText: err.response.statusText,
-                        data: err.response.data
-                    } : undefined
+                    stack: err.stack
                 });
                 if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
                     return res.status(500).json({

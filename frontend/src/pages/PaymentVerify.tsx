@@ -80,19 +80,39 @@ const PaymentVerify = () => {
           serviceId,
           date,
           time,
-        }); // Step 1: Simple payment verification (without backend update)
-        const verifyRes = await axios.post(
-          "/payment/verify",
-          {
-            order_id,
-            serviceName,
-            resourceType,
-            serviceId,
-            date,
-            time,
-          },
-          { withCredentials: true }
-        );
+        });
+
+        // Step 1: Payment verification - different endpoint based on resourceType
+        let verifyRes;
+        if (resourceType !== null && resourceType !== undefined) {
+          // Use verifyresources endpoint when resourceType is not null
+          verifyRes = await axios.post(
+            "/payment/verifyresources",
+            {
+              order_id,
+              serviceName,
+              resourceType,
+              serviceId,
+              date,
+              time,
+            },
+            { withCredentials: true }
+          );
+        } else {
+          // Use regular verify endpoint when resourceType is null
+          verifyRes = await axios.post(
+            "/payment/verify",
+            {
+              order_id,
+              serviceName,
+              resourceType,
+              serviceId,
+              date,
+              time,
+            },
+            { withCredentials: true }
+          );
+        }
         if (verifyRes.data.success) {
           console.log("Payment verification successful:", verifyRes.data);
           toast.success("Payment successful!");

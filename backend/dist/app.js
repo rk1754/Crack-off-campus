@@ -118,6 +118,30 @@ else {
             console.log('Request body:', req.body);
             console.log('Request headers:', req.headers);
             const { userId, subscription_type } = req.body;
+            // Map individual resource names to valid subscription types
+            const resourceToSubscriptionType = {
+                "referral": "other_templates",
+                "cold_mail": "other_templates",
+                "cover_letter": "other_templates",
+                "hr_mail": "other_templates",
+                "resume": "resume",
+                "job": "job",
+                "basic": "basic",
+                "standard": "standard",
+                "booster": "booster",
+                "regular": "regular",
+                "other_templates": "other_templates"
+            };
+            // Get the actual subscription type for database
+            const actualSubscriptionType = resourceToSubscriptionType[subscription_type];
+            if (!actualSubscriptionType) {
+                console.log('Invalid subscription type:', subscription_type);
+                res.status(400).json({
+                    success: false,
+                    message: `Invalid subscription_type. Must be one of: ${Object.keys(resourceToSubscriptionType).join(", ")}`
+                });
+                return;
+            }
             // Allowed subscription types as per User model ENUM
             const validTypes = [
                 "basic",
@@ -136,14 +160,6 @@ else {
                 });
                 return;
             }
-            if (!validTypes.includes(subscription_type)) {
-                console.log('Invalid subscription type:', subscription_type);
-                res.status(400).json({
-                    success: false,
-                    message: `Invalid subscription_type. Must be one of: ${validTypes.join(", ")}`
-                });
-                return;
-            }
             console.log('Finding user with ID:', userId);
             const user = await user_model_1.default.findByPk(userId);
             if (!user) {
@@ -157,24 +173,25 @@ else {
             console.log('Current user subscription:', {
                 current_subscription_type: user.subscription_type,
                 current_subscription_type_2: user.subscription_type_2,
-                new_subscription_type: subscription_type
+                original_subscription_type: subscription_type,
+                mapped_subscription_type: actualSubscriptionType
             });
-            // Update subscription types
-            user.subscription_type = subscription_type;
-            user.subscription_type_2 = subscription_type;
+            // Update subscription types with the mapped value
+            user.subscription_type = actualSubscriptionType;
+            user.subscription_type_2 = actualSubscriptionType;
             user.is_premium = true;
             // Set expiry date
             const subscriptionExpiry = new Date();
             subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
             user.subscription_expiry = subscriptionExpiry;
-            // Set resource booleans based on subscription type
-            if (subscription_type === "basic") {
+            // Set resource booleans based on the ACTUAL subscription type AND original serviceName
+            if (actualSubscriptionType === "basic") {
                 user.cold_mail = true;
                 user.cover_letter = true;
                 user.hr_mail = true;
                 user.job = true;
             }
-            else if (subscription_type === "standard" || subscription_type === "booster") {
+            else if (actualSubscriptionType === "standard" || actualSubscriptionType === "booster") {
                 user.resume = true;
                 user.referral = true;
                 user.cold_mail = true;
@@ -186,8 +203,26 @@ else {
                 user.interview = true;
                 user.job = true;
             }
-            else if (subscription_type === "job") {
+            else if (actualSubscriptionType === "job") {
                 user.job = true;
+            }
+            else if (actualSubscriptionType === "resume") {
+                user.resume = true;
+            }
+            else if (actualSubscriptionType === "other_templates") {
+                // For other_templates, set the specific resource boolean based on original subscription_type
+                if (subscription_type === "referral") {
+                    user.referral = true;
+                }
+                else if (subscription_type === "cold_mail") {
+                    user.cold_mail = true;
+                }
+                else if (subscription_type === "cover_letter") {
+                    user.cover_letter = true;
+                }
+                else if (subscription_type === "hr_mail") {
+                    user.hr_mail = true;
+                }
             }
             console.log('About to save user with:', {
                 subscription_type: user.subscription_type,
