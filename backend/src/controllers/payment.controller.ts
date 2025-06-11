@@ -606,10 +606,12 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         error: err.message,
       });
     }
-  };
-  verifyPayment = async (req: Request, res: Response): Promise<any> => {
+  };  verifyPayment = async (req: Request, res: Response): Promise<any> => {
     try {
       const { order_id } = req.query;
+      const serviceName = req.query.serviceName as string;
+      const resourceType = req.query.resourceType as string;
+      
       if (!order_id) {
         // Support JSON error for AJAX
         if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
@@ -621,7 +623,8 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       // Fetch order details from Cashfree with proper error handling
       let orderDetails;
       try {
-        orderDetails = await cashfree.PGFetchOrder(order_id as string);      } catch (cashfreeError: any) {
+        orderDetails = await cashfree.PGFetchOrder(order_id as string);
+      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGFetchOrder error in verifyPayment:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
@@ -647,7 +650,8 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       try {
         paymentDetails = await cashfree.PGOrderFetchPayments(
           order_id as string
-        );      } catch (cashfreeError: any) {
+        );
+      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGOrderFetchPayments error in verifyPayment:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
@@ -660,7 +664,8 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
             message: "Cashfree payment details fetch failed",
             error: cashfreeError.message 
           });
-        }        return res.redirect("/jobs?payment=error&message=cashfree_error");
+        }        
+        return res.redirect("/jobs?payment=error&message=cashfree_error");
       }
       
       const successfulPayment = paymentDetails.data.find(
@@ -669,27 +674,47 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       if (!successfulPayment) {
         return res.redirect("/jobs?payment=failed");
       }
+      
       const user = req.user;
       if (!user) {
+        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+          return res.status(401).json({ success: false, message: "unauthorized" });
+        }
         return res.redirect("/jobs?payment=error&message=unauthorized");
       }
-      // Map amount to subscription type
-      const subscriptionMap: SubscriptionMap = {
-        1: "basic",
-        2: "standard",
-        3: "booster",
-        99: "job",
-      };
-      const subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
-      if (!subscriptionType) {
-        if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
-          return res.status(400).json({ success: false, message: "invalid_amount" });
+      
+      // Determine subscription type based on serviceName/resourceType or payment amount
+      let subscriptionType: string;
+      
+      if (serviceName) {
+        // Use serviceName if provided (from resource purchases)
+        subscriptionType = serviceName;
+      } else if (resourceType) {
+        // Use resourceType if provided 
+        subscriptionType = resourceType;
+      } else {
+        // Fallback to amount-based mapping for backward compatibility
+        const subscriptionMap: SubscriptionMap = {
+          1: "basic",
+          2: "standard",
+          3: "booster",
+          4: "resume", // ₹4 for resume template
+          99: "job",
+        };
+        subscriptionType = subscriptionMap[orderDetails.data.order_amount!];
+        
+        if (!subscriptionType) {
+          if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+            return res.status(400).json({ success: false, message: "invalid_amount" });
+          }
+          return res.redirect("/jobs?payment=error&message=invalid_amount");
         }
-        return res.redirect("/jobs?payment=error&message=invalid_amount");
       }
+      
       const subscriptionExpiry = new Date();
       subscriptionExpiry.setDate(subscriptionExpiry.getDate() + 30);
-        // Define features based on subscription type
+      
+      // Define features based on subscription type
       const updateData: any = {
         subscription_type: subscriptionType,
         subscription_type_2: subscriptionType,
@@ -719,6 +744,16 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         updateData.referral = true;
       } else if (subscriptionType === "job") {
         updateData.job = true; // Premium Jobs access only
+      } else if (subscriptionType === "resume") {
+        updateData.resume = true; // Resume template access only
+      } else if (subscriptionType === "referral") {
+        updateData.referral = true; // Referral template access only
+      } else if (subscriptionType === "cold_mail") {
+        updateData.cold_mail = true; // Cold mail template access only
+      } else if (subscriptionType === "cover_letter") {
+        updateData.cover_letter = true; // Cover letter template access only
+      } else if (subscriptionType === "hr_mail") {
+        updateData.hr_mail = true; // HR mail template access only
       }
       
       // Update user subscription and store transaction atomically
@@ -738,6 +773,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           { transaction: t }
         );
       });
+      
       // Update JWT token
       const updatedUserForToken = await User.findByPk(user.id);
       const token = jwt.sign(
@@ -766,6 +802,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
+      
       // If AJAX or ?json=1, return JSON with updated user
       if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
         return res.status(200).json({
@@ -775,7 +812,8 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         });
       }
       // Default: redirect
-      res.redirect("/jobs?payment=success");    } catch (err: any) {
+      res.redirect("/jobs?payment=success");
+    } catch (err: any) {
       console.error("Payment verification error:", {
         message: err.message,
         name: err.name

@@ -60,7 +60,6 @@ const ResourcesPage = () => {
       setSdkLoaded(false);
     };
   }, []);
-
   // Payment handler
   const handleUpgradeSubscription = async (requiredBoolean: string) => {
     if (!user) {
@@ -81,7 +80,7 @@ const ResourcesPage = () => {
         requiredBoolean
       )
     ) {
-      amountInPaise = 1; // ₹49
+      amountInPaise = 1; // ₹1
     } else {
       return;
     }
@@ -108,7 +107,7 @@ const ResourcesPage = () => {
       });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://crackoffcampus.com/payment/verify?order_id=${order_id}&resourceType=${requiredBoolean}`,
+        returnUrl: `https://crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${requiredBoolean}&resourceType=${requiredBoolean}`,
         redirectTarget: "_blank" as "_blank",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {

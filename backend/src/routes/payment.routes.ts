@@ -12,6 +12,9 @@ router.post('/create-order', authMiddleware, paymentController.createPaymentOrde
 // Simple verify payment route - only verifies payment, doesn't update subscription
 router.post('/verify', authMiddleware, simpleVerifyPayment);
 
+// GET route for payment verification (used by Cashfree returnUrl)
+router.get('/verify', authMiddleware, paymentController.verifyPayment);
+
 // Subscription update route - separate route for updating subscription after payment verification
 router.post('/update', authMiddleware, paymentController.updateUserSubscription);
 
