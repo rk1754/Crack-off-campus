@@ -5,7 +5,12 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/redux/store";
-import { fetchCurrentUser, updateUser } from "@/redux/slices/userSlice";
+import {
+  fetchCurrentUser,
+  updateUser,
+  setProfile,
+  setCoverImage,
+} from "@/redux/slices/userSlice";
 import {
   getMyExperience,
   addExperience as addExperienceThunk,
@@ -95,15 +100,12 @@ const EditProfile = () => {
     education: {},
     profile: {},
   });
-
   // Profile form state
   const [profileData, setProfileData] = useState({
     name: "",
     phone_number: "",
     bio: "",
     skills: [] as string[],
-    profile_pic: null as File | null,
-    cover_image: null as File | null,
   });
 
   // Experience and Education states
@@ -117,6 +119,8 @@ const EditProfile = () => {
     null
   );
   const [skillInput, setSkillInput] = useState("");
+  const [isUploadingProfilePic, setIsUploadingProfilePic] = useState(false);
+  const [isUploadingCoverImage, setIsUploadingCoverImage] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -125,7 +129,6 @@ const EditProfile = () => {
       dispatch(getMyEducation());
     }
   }, [dispatch, isAuthenticated]);
-
   useEffect(() => {
     if (user) {
       setProfileData({
@@ -133,8 +136,6 @@ const EditProfile = () => {
         phone_number: user.phone_number || "",
         bio: user.bio || "",
         skills: Array.isArray(user.skills) ? user.skills : [],
-        profile_pic: null,
-        cover_image: null,
       });
       setProfilePicPreview(user.profile_pic || null);
       setCoverImagePreview(user.cover_image || null);
@@ -355,9 +356,53 @@ const EditProfile = () => {
       }
       return newErrors;
     });
+  }; // Automatic upload handlers for profile and cover images
+  const handleProfileImageUpload = async (file: File) => {
+    try {
+      setIsUploadingProfilePic(true);
+      toast.loading("Uploading profile image...", { id: "profile-upload" });
+      const result = await dispatch(setProfile({ image: file })).unwrap();
+      // Backend returns { imageUrl: string } for profile uploads
+      if (result && typeof result === "object" && "imageUrl" in result) {
+        setProfilePicPreview((result as any).imageUrl);
+      }
+      await dispatch(fetchCurrentUser()); // Refresh user data
+      toast.success("Profile image updated successfully!", {
+        id: "profile-upload",
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to upload profile image", {
+        id: "profile-upload",
+      });
+    } finally {
+      setIsUploadingProfilePic(false);
+    }
   };
-  // Handlers
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleCoverImageUpload = async (file: File) => {
+    try {
+      setIsUploadingCoverImage(true);
+      toast.loading("Uploading cover image...", { id: "cover-upload" });
+      const result = await dispatch(setCoverImage({ image: file })).unwrap();
+      // Backend returns { cover_image: string } for cover uploads
+      if (result && typeof result === "object" && "cover_image" in result) {
+        setCoverImagePreview((result as any).cover_image);
+      }
+      await dispatch(fetchCurrentUser()); // Refresh user data
+      toast.success("Cover image updated successfully!", {
+        id: "cover-upload",
+      });
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to upload cover image", {
+        id: "cover-upload",
+      });
+    } finally {
+      setIsUploadingCoverImage(false);
+    }
+  };
+
+  // File change handler with automatic upload for images
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files } = e.target;
     if (files && files[0]) {
       const file = files[0];
@@ -388,11 +433,13 @@ const EditProfile = () => {
         return;
       }
 
-      setProfileData((prev) => ({ ...prev, [name]: file }));
+      // Automatically upload based on the input name
       if (name === "profile_pic") {
         setProfilePicPreview(URL.createObjectURL(file));
+        await handleProfileImageUpload(file);
       } else if (name === "cover_image") {
         setCoverImagePreview(URL.createObjectURL(file));
+        await handleCoverImageUpload(file);
       }
     }
   };
@@ -497,7 +544,6 @@ const EditProfile = () => {
     const duration = Number.parseInt(endYear) - Number.parseInt(startYear);
     return `${duration} year${duration !== 1 ? "s" : ""}`;
   };
-
   const handleSaveProfile = async () => {
     // Validate all forms before saving
     const isValid = validateAllForms();
@@ -511,17 +557,13 @@ const EditProfile = () => {
 
     setIsSaving(true);
     try {
-      // Save profile data
+      // Save profile data (excluding images as they are handled automatically)
       const payload: any = {
         name: profileData.name,
         phone_number: profileData.phone_number,
         bio: profileData.bio,
         skills: profileData.skills,
       };
-      if (profileData.profile_pic)
-        payload.profile_pic = profileData.profile_pic;
-      if (profileData.cover_image)
-        payload.cover_image = profileData.cover_image;
 
       await dispatch(updateUser({ data: payload })).unwrap();
 
@@ -612,9 +654,10 @@ const EditProfile = () => {
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                     Edit Profile
-                  </h1>
+                  </h1>{" "}
                   <p className="text-gray-600 text-sm sm:text-base">
-                    Update your professional information
+                    Update your professional information. Images upload
+                    automatically when selected.
                   </p>
                 </div>
               </div>
@@ -673,18 +716,23 @@ const EditProfile = () => {
                       </span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-white to-purple-200 opacity-70"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-white to-purple-200 opacity-70"></div>{" "}
                   <label className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-white/95 hover:bg-white p-2 sm:p-3 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <Upload
-                      size={16}
-                      className="sm:w-5 sm:h-5 text-purple-600"
-                    />
+                    {isUploadingCoverImage ? (
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Upload
+                        size={16}
+                        className="sm:w-5 sm:h-5 text-purple-600"
+                      />
+                    )}
                     <input
                       type="file"
                       name="cover_image"
                       accept="image/*"
                       onChange={handleFileChange}
                       className="hidden"
+                      disabled={isUploadingCoverImage}
                     />
                   </label>
                 </div>
@@ -705,22 +753,30 @@ const EditProfile = () => {
                           alt="Profile"
                           className="w-full h-full object-cover"
                         />
-                      </div>
+                      </div>{" "}
                       <label className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-purple-600 hover:bg-purple-700 text-white p-1.5 sm:p-2 rounded-full cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <Camera size={12} className="sm:w-4 sm:h-4" />
+                        {isUploadingProfilePic ? (
+                          <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Camera size={12} className="sm:w-4 sm:h-4" />
+                        )}
                         <input
                           type="file"
                           name="profile_pic"
                           accept="image/*"
                           onChange={handleFileChange}
                           className="hidden"
+                          disabled={isUploadingProfilePic}
                         />
                       </label>
-                    </div>
+                    </div>{" "}
                     <div className="flex-1 sm:mb-4">
                       <p className="text-gray-600 text-xs sm:text-sm">
                         Upload a professional photo and cover image to make your
-                        profile stand out
+                        profile stand out.{" "}
+                        <span className="text-purple-600 font-medium">
+                          Images are uploaded automatically.
+                        </span>
                       </p>
                     </div>
                   </div>
