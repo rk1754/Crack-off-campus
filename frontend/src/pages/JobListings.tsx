@@ -295,7 +295,7 @@ const JobListings = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          amount: 99,
+          amount: 1,
           name: user.name,
           email: user.email,
           phone: user.phone_number || "+919876543210",
