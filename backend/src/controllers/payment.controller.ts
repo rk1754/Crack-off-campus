@@ -207,42 +207,64 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         "cold_mail",
         "cover_letter",
         "hr_mail",
-        "linkedin",
-        "cv",
+        "linkedin",        "cv",
         "roadmaps",
         "interview",
       ],
       // Add more mappings as needed
-    };      const updateFields: any = {
+    };
+
+      // Map individual resource names to valid subscription types
+      const resourceToSubscriptionType: Record<string, string> = {
+        "referral": "other_templates",
+        "cold_mail": "other_templates", 
+        "cover_letter": "other_templates",
+        "hr_mail": "other_templates",
+        "resume": "resume",
+        "job": "job",
+        "basic": "basic",
+        "standard": "standard", 
+        "booster": "booster",
+        "regular": "regular",
+        "other_templates": "other_templates"
+      };
+
+      const actualSubscriptionType = resourceToSubscriptionType[serviceName];
+      if (!actualSubscriptionType) {
+        logger.warn("Invalid serviceName provided", { serviceName, validTypes: Object.keys(resourceToSubscriptionType) });
+        res.status(400).json({
+          success: false,
+          message: `Invalid serviceName. Must be one of: ${Object.keys(resourceToSubscriptionType).join(', ')}`,
+        });
+        return;
+      }
+
+      console.log("Service name validation passed:", serviceName, "-> mapped to:", actualSubscriptionType);
+      logger.info("Service name validation passed", { serviceName, actualSubscriptionType });
+
+      const updateFields: any = {
         is_premium: true,
         subscription_expiry: (() => {
           const expiry = new Date();
           expiry.setDate(expiry.getDate() + 30);
           return expiry;
         })(),
-        subscription_type: serviceName,
-        subscription_type_2: serviceName,
-        
-      };      // Validate serviceName against ENUM values
-      const validSubscriptionTypes = ['basic', 'standard', 'booster', 'regular', 'job', 'resume', 'other_templates'];
-      if (!validSubscriptionTypes.includes(serviceName)) {
-        logger.warn("Invalid serviceName provided", { serviceName, validTypes: validSubscriptionTypes });
-        res.status(400).json({
-          success: false,
-          message: `Invalid serviceName. Must be one of: ${validSubscriptionTypes.join(', ')}`,
-        });
-        return;
-      }
+        subscription_type: actualSubscriptionType,
+        subscription_type_2: actualSubscriptionType,
+      };
 
-      console.log("Service name validation passed:", serviceName);
-      logger.info("Service name validation passed", { serviceName });// Set all relevant boolean fields to true
+      // Set all relevant boolean fields to true
       const fieldsToSet = serviceFieldMap[serviceName];
       if (fieldsToSet && Array.isArray(fieldsToSet)) {
         for (const field of fieldsToSet) {
           updateFields[field] = true;
         }
-      }      console.log("Final updateFields before database update:", updateFields);
-      logger.info("Final updateFields before database update", updateFields);      // Update user
+      }
+
+      console.log("Final updateFields before database update:", updateFields);
+      logger.info("Final updateFields before database update", updateFields);
+
+      // Update user
       await sequelize.transaction(async (t: any) => {
         try {
           // First, let's check the current user state
@@ -255,22 +277,20 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
             is_premium: currentUser?.is_premium
           });
           console.log("Update fields to apply:", updateFields);
-          
-          // Validate that the serviceName is a valid ENUM value
+            // Validate that the actualSubscriptionType is a valid ENUM value
           const validSubscriptionTypes = ['regular', 'basic', 'standard', 'booster', 'job', 'resume', 'other_templates'];
-          if (!validSubscriptionTypes.includes(serviceName)) {
-            throw new Error(`Invalid serviceName: ${serviceName}. Valid values: ${validSubscriptionTypes.join(', ')}`);
-          }          // Let's try a more direct approach with individual field updates
+          if (!validSubscriptionTypes.includes(actualSubscriptionType)) {
+            throw new Error(`Invalid actualSubscriptionType: ${actualSubscriptionType}. Valid values: ${validSubscriptionTypes.join(', ')}`);
+          }// Let's try a more direct approach with individual field updates
           console.log("=== ATTEMPTING DIRECT FIELD UPDATES ===");
           
           // Use the existing currentUser instead of redeclaring
           if (!currentUser) {
             throw new Error("User not found");
           }
-          
-          // Update fields directly on the instance
-          currentUser.subscription_type = serviceName as any;
-          currentUser.subscription_type_2 = serviceName as any;
+            // Update fields directly on the instance
+          currentUser.subscription_type = actualSubscriptionType as any;
+          currentUser.subscription_type_2 = actualSubscriptionType as any;
           currentUser.is_premium = true;
           currentUser.subscription_expiry = updateFields.subscription_expiry;
           
@@ -281,8 +301,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
               (currentUser as any)[field] = true;
             }
           }
-          
-          console.log("About to save user with values:", {
+            console.log("About to save user with values:", {
             subscription_type: currentUser.subscription_type,
             subscription_type_2: currentUser.subscription_type_2,
             is_premium: currentUser.is_premium
@@ -306,14 +325,14 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
           });
           
           // Validate the update was successful within the transaction
-          if (savedUser.subscription_type !== serviceName) {
+          if (savedUser.subscription_type !== actualSubscriptionType) {
             console.error("CRITICAL: subscription_type was not saved correctly within transaction!");
-            throw new Error(`subscription_type save failed. Expected: ${serviceName}, Got: ${savedUser.subscription_type}`);
+            throw new Error(`subscription_type save failed. Expected: ${actualSubscriptionType}, Got: ${savedUser.subscription_type}`);
           }
           
-          if (savedUser.subscription_type_2 !== serviceName) {
+          if (savedUser.subscription_type_2 !== actualSubscriptionType) {
             console.error("CRITICAL: subscription_type_2 was not saved correctly within transaction!");
-            throw new Error(`subscription_type_2 save failed. Expected: ${serviceName}, Got: ${savedUser.subscription_type_2}`);
+            throw new Error(`subscription_type_2 save failed. Expected: ${actualSubscriptionType}, Got: ${savedUser.subscription_type_2}`);
           }
           
           console.log("✅ Both subscription types saved correctly within transaction");
@@ -682,13 +701,36 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         }
         return res.redirect("/jobs?payment=error&message=unauthorized");
       }
-      
-      // Determine subscription type based on serviceName/resourceType or payment amount
+        // Determine subscription type based on serviceName/resourceType or payment amount
       let subscriptionType: string;
       
       if (serviceName) {
-        // Use serviceName if provided (from resource purchases)
-        subscriptionType = serviceName;
+        // Map individual resource names to valid subscription types
+        const resourceToSubscriptionType: Record<string, string> = {
+          "referral": "other_templates",
+          "cold_mail": "other_templates", 
+          "cover_letter": "other_templates",
+          "hr_mail": "other_templates",
+          "resume": "resume",
+          "job": "job",
+          "basic": "basic",
+          "standard": "standard", 
+          "booster": "booster",
+          "regular": "regular",
+          "other_templates": "other_templates"
+        };
+        
+        const mappedType = resourceToSubscriptionType[serviceName];
+        if (!mappedType) {
+          if (req.headers.accept?.includes("application/json") || req.query.json === "1") {
+            return res.status(400).json({ 
+              success: false, 
+              message: `Invalid serviceName: ${serviceName}. Valid values: ${Object.keys(resourceToSubscriptionType).join(', ')}`
+            });
+          }
+          return res.redirect("/jobs?payment=error&message=invalid_service");
+        }
+        subscriptionType = mappedType;
       } else if (resourceType) {
         // Use resourceType if provided 
         subscriptionType = resourceType;
@@ -720,9 +762,7 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         subscription_type_2: subscriptionType,
         subscription_expiry: subscriptionExpiry,
         is_premium: true,
-      };
-
-      // Set feature flags based on subscription type
+      };      // Set feature flags based on subscription type AND original serviceName
       if (subscriptionType === "basic") {
         updateData.job = true; // Premium Jobs access
         updateData.cover_letter = true;
@@ -746,14 +786,17 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         updateData.job = true; // Premium Jobs access only
       } else if (subscriptionType === "resume") {
         updateData.resume = true; // Resume template access only
-      } else if (subscriptionType === "referral") {
-        updateData.referral = true; // Referral template access only
-      } else if (subscriptionType === "cold_mail") {
-        updateData.cold_mail = true; // Cold mail template access only
-      } else if (subscriptionType === "cover_letter") {
-        updateData.cover_letter = true; // Cover letter template access only
-      } else if (subscriptionType === "hr_mail") {
-        updateData.hr_mail = true; // HR mail template access only
+      } else if (subscriptionType === "other_templates") {
+        // For other_templates, set the specific resource boolean based on original serviceName
+        if (serviceName === "referral") {
+          updateData.referral = true;
+        } else if (serviceName === "cold_mail") {
+          updateData.cold_mail = true;
+        } else if (serviceName === "cover_letter") {
+          updateData.cover_letter = true;
+        } else if (serviceName === "hr_mail") {
+          updateData.hr_mail = true;
+        }
       }
       
       // Update user subscription and store transaction atomically
