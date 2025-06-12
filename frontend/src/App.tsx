@@ -121,11 +121,8 @@ const ProtectedRoute = ({
 const App = () => {
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
-  // Clear local and session storage on app load
-  useEffect(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  }, []);
+  // Note: Removed localStorage.clear() and sessionStorage.clear()
+  // as they were interfering with payment flow data storage
 
   return (
     <HelmetProvider>
