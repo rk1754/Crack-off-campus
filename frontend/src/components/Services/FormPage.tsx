@@ -14,6 +14,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { useResumeUpload } from "../../hooks/useResumeUpload";
+import { checkSlotAvailability } from "../../utils/slotAvailability";
 
 interface ServiceDetails {
   id: number;
@@ -149,13 +150,36 @@ export default function FormPage() {
       localStorage.setItem("resumeUrl", resumeUrl);
 
       // Update form data with resume URL
-      setFormData((prev) => ({ ...prev, resumeUrl }));
-
-      // Booster user direct booking for Resume Review or Referral
+      setFormData((prev) => ({ ...prev, resumeUrl })); // Booster user direct booking for Resume Review or Referral
       if (
         subscriptionType === "booster" &&
         (serviceId === "1" || serviceId === "3")
       ) {
+        // ✅ CHECK SLOT AVAILABILITY BEFORE DIRECT BOOKING
+        console.log(
+          "Checking slot availability for booster user direct booking..."
+        );
+        const isSlotAvailable = await checkSlotAvailability({
+          serviceId: serviceId || "",
+          date: date || "",
+          time: time || "",
+        });
+
+        if (!isSlotAvailable) {
+          setError(
+            "This slot has just been booked by someone else. Please go back and select another slot."
+          );
+          setIsSubmitting(false);
+          toast.error(
+            "Slot no longer available. Please select another time slot."
+          );
+          return;
+        }
+
+        console.log(
+          "Slot is available for booster user, proceeding with direct booking..."
+        );
+
         // Direct booking API call with resume URL
         const bookingData = {
           serviceId: serviceId || "",
@@ -207,6 +231,27 @@ export default function FormPage() {
         localStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
       }
+
+      // ✅ CHECK SLOT AVAILABILITY BEFORE PAYMENT
+      console.log("Checking slot availability before payment...");
+      const isSlotAvailable = await checkSlotAvailability({
+        serviceId: serviceId || "",
+        date: date || "",
+        time: time || "",
+      });
+
+      if (!isSlotAvailable) {
+        setError(
+          "This slot has just been booked by someone else. Please go back and select another slot."
+        );
+        setIsSubmitting(false);
+        toast.error(
+          "Slot no longer available. Please select another time slot."
+        );
+        return;
+      }
+
+      console.log("Slot is available, proceeding with payment...");
 
       // Store booking form data in localStorage for use after payment
       const bookingFormData = {

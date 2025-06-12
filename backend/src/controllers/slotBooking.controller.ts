@@ -338,6 +338,46 @@ class SlotBookingController {
       });
     }
   };
+
+  // Check slot availability without booking
+  checkSlotAvailability = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { serviceId, date, time } = req.query;
+      
+      if (!serviceId || !date || !time) {
+        res.status(400).json({
+          success: false,
+          message: "Please provide serviceId, date, and time",
+        });
+        return;
+      }
+
+      // Check if slot is already booked (not cancelled)
+      const existing = await SessionBooking.findOne({
+        where: {
+          service_id: serviceId,
+          date,
+          time,
+          cancelled: false,
+        },
+      });
+
+      const isAvailable = !existing;
+
+      res.status(200).json({
+        success: true,
+        available: isAvailable,
+        message: isAvailable ? "Slot is available" : "Slot is already booked",
+      });
+    } catch (err) {
+      console.error("Error checking slot availability:", err);
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong while checking slot availability",
+      });
+    }
+  };
+
 }
 
 export default SlotBookingController;
