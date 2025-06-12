@@ -89,15 +89,24 @@ class SlotBookingController {
         timeZone: "Asia/Kolkata",
       };
       const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
-      console.log(service_name, date, time, formattedDateTime);      // User email
+      console.log(service_name, date, time, formattedDateTime);      // Determine file extension from resumeUrl for proper download filename
+      const getFileExtensionFromUrl = (url: string): string => {
+        const match = url.match(/\.([^.?]+)(\?|$)/);
+        return match ? match[1].toLowerCase() : 'pdf';
+      };
+
+      const resumeFileExtension = resumeUrl ? getFileExtensionFromUrl(resumeUrl) : 'pdf';
+      const downloadFileName = `${user.name}_Resume.${resumeFileExtension}`;
+
+      // User email
       const userHtml = `
         <p>Dear ${user.name},</p>
         <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
         ${resumeUrl ? `
         <div style="margin: 20px 0;">
           <p>Your uploaded resume:</p>
-          <a href="${resumeUrl.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '.pdf')}" 
-             download="${user.name}_Resume.pdf" 
+          <a href="${resumeUrl}" 
+             download="${downloadFileName}" 
              target="_blank" 
              style="display: inline-block; 
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
@@ -112,7 +121,7 @@ class SlotBookingController {
                     transition: all 0.3s ease; 
                     border: none; 
                     cursor: pointer;">
-            <span style="margin-right: 8px;">📄</span>Click here to view Resume
+            <span style="margin-right: 8px;">📄</span>Click here to download Resume
           </a>
         </div>` : ''}
         <p>You will receive the link to join the session on your registered email.</p>
@@ -138,8 +147,8 @@ class SlotBookingController {
         <p>User Contact: ${user.phone_number}</p>
         ${resumeUrl ? `
         <div style="margin: 20px 0;">
-          <a href="${resumeUrl.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '.pdf')}" 
-             download="${user.name}_Resume.pdf" 
+          <a href="${resumeUrl}" 
+             download="${downloadFileName}" 
              target="_blank" 
              style="display: inline-block; 
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
@@ -154,7 +163,7 @@ class SlotBookingController {
                     transition: all 0.3s ease; 
                     border: none; 
                     cursor: pointer;">
-            <span style="margin-right: 8px;">📄</span>Click here to view Resume
+            <span style="margin-right: 8px;">📄</span>Click here to download Resume
           </a>
         </div>` : '<p style="color: #666; font-style: italic;">No resume uploaded</p>'}
         <p>Thank you.</p>
