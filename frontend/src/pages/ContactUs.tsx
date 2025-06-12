@@ -4,6 +4,8 @@ import type React from "react"
 import { useState, useRef } from "react"
 import emailjs from "@emailjs/browser"
 import { Mail, Phone, MessageSquare, Send, CheckCircle, AlertCircle } from "lucide-react"
+import Navbar from "../components/layout/Navbar"
+import Footer from "../components/layout/Footer"
 
 interface FormData {
   name: string
@@ -98,6 +100,7 @@ const Contact: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Navbar />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
@@ -319,6 +322,7 @@ const Contact: React.FC = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }
