@@ -10,6 +10,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { toast } from "sonner";
+import { getBookedSlots } from "../../utils/slotAvailability";
 
 interface ServiceDetails {
   id: number;
@@ -28,6 +29,8 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingBookedSlots, setLoadingBookedSlots] = useState(false);
   const user = useSelector((state: RootState) => state.user.user);
 
   // Scroll to top on mount
@@ -71,6 +74,63 @@ export default function BookingPage() {
       setSdkLoaded(false);
     };
   }, []);
+
+  // Fetch booked slots when date is selected
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      if (!selectedDate || !serviceId) return;
+
+      setLoadingBookedSlots(true);
+      try {
+        // Convert selectedDate to YYYY-MM-DD format
+        const dateForAPI = formatDateForAPI(selectedDate);
+        const booked = await getBookedSlots(serviceId, dateForAPI);
+        setBookedSlots(booked);
+        console.log(`Booked slots for ${dateForAPI}:`, booked);
+      } catch (error) {
+        console.error("Error fetching booked slots:", error);
+        toast.error("Failed to check slot availability");
+      } finally {
+        setLoadingBookedSlots(false);
+      }
+    };
+
+    fetchBookedSlots();
+  }, [selectedDate, serviceId]);
+
+  // Periodically refresh booked slots every 30 seconds to keep availability updated
+  useEffect(() => {
+    if (!selectedDate || !serviceId) return;
+
+    const refreshInterval = setInterval(async () => {
+      try {
+        const dateForAPI = formatDateForAPI(selectedDate);
+        const booked = await getBookedSlots(serviceId, dateForAPI);
+        setBookedSlots(booked);
+        console.log(`Refreshed booked slots for ${dateForAPI}:`, booked);
+
+        // If currently selected time became booked, clear the selection
+        if (selectedTime && booked.includes(selectedTime)) {
+          setSelectedTime(null);
+          toast.warning(
+            "Your selected time slot has just been booked by someone else. Please select another time."
+          );
+        }
+      } catch (error) {
+        console.error("Error refreshing booked slots:", error);
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(refreshInterval);
+  }, [selectedDate, serviceId, selectedTime]);
+
+  // Helper function to format date for API
+  const formatDateForAPI = (dateString: string): string => {
+    // Convert "Jan 15" to "2025-01-15" format
+    const currentYear = new Date().getFullYear();
+    const date = new Date(`${dateString}, ${currentYear}`);
+    return date.toISOString().split("T")[0];
+  };
 
   const getServiceDetails = (id: string | undefined): ServiceDetails => {
     const serviceMap: Record<string, ServiceDetails> = {
@@ -246,7 +306,6 @@ export default function BookingPage() {
   const service = getServiceDetails(serviceId);
 
   const handleGoBack = () => navigate("/services");
-
   const handleConfirmSlots = async () => {
     if (!selectedDate || !selectedTime) {
       toast.error("Please select both date and time before proceeding.");
@@ -256,6 +315,15 @@ export default function BookingPage() {
     if (!user) {
       toast.error("Please log in to proceed.");
       navigate("/login");
+      return;
+    }
+
+    // Check if the selected time slot is in the booked slots (additional safety check)
+    if (bookedSlots.includes(selectedTime)) {
+      toast.error(
+        "This time slot has just been booked by someone else. Please select another time."
+      );
+      setSelectedTime(null); // Clear the selection
       return;
     }
 
@@ -413,7 +481,6 @@ export default function BookingPage() {
         {/* Right Panel */}
         <div className="bg-white text-gray-800 rounded-lg p-6 shadow-lg">
           <h2 className="text-xl font-bold mb-6">What day should we meet?</h2>
-
           <div className="flex justify-between mb-8">
             {dates.map(({ day, month, dayNum, fullDate }, index) => (
               <button
@@ -430,25 +497,49 @@ export default function BookingPage() {
                 <p className="text-lg font-bold">{dayNum}</p>
               </button>
             ))}
-          </div>
-
-          <h2 className="text-xl font-bold mb-6">What time works best?</h2>
+          </div>{" "}
+          <h2 className="text-xl font-bold mb-6">
+            What time works best?
+            {loadingBookedSlots && (
+              <span className="text-sm text-gray-500 ml-2">
+                (Checking availability...)
+              </span>
+            )}
+          </h2>
           <div className="grid grid-cols-3 gap-4 mb-8">
-            {timeSlots.map((time, i) => (
-              <button
-                key={i}
-                onClick={() => setSelectedTime(time)}
-                className={`cursor-pointer rounded-lg border-2 px-4 py-2 text-center ${
-                  selectedTime === time
-                    ? "bg-[#F97316] text-white border-[#F97316]"
-                    : "bg-white text-black border-gray-300"
-                }`}
-              >
-                {time}
-              </button>
-            ))}
-          </div>
+            {timeSlots.map((time, i) => {
+              const isBooked = bookedSlots.includes(time);
+              const isSelected = selectedTime === time;
 
+              return (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (!isBooked) {
+                      setSelectedTime(time);
+                    } else {
+                      toast.error(
+                        "This time slot is already booked. Please select another time."
+                      );
+                    }
+                  }}
+                  disabled={isBooked || loadingBookedSlots}
+                  className={`rounded-lg border-2 px-4 py-2 text-center transition-all duration-200 ${
+                    isBooked
+                      ? "bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed opacity-60"
+                      : isSelected
+                      ? "bg-[#F97316] text-white border-[#F97316] cursor-pointer"
+                      : "bg-white text-black border-gray-300 cursor-pointer hover:border-[#F97316] hover:bg-orange-50"
+                  }`}
+                >
+                  {time}
+                  {isBooked && (
+                    <div className="text-xs text-gray-400 mt-1">Booked</div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
           <div className="mt-8">
             <Button
               className="w-full bg-[#F97316] hover:bg-[#ea630e] text-white font-semibold text-lg py-3"

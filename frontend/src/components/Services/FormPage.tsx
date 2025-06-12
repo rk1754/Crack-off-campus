@@ -14,6 +14,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { useResumeUpload } from "../../hooks/useResumeUpload";
+import { checkSlotAvailability } from "../../utils/slotAvailability";
 
 interface ServiceDetails {
   id: number;
@@ -93,27 +94,40 @@ export default function FormPage() {
       setFormData((prev) => ({ ...prev, resume: file }));
     }
   };
-
-  // Load Cashfree SDK on mount
-  useEffect(() => {
-    console.log(amount);
-    const loadCashfreeSDK = async () => {
+  // Load Cashfree SDK only when needed (not on mount)
+  const loadCashfreeSDK = async (): Promise<boolean> => {
+    return new Promise((resolve) => {
       if (document.getElementById("cashfree-sdk") || window.Cashfree) {
         setSdkLoaded(true);
+        resolve(true);
         return;
       }
+
       const script = document.createElement("script");
       script.id = "cashfree-sdk";
       script.src = "https://sdk.cashfree.com/js/v3/cashfree.js";
       script.async = true;
-      script.onload = () => setSdkLoaded(true);
+      script.onload = () => {
+        setSdkLoaded(true);
+        resolve(true);
+      };
       script.onerror = () => {
         setSdkLoaded(false);
         toast.error("Failed to load Cashfree SDK. Please try again.");
+        resolve(false);
       };
       document.body.appendChild(script);
-    };
-    loadCashfreeSDK();
+    });
+  };
+
+  // Remove the useEffect that loads SDK on mount
+  useEffect(() => {
+    console.log(amount);
+    // Only set initial SDK state, don't load SDK on mount
+    if (document.getElementById("cashfree-sdk") || window.Cashfree) {
+      setSdkLoaded(true);
+    }
+
     return () => {
       const existingScript = document.getElementById("cashfree-sdk");
       if (existingScript && existingScript.parentNode) {
@@ -149,13 +163,36 @@ export default function FormPage() {
       localStorage.setItem("resumeUrl", resumeUrl);
 
       // Update form data with resume URL
-      setFormData((prev) => ({ ...prev, resumeUrl }));
-
-      // Booster user direct booking for Resume Review or Referral
+      setFormData((prev) => ({ ...prev, resumeUrl })); // Booster user direct booking for Resume Review or Referral
       if (
         subscriptionType === "booster" &&
         (serviceId === "1" || serviceId === "3")
       ) {
+        // ✅ CHECK SLOT AVAILABILITY BEFORE DIRECT BOOKING
+        console.log(
+          "Checking slot availability for booster user direct booking..."
+        );
+        const isSlotAvailable = await checkSlotAvailability({
+          serviceId: serviceId || "",
+          date: date || "",
+          time: time || "",
+        });
+
+        if (!isSlotAvailable) {
+          setError(
+            "This slot has just been booked by someone else. Please go back and select another slot."
+          );
+          setIsSubmitting(false);
+          toast.error(
+            "Slot no longer available. Please select another time slot."
+          );
+          return;
+        }
+
+        console.log(
+          "Slot is available for booster user, proceeding with direct booking..."
+        );
+
         // Direct booking API call with resume URL
         const bookingData = {
           serviceId: serviceId || "",
@@ -194,10 +231,8 @@ export default function FormPage() {
       setIsSubmitting(false);
       return;
     }
-    if (!sdkLoaded || !window.Cashfree) {
-      setError("Payment gateway is not available. Please try again later.");
-      return;
-    }
+
+    // For non-booster users, we need payment processing
     try {
       // First upload resume and get URL if not already uploaded
       let resumeUrl = formData.resumeUrl;
@@ -207,6 +242,37 @@ export default function FormPage() {
         localStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
       }
+
+      // ✅ CHECK SLOT AVAILABILITY BEFORE PAYMENT - CRITICAL STEP
+      console.log("Checking slot availability before payment...");
+      const isSlotAvailable = await checkSlotAvailability({
+        serviceId: serviceId || "",
+        date: date || "",
+        time: time || "",
+      });
+
+      if (!isSlotAvailable) {
+        setError(
+          "This slot has just been booked by someone else. Please go back and select another slot."
+        );
+        setIsSubmitting(false);
+        toast.error(
+          "Slot no longer available. Please select another time slot."
+        );
+        return;
+      }
+
+      console.log("Slot is available, now loading Cashfree SDK...");
+
+      // ✅ LOAD CASHFREE SDK ONLY AFTER SLOT AVAILABILITY IS CONFIRMED
+      const sdkLoadSuccess = await loadCashfreeSDK();
+      if (!sdkLoadSuccess || !window.Cashfree) {
+        setError("Payment gateway failed to load. Please try again later.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log("SDK loaded successfully, proceeding with payment...");
 
       // Store booking form data in localStorage for use after payment
       const bookingFormData = {
@@ -478,7 +544,7 @@ export default function FormPage() {
                   : isSubmitting
                   ? "Processing..."
                   : "Confirm Details"}
-              </Button>
+              </Button>{" "}
               {(isSubmitting || isUploading) && (
                 <p className="text-sm text-gray-600 mt-2">
                   {isUploading
