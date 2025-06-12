@@ -178,7 +178,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li>
                 <Link
-                  to="/our-crackers"
+                  to="/contactus"
                   onClick={scrollToTop}
                   className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-block"
                 >
