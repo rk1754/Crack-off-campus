@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { HelmetProvider } from "react-helmet-async";
-
+import { EdgeStoreProvider } from '@/lib/edgestore';
 import ForgotPassword from "./pages/ForgetPassword";
 
 import Home from "./pages/Home";
@@ -126,6 +126,7 @@ const App = () => {
         <PersistGate loading={null} persistor={persistor}>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
+              <EdgeStoreProvider>
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Home></Home>} />
@@ -231,6 +232,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
               </BrowserRouter>
+              </EdgeStoreProvider>  
             </TooltipProvider>
           </QueryClientProvider>
         </PersistGate>

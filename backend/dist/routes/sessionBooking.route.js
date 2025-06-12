@@ -15,4 +15,6 @@ router.get('/getById/:id', auth_middleware_1.default, slotBookingController.getB
 router.delete('/cancel/:id', auth_middleware_1.default, slotBookingController.cancelSlot);
 // For frontend to check which slots are booked for a service/date
 router.get('/bookingsForService', slotBookingController.getBookingsForService);
+// Check if a specific slot is available
+router.get('/checkAvailability', slotBookingController.checkSlotAvailability);
 exports.default = router;

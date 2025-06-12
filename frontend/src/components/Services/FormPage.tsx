@@ -13,8 +13,8 @@ import { Textarea } from "../ui/textarea";
 import axios from "axios";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-import { useResumeUpload } from "../../hooks/useResumeUpload";
 import { checkSlotAvailability } from "../../utils/slotAvailability";
+import { useEdgeStore } from "@/lib/edgestore";
 
 interface ServiceDetails {
   id: number;
@@ -44,9 +44,10 @@ export default function FormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sdkLoaded, setSdkLoaded] = useState(false);
-
-  // Resume upload hook
-  const { uploadResume, isUploading, uploadProgress } = useResumeUpload();
+  const [file, setFile] = useState<File>();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const { edgestore } = useEdgeStore();
 
   // Get user from Redux store
   const user = useSelector((state: any) => state.user?.user);
@@ -83,7 +84,6 @@ export default function FormPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -92,6 +92,27 @@ export default function FormPage() {
         return;
       }
       setFormData((prev) => ({ ...prev, resume: file }));
+      setFile(file);
+    }
+  };
+
+  const uploadResumeToEdgeStore = async (file: File): Promise<string> => {
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      const res = await edgestore.publicFiles.upload({
+        file,
+        onProgressChange: (progress) => {
+          setUploadProgress(progress);
+        },
+      });
+
+      setIsUploading(false);
+      return res.url;
+    } catch (error) {
+      setIsUploading(false);
+      throw new Error("Failed to upload resume");
     }
   };
   // Load Cashfree SDK only when needed (not on mount)
@@ -157,7 +178,7 @@ export default function FormPage() {
     setError(null);
     try {
       // First, upload the resume and get the URL
-      const resumeUrl = await uploadResume(formData.resume);
+      const resumeUrl = await uploadResumeToEdgeStore(formData.resume);
 
       // Save resume URL to localStorage immediately after upload
       localStorage.setItem("resumeUrl", resumeUrl);
@@ -237,7 +258,7 @@ export default function FormPage() {
       // First upload resume and get URL if not already uploaded
       let resumeUrl = formData.resumeUrl;
       if (!resumeUrl && formData.resume) {
-        resumeUrl = await uploadResume(formData.resume);
+        resumeUrl = await uploadResumeToEdgeStore(formData.resume);
         // Save resume URL to localStorage immediately after upload
         localStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
@@ -468,7 +489,7 @@ export default function FormPage() {
                   (PDF, DOC, DOCX - less than 2 MB)
                 </span>
               </Label>
-              <div className="flex">
+              <div className="flex gap-2">
                 <Input
                   id="resume"
                   name="resume"
@@ -476,9 +497,34 @@ export default function FormPage() {
                   accept=".pdf,.doc,.docx"
                   onChange={handleFileChange}
                   required
-                  className="border-gray-300"
+                  className="border-gray-300 flex-1"
                   disabled={isUploading}
                 />
+                {file && (
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      if (file) {
+                        try {
+                          const resumeUrl = await uploadResumeToEdgeStore(file);
+                          setFormData((prev) => ({ ...prev, resumeUrl }));
+                          localStorage.setItem("resumeUrl", resumeUrl);
+                          toast.success("Resume uploaded successfully!");
+                        } catch (error) {
+                          toast.error("Failed to upload resume");
+                        }
+                      }
+                    }}
+                    disabled={isUploading || !!formData.resumeUrl}
+                    className="bg-[#F97316] hover:bg-orange-600 text-white px-4"
+                  >
+                    {isUploading
+                      ? "Uploading..."
+                      : formData.resumeUrl
+                      ? "Uploaded"
+                      : "Upload"}
+                  </Button>
+                )}
               </div>
 
               {/* Show selected file name */}
