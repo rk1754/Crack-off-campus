@@ -49,7 +49,7 @@ const Contact: React.FC = () => {
       if (form.current) {
         const result = await emailjs.sendForm(
           "service_oaw0ekc", // Your service ID
-          "template_id", // You'll need to create this template in EmailJS
+          "template_dopujol", // You'll need to create this template in EmailJS
           form.current,
           "PkEK-jqv8myEbf6Hi", // Your public key
         )
