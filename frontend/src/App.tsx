@@ -48,6 +48,7 @@ import axios from "axios";
 import { BACKEND_URL } from "./redux/config";
 import PaymentVerify from "./pages/PaymentVerify";
 import Contact from "./pages/ContactUs";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 // Configure axios
 axios.defaults.baseURL = BACKEND_URL;
@@ -128,6 +129,7 @@ const App = () => {
             <TooltipProvider>
               <EdgeStoreProvider>
               <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Home></Home>} />
                   <Route path="/jobs" element={<JobListings />} />
