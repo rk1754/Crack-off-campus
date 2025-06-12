@@ -14,7 +14,6 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { checkSlotAvailability } from "../../utils/slotAvailability";
-import { useEdgeStore } from "@/lib/edgestore";
 
 interface ServiceDetails {
   id: number;
@@ -47,7 +46,6 @@ export default function FormPage() {
   const [file, setFile] = useState<File>();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const { edgestore } = useEdgeStore();
 
   // Get user from Redux store
   const user = useSelector((state: any) => state.user?.user);
@@ -95,24 +93,48 @@ export default function FormPage() {
       setFile(file);
     }
   };
-
-  const uploadResumeToEdgeStore = async (file: File): Promise<string> => {
+  const uploadResumeToBackend = async (file: File): Promise<string> => {
     try {
       setIsUploading(true);
       setUploadProgress(0);
 
-      const res = await edgestore.publicFiles.upload({
-        file,
-        onProgressChange: (progress) => {
-          setUploadProgress(progress);
-        },
-      });
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const response = await axios.post(
+        `${BACKEND_URL}/api/v1/resume-upload/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const progress = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(progress);
+            }
+          },
+        }
+      );
 
       setIsUploading(false);
-      return res.url;
-    } catch (error) {
+
+      if (response.data.success) {
+        return response.data.resumeUrl;
+      } else {
+        throw new Error(response.data.message || "Upload failed");
+      }
+    } catch (error: any) {
       setIsUploading(false);
-      throw new Error("Failed to upload resume");
+      console.error("Resume upload error:", error);
+      throw new Error(
+        error?.response?.data?.message ||
+          error.message ||
+          "Failed to upload resume"
+      );
     }
   };
   // Load Cashfree SDK only when needed (not on mount)
@@ -178,10 +200,10 @@ export default function FormPage() {
     setError(null);
     try {
       // First, upload the resume and get the URL
-      const resumeUrl = await uploadResumeToEdgeStore(formData.resume);
+      const resumeUrl = await uploadResumeToBackend(formData.resume);
 
-      // Save resume URL to localStorage immediately after upload
-      localStorage.setItem("resumeUrl", resumeUrl);
+      // Save resume URL to sessionStorage immediately after upload
+      sessionStorage.setItem("resumeUrl", resumeUrl);
 
       // Update form data with resume URL
       setFormData((prev) => ({ ...prev, resumeUrl })); // Booster user direct booking for Resume Review or Referral
@@ -258,9 +280,9 @@ export default function FormPage() {
       // First upload resume and get URL if not already uploaded
       let resumeUrl = formData.resumeUrl;
       if (!resumeUrl && formData.resume) {
-        resumeUrl = await uploadResumeToEdgeStore(formData.resume);
-        // Save resume URL to localStorage immediately after upload
-        localStorage.setItem("resumeUrl", resumeUrl);
+        resumeUrl = await uploadResumeToBackend(formData.resume);
+        // Save resume URL to sessionStorage immediately after upload
+        sessionStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
       }
 
@@ -499,16 +521,16 @@ export default function FormPage() {
                   required
                   className="border-gray-300 flex-1"
                   disabled={isUploading}
-                />
+                />{" "}
                 {file && (
                   <Button
                     type="button"
                     onClick={async () => {
                       if (file) {
                         try {
-                          const resumeUrl = await uploadResumeToEdgeStore(file);
+                          const resumeUrl = await uploadResumeToBackend(file);
                           setFormData((prev) => ({ ...prev, resumeUrl }));
-                          localStorage.setItem("resumeUrl", resumeUrl);
+                          sessionStorage.setItem("resumeUrl", resumeUrl);
                           toast.success("Resume uploaded successfully!");
                         } catch (error) {
                           toast.error("Failed to upload resume");

@@ -11,7 +11,6 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { HelmetProvider } from "react-helmet-async";
-import { EdgeStoreProvider } from '@/lib/edgestore';
 import ForgotPassword from "./pages/ForgetPassword";
 
 import Home from "./pages/Home";
@@ -75,7 +74,9 @@ const ProtectedRoute = ({
 }: ProtectedRouteProps) => {
   const user = useSelector((state: RootState) => state.user.user);
   const admin = useSelector((state: RootState) => (state.admin as any)?.admin);
-  const loading = useSelector((state: RootState) => (state.admin as any)?.loading);
+  const loading = useSelector(
+    (state: RootState) => (state.admin as any)?.loading
+  );
   const [rehydrated, setRehydrated] = useState(false);
 
   // Wait for redux-persist to rehydrate before rendering protected routes
@@ -100,7 +101,12 @@ const ProtectedRoute = ({
 
   // Only allow if admin is a valid object with a valid id and is_admin true
   if (adminOnly) {
-    if (!admin || typeof admin !== 'object' || !admin.id || admin.is_admin !== true) {
+    if (
+      !admin ||
+      typeof admin !== "object" ||
+      !admin.id ||
+      admin.is_admin !== true
+    ) {
       return <Navigate to="/employers-login" replace />;
     }
   }
@@ -126,8 +132,8 @@ const App = () => {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <QueryClientProvider client={queryClient}>
+            {" "}
             <TooltipProvider>
-              <EdgeStoreProvider>
               <BrowserRouter>
                 <ScrollToTop />
                 <Routes>
@@ -163,7 +169,6 @@ const App = () => {
                   <Route path="/employers-login" element={<EmployersLogin />} />
                   <Route path="/payment/verify" element={<PaymentVerify />} />
                   <Route path="/services" element={<ServicesPage />} />
-                 
                   <Route
                     path="/reset-password"
                     element={<ResetPassword />}
@@ -183,10 +188,7 @@ const App = () => {
                     path="/terms-and-conditions"
                     element={<TermsAndConditionsPage />}
                   />{" "}
-                   <Route
-                    path="/contactus"
-                    element={<Contact></Contact>}
-                  />{" "}
+                  <Route path="/contactus" element={<Contact></Contact>} />{" "}
                   {/* Add this route */}
                   <Route
                     path="/admin"
@@ -196,7 +198,10 @@ const App = () => {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route
+                    path="/privacy-policy"
+                    element={<PrivacyPolicyPage />}
+                  />
                   <Route path="/faq" element={<FaqPage />} /> {/* Added */}
                   <Route
                     path="/refund-policy"
@@ -230,11 +235,10 @@ const App = () => {
                     path="/services/:serviceId/booking/confirmation"
                     element={<BookingConfirmation />}
                   />
-                </Routes>
+                </Routes>{" "}
                 <Toaster />
                 <Sonner />
               </BrowserRouter>
-              </EdgeStoreProvider>  
             </TooltipProvider>
           </QueryClientProvider>
         </PersistGate>
