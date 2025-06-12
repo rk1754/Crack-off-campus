@@ -237,13 +237,9 @@ const PaymentVerify = () => {
               bookingData = JSON.parse(localData);
             } else if (sessionData) {
               bookingData = JSON.parse(sessionData);
-            }
-
-            // Get resume URL from localStorage if not in booking data
+            } // Get resume URL from sessionStorage if not in booking data
             const resumeUrl =
-              bookingData.resume_url || localStorage.getItem("resumeUrl");
-
-            // Create the booking payload as JSON object (not FormData)
+              bookingData.resume_url || sessionStorage.getItem("resumeUrl"); // Create the booking payload as JSON object (not FormData)
             const bookingPayload = {
               serviceId: serviceId,
               date: date,
@@ -257,10 +253,10 @@ const PaymentVerify = () => {
               language: bookingData.language || "Hinglish",
               payment_status: "paid",
               order_id: order_id,
-              resumeUrl: resumeUrl || "", // Include resume URL from localStorage
+              resumeUrl: resumeUrl || "", // Include resume URL from sessionStorage
             }; // Debug: Log what we're sending
             console.log("Booking data retrieved from storage:", bookingData);
-            console.log("Resume URL from localStorage:", resumeUrl);
+            console.log("Resume URL from sessionStorage:", resumeUrl);
             console.log("Final booking payload:", bookingPayload);
 
             try {
@@ -281,11 +277,9 @@ const PaymentVerify = () => {
                   errorData.message ||
                     `Failed to book slot (Status: ${bookingRes.status})`
                 );
-              }
-
-              // Clear booking data from localStorage and sessionStorage after successful booking
+              } // Clear booking data from localStorage and sessionStorage after successful booking
               localStorage.removeItem("serviceBookingData");
-              localStorage.removeItem("resumeUrl");
+              sessionStorage.removeItem("resumeUrl");
               sessionStorage.removeItem("serviceBookingData");
               setBookingInProgress(false);
               navigate(

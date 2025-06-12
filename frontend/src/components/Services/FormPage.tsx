@@ -186,7 +186,7 @@ export default function FormPage() {
       !formData.phone ||
       !formData.email ||
       !formData.state ||
-      !formData.resume
+      (!formData.resume && !sessionStorage.getItem("resumeUrl"))
     ) {
       setError("Please fill all required fields.");
       return;
@@ -195,18 +195,20 @@ export default function FormPage() {
       setError("Please select a slot before proceeding.");
       return;
     }
-
     setIsSubmitting(true);
     setError(null);
     try {
-      // First, upload the resume and get the URL
-      const resumeUrl = await uploadResumeToBackend(formData.resume);
+      // Get resumeUrl from sessionStorage if not already uploaded in this session
+      let resumeUrl = formData.resumeUrl || sessionStorage.getItem("resumeUrl");
 
-      // Save resume URL to sessionStorage immediately after upload
-      sessionStorage.setItem("resumeUrl", resumeUrl);
-
-      // Update form data with resume URL
-      setFormData((prev) => ({ ...prev, resumeUrl })); // Booster user direct booking for Resume Review or Referral
+      // If no resumeUrl and we have a file, upload it
+      if (!resumeUrl && formData.resume) {
+        resumeUrl = await uploadResumeToBackend(formData.resume);
+        // Save resume URL to sessionStorage immediately after upload
+        sessionStorage.setItem("resumeUrl", resumeUrl);
+        // Update form data with resume URL
+        setFormData((prev) => ({ ...prev, resumeUrl }));
+      } // Booster user direct booking for Resume Review or Referral
       if (
         subscriptionType === "booster" &&
         (serviceId === "1" || serviceId === "3")
@@ -234,9 +236,7 @@ export default function FormPage() {
 
         console.log(
           "Slot is available for booster user, proceeding with direct booking..."
-        );
-
-        // Direct booking API call with resume URL
+        ); // Direct booking API call with resume URL
         const bookingData = {
           serviceId: serviceId || "",
           service_name: serviceTitle,
@@ -248,7 +248,7 @@ export default function FormPage() {
           state: formData.state,
           targetRole: formData.targetRole,
           language: formData.language,
-          resume_url: resumeUrl,
+          resumeUrl: resumeUrl,
         };
 
         await axios.post(
@@ -315,9 +315,7 @@ export default function FormPage() {
         return;
       }
 
-      console.log("SDK loaded successfully, proceeding with payment...");
-
-      // Store booking form data in localStorage for use after payment
+      console.log("SDK loaded successfully, proceeding with payment..."); // Store booking form data in localStorage for use after payment
       const bookingFormData = {
         serviceId,
         date,
