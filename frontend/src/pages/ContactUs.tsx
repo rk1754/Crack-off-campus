@@ -47,12 +47,17 @@ const Contact: React.FC = () => {
 
     try {
       if (form.current) {
+        // Initialize EmailJS with your public key
+        emailjs.init("PkEK-jqv8myEbf6Hi")
+
         const result = await emailjs.sendForm(
-          "service_oaw0ekc", // Your service ID
-          "template_dopujol", // You'll need to create this template in EmailJS
+          "service_omoc41u", // ✅ Correct Gmail service ID
+          "template_dopujol", // ✅ Your template ID
           form.current,
-          "PkEK-jqv8myEbf6Hi", // Your public key
+          "PkEK-jqv8myEbf6Hi", // ✅ Your public key
         )
+
+        console.log("EmailJS Success:", result)
 
         if (result.status === 200) {
           setStatus({
@@ -68,10 +73,11 @@ const Contact: React.FC = () => {
           })
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("EmailJS Error:", error)
       setStatus({
         type: "error",
-        message: "Failed to send message. Please try again or contact us directly.",
+        message: `Failed to send message: ${error.text || error.message || "Unknown error"}. Please try again or contact us directly at crackoffcampus63@gmail.com.`,
       })
     } finally {
       setIsSubmitting(false)
