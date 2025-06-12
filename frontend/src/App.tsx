@@ -160,7 +160,7 @@ const App = () => {
                   <Route path="/employers-login" element={<EmployersLogin />} />
                   <Route path="/payment/verify" element={<PaymentVerify />} />
                   <Route path="/services" element={<ServicesPage />} />
-                  <Route path="/contactus" element={<Contact></Contact>} />
+                 
                   <Route
                     path="/reset-password"
                     element={<ResetPassword />}
@@ -179,6 +179,10 @@ const App = () => {
                   <Route
                     path="/terms-and-conditions"
                     element={<TermsAndConditionsPage />}
+                  />{" "}
+                   <Route
+                    path="/contactus"
+                    element={<Contact></Contact>}
                   />{" "}
                   {/* Add this route */}
                   <Route
