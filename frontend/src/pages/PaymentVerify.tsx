@@ -238,8 +238,15 @@ const PaymentVerify = () => {
             } else if (sessionData) {
               bookingData = JSON.parse(sessionData);
             } // Get resume URL from sessionStorage if not in booking data
-            const resumeUrl =
-              bookingData.resume_url || sessionStorage.getItem("resumeUrl"); // Create the booking payload as JSON object (not FormData)
+            const storedResumeUrl = sessionStorage.getItem("resumeUrl");
+            const resumeUrl = bookingData.resume_url || storedResumeUrl;
+
+            // Debug logging for resume URL
+            console.log("=== RESUME URL DEBUG ===");
+            console.log("bookingData.resume_url:", bookingData.resume_url);
+            console.log("sessionStorage resumeUrl:", storedResumeUrl);
+            console.log("Final resumeUrl:", resumeUrl);
+            console.log("=== END RESUME URL DEBUG ==="); // Create the booking payload as JSON object (not FormData)
             const bookingPayload = {
               serviceId: serviceId,
               date: date,

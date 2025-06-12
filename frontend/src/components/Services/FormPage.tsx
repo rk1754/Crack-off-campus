@@ -273,18 +273,26 @@ export default function FormPage() {
       );
       setIsSubmitting(false);
       return;
-    }
-
-    // For non-booster users, we need payment processing
+    } // For non-booster users, we need payment processing
     try {
       // First upload resume and get URL if not already uploaded
-      let resumeUrl = formData.resumeUrl;
+      let resumeUrl = formData.resumeUrl || sessionStorage.getItem("resumeUrl");
       if (!resumeUrl && formData.resume) {
         resumeUrl = await uploadResumeToBackend(formData.resume);
         // Save resume URL to sessionStorage immediately after upload
         sessionStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
       }
+
+      // Debug logging for resume URL in payment flow
+      console.log("=== PAYMENT FLOW RESUME URL DEBUG ===");
+      console.log("formData.resumeUrl:", formData.resumeUrl);
+      console.log(
+        "sessionStorage resumeUrl:",
+        sessionStorage.getItem("resumeUrl")
+      );
+      console.log("Final resumeUrl for payment:", resumeUrl);
+      console.log("=== END PAYMENT FLOW RESUME URL DEBUG ===");
 
       // ✅ CHECK SLOT AVAILABILITY BEFORE PAYMENT - CRITICAL STEP
       console.log("Checking slot availability before payment...");
