@@ -131,7 +131,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "STANDARD",
-      price: "₹299",
+      price: "₹329",
       originalPrice: "₹499",
       includedFeatures: [
         "One Month Access to Premium Jobs",
