@@ -196,14 +196,14 @@ const JobListings = () => {
   } // Auto-close premium modal if user has any premium subscription
   useEffect(() => {
     if (user) {
-      // If user has ANY subscription type other than "regular", close modal
+      // If user has subscription type "basic", "standard", "booster", or "job", close modal
+      const premiumTypes = ["basic", "standard", "booster", "job"];
       if (
-        (user.subscription_type && user.subscription_type !== "regular") ||
-        (user.subscription_type_2 && user.subscription_type_2 !== "regular") ||
-        user.is_premium === true ||
+        (user.subscription_type && premiumTypes.includes(user.subscription_type)) ||
+        (user.subscription_type_2 && premiumTypes.includes(user.subscription_type_2)) ||
         (user as any).job === true
       ) {
-        console.log("User has non-regular subscription, auto-closing modal");
+        console.log("User has premium subscription, auto-closing modal");
         setIsPremiumModalOpen(false);
       }
     }
