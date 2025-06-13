@@ -119,8 +119,8 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
   const plans = [
     {
       name: "BASIC",
-      price: "₹1",
-      originalPrice: "₹2",
+      price: "₹199",
+      originalPrice: "₹299",
       includedFeatures: [
         "One Month Access to Premium Jobs",
         "Cover Letter",
@@ -131,7 +131,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "STANDARD",
-      price: "₹2",
+      price: "₹299",
       originalPrice: "₹499",
       includedFeatures: [
         "One Month Access to Premium Jobs",
@@ -145,7 +145,7 @@ const PremiumPlansModal: React.FC<PremiumPlansModalProps> = ({
     },
     {
       name: "BOOSTER",
-      price: "₹3",
+      price: "₹699",
       originalPrice: "₹999",
       includedFeatures: [
         "One Month Access to Premium Jobs",

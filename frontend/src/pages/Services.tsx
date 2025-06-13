@@ -45,7 +45,7 @@ const ServicesPage = () => {
       title: "Resume / CV Review",
       tagline: "Don't just submit, Stand out. Perfect your resume with us.",
       meetingDuration: "45 Minutes",
-      amount: 1,
+      amount: 199,
       originalPrice: 499,
       icon: FileText,
       color: "bg-blue-100 dark:bg-blue-900/20",
