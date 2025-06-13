@@ -37,14 +37,18 @@ class ResumeUploadController {
           message: "File size exceeds 2 MB limit",
         });
         return;
-      }
+      }      const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
 
-      const base64 = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+      // Extract file extension from original filename
+      const fileExtension = file.originalname.split('.').pop()?.toLowerCase() || 
+                           (file.mimetype === 'application/pdf' ? 'pdf' : 
+                            file.mimetype === 'application/msword' ? 'doc' : 'docx');
 
       const result = await cloudinary.uploader.upload(base64, {
         folder: "job-portal/session-resumes",
         resource_type: "raw",
-        public_id: `resume_${Date.now()}`,
+        public_id: `resume_${Date.now()}.${fileExtension}`,
+        format: fileExtension, // Explicitly set the format
       });
 
       if (!result) {
@@ -66,6 +70,61 @@ class ResumeUploadController {
       res.status(500).json({
         success: false,
         message: "Something went wrong while uploading resume",
+      });
+    }
+  };
+
+  // New method to handle resume downloads with proper headers
+  downloadResume = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { resumeUrl, fileName } = req.query;
+      
+      if (!resumeUrl || typeof resumeUrl !== 'string') {
+        res.status(400).json({
+          success: false,
+          message: "Resume URL is required",
+        });
+        return;
+      }
+
+      // Extract file extension from URL or filename
+      const getExtension = (url: string, fallbackName?: string): string => {
+        const urlExt = url.match(/\.([^.?]+)(\?|$)/);
+        if (urlExt) return urlExt[1].toLowerCase();
+        
+        if (fallbackName && typeof fallbackName === 'string') {
+          const nameExt = fallbackName.match(/\.([^.]+)$/);
+          if (nameExt) return nameExt[1].toLowerCase();
+        }
+        
+        return 'pdf'; // Default to PDF
+      };
+
+      const extension = getExtension(resumeUrl, fileName as string);
+      const safeFileName = (fileName as string) || `resume.${extension}`;
+      
+      // Set appropriate content type based on extension
+      const contentTypes: { [key: string]: string } = {
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      };
+
+      const contentType = contentTypes[extension] || 'application/octet-stream';
+
+      // Set headers for proper download
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}"`);
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Redirect to the actual file URL
+      res.redirect(resumeUrl);
+      
+    } catch (err) {
+      console.error("Resume download error:", err);
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong while downloading resume",
       });
     }
   };

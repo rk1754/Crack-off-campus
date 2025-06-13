@@ -1,11 +1,8 @@
 import { Request, Response } from "express";
 import SessionBooking from "../models/sessionBooking.model";
 import { transporter } from "../utils/mailer";
-import { SMTP_USER } from "../config/config";
-import Admin from "../models/admin.model";
 import User from "../models/user.model";
 import logger from "../utils/logger";
-import Service from "../models/session.model"; // Add this import
 
 class SlotBookingController {
   // Helper function to validate resume URL
@@ -21,20 +18,31 @@ class SlotBookingController {
       return false;
     }
   };
-
-  // Helper function to extract file extension from URL
   private getFileExtensionFromUrl = (url: string): string => {
     if (!url) return 'pdf';
-    const match = url.match(/\.([^.?]+)(\?|$)/);
-    return match ? match[1].toLowerCase() : 'pdf';
+    const urlMatch = url.match(/\.([^.?]+)(\?|$)/);
+    if (urlMatch) {
+      const ext = urlMatch[1].toLowerCase();
+      // Map common document extensions
+      if (ext === 'pdf') return 'pdf';
+      if (ext === 'doc' || ext === 'docx') return ext;
+    }
+    if (url.includes('cloudinary.com')) {
+      const pathParts = url.split('/');
+      const filename = pathParts[pathParts.length - 1];
+      const fileMatch = filename.match(/\.([^.?]+)(\?|$)/);
+      if (fileMatch) {
+        return fileMatch[1].toLowerCase();
+      }
+    }
+    return 'pdf';
   };
 
-  // Helper function to generate safe filename
   private generateSafeFilename = (userName: string, extension: string): string => {
     const safeName = (userName || 'User').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-    return `${safeName}_Resume.${extension}`;
+    const validExt = extension || 'pdf';
+    return `${safeName}_Resume.${validExt}`;
   };
-
   // Book a slot (service_id, date, time)
   bookSlot = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -122,29 +130,32 @@ class SlotBookingController {
         hour12: true,
         timeZone: "Asia/Kolkata",
       };
-      const formattedDateTime = istDateObj.toLocaleString("en-IN", options);      console.log(service_name, date, time, formattedDateTime);
-
-      // Use helper functions for resume validation
+      const formattedDateTime = istDateObj.toLocaleString("en-IN", options);      console.log(service_name, date, time, formattedDateTime);      // Use helper functions for resume validation
       const hasValidResume = this.isValidResumeUrl(resumeUrl);
       const resumeFileExtension = hasValidResume ? this.getFileExtensionFromUrl(resumeUrl) : 'pdf';
       const downloadFileName = this.generateSafeFilename(user.name || 'User', resumeFileExtension);
+      
+      // Create download URL using our endpoint for proper headers
+      const downloadUrl = hasValidResume ? 
+        `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}` : 
+        resumeUrl;
 
       console.log("=== RESUME VALIDATION ===");
       console.log("hasValidResume:", hasValidResume);
       console.log("resumeUrl:", resumeUrl);
+      console.log("resumeFileExtension:", resumeFileExtension);
       console.log("downloadFileName:", downloadFileName);
+      console.log("downloadUrl:", downloadUrl);
       console.log("=== END VALIDATION ===");// User email
       const userHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
             <h2 style="color: #333; margin-bottom: 20px;">Slot Booking Confirmation</h2>
             <p>Dear ${user.name || 'User'},</p>
-            <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
-            
-            ${hasValidResume ? `
+            <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>            ${hasValidResume ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f0f8ff; border-radius: 5px; border-left: 4px solid #667eea;">
               <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">📄 Your Resume:</p>
-              <a href="${resumeUrl}" 
+              <a href="${downloadUrl}" 
                  download="${downloadFileName}" 
                  target="_blank" 
                  style="display: inline-block; 
@@ -190,11 +201,10 @@ class SlotBookingController {
               <p style="margin: 0 0 5px 0;"><b>📞 User Contact:</b> ${user.phone_number || 'Not provided'}</p>
               <p style="margin: 0;"><b>📧 User Email:</b> ${user.email}</p>
             </div>
-            
-            ${hasValidResume ? `
+              ${hasValidResume ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f0f8ff; border-radius: 5px; border-left: 4px solid #667eea;">
               <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">📄 User's Resume:</p>
-              <a href="${resumeUrl}" 
+              <a href="${downloadUrl}" 
                  download="${downloadFileName}" 
                  target="_blank" 
                  style="display: inline-block; 

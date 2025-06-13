@@ -7,5 +7,6 @@ const router = express.Router();
 const resumeUploadController = new ResumeUploadController();
 
 router.post('/upload', authMiddleware, upload.single("resume"), resumeUploadController.uploadResumeForBooking);
+router.get('/download', resumeUploadController.downloadResume);
 
 export default router;
