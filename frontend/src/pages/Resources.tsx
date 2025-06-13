@@ -91,13 +91,13 @@ const ResourcesPage = () => {
 
     let amountInPaise = 0;
     if (requiredBoolean === "resume") {
-      amountInPaise = 4; // ₹4
+      amountInPaise = 79; // ₹4
     } else if (
       ["referral", "cold_mail", "cover_letter", "hr_mail"].includes(
         requiredBoolean
       )
     ) {
-      amountInPaise = 1; // ₹1
+      amountInPaise = 49; // ₹1
     } else {
       return;
     }
