@@ -93,22 +93,21 @@ export default function FormPage() {
       setFile(file);
     }
   };
-  const uploadResumeToBackend = async (file: File): Promise<string> => {
+  const uploadResumeToGofile = async (file: File): Promise<string> => {
     try {
       setIsUploading(true);
       setUploadProgress(0);
-
       const formData = new FormData();
-      formData.append("resume", file);
+      formData.append("file", file);
+      formData.append("token", "gVsmPar8khN8SAt6YjJCylSXWa75MWiK");
 
       const response = await axios.post(
-        `${BACKEND_URL}/api/v1/resume-upload/upload`,
+        "https://upload.gofile.io/uploadfile",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          withCredentials: true,
           onUploadProgress: (progressEvent) => {
             if (progressEvent.total) {
               const progress = Math.round(
@@ -122,19 +121,30 @@ export default function FormPage() {
 
       setIsUploading(false);
 
-      if (response.data.success) {
-        return response.data.resumeUrl;
+      if (response.data.status === "ok") {
+        // Gofile returns the download URL in response.data.data.downloadPage
+        const downloadUrl = response.data.data.downloadPage;
+        console.log("Gofile upload successful. Download URL:", downloadUrl);
+        return downloadUrl;
       } else {
         throw new Error(response.data.message || "Upload failed");
       }
     } catch (error: any) {
       setIsUploading(false);
-      console.error("Resume upload error:", error);
-      throw new Error(
-        error?.response?.data?.message ||
-          error.message ||
-          "Failed to upload resume"
-      );
+      console.error("Gofile upload error:", error);
+
+      // Handle specific error cases
+      if (error.response?.status === 401) {
+        throw new Error("Invalid Gofile API token");
+      } else if (error.response?.status === 413) {
+        throw new Error("File too large for Gofile upload");
+      } else {
+        throw new Error(
+          error?.response?.data?.message ||
+            error.message ||
+            "Failed to upload resume to Gofile"
+        );
+      }
     }
   };
   // Load Cashfree SDK only when needed (not on mount)
@@ -199,11 +209,9 @@ export default function FormPage() {
     setError(null);
     try {
       // Get resumeUrl from sessionStorage if not already uploaded in this session
-      let resumeUrl = formData.resumeUrl || sessionStorage.getItem("resumeUrl");
-
-      // If no resumeUrl and we have a file, upload it
+      let resumeUrl = formData.resumeUrl || sessionStorage.getItem("resumeUrl"); // If no resumeUrl and we have a file, upload it
       if (!resumeUrl && formData.resume) {
-        resumeUrl = await uploadResumeToBackend(formData.resume);
+        resumeUrl = await uploadResumeToGofile(formData.resume);
         // Save resume URL to sessionStorage immediately after upload
         sessionStorage.setItem("resumeUrl", resumeUrl);
         // Update form data with resume URL
@@ -278,7 +286,7 @@ export default function FormPage() {
       // First upload resume and get URL if not already uploaded
       let resumeUrl = formData.resumeUrl || sessionStorage.getItem("resumeUrl");
       if (!resumeUrl && formData.resume) {
-        resumeUrl = await uploadResumeToBackend(formData.resume);
+        resumeUrl = await uploadResumeToGofile(formData.resume);
         // Save resume URL to sessionStorage immediately after upload
         sessionStorage.setItem("resumeUrl", resumeUrl);
         setFormData((prev) => ({ ...prev, resumeUrl }));
@@ -534,7 +542,7 @@ export default function FormPage() {
                     onClick={async () => {
                       if (file) {
                         try {
-                          const resumeUrl = await uploadResumeToBackend(file);
+                          const resumeUrl = await uploadResumeToGofile(file);
                           setFormData((prev) => ({ ...prev, resumeUrl }));
                           sessionStorage.setItem("resumeUrl", resumeUrl);
                           toast.success("Resume uploaded successfully!");
