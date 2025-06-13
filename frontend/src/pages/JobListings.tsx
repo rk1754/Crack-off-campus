@@ -199,8 +199,10 @@ const JobListings = () => {
       // If user has subscription type "basic", "standard", "booster", or "job", close modal
       const premiumTypes = ["basic", "standard", "booster", "job"];
       if (
-        (user.subscription_type && premiumTypes.includes(user.subscription_type)) ||
-        (user.subscription_type_2 && premiumTypes.includes(user.subscription_type_2)) ||
+        (user.subscription_type &&
+          premiumTypes.includes(user.subscription_type)) ||
+        (user.subscription_type_2 &&
+          premiumTypes.includes(user.subscription_type_2)) ||
         (user as any).job === true
       ) {
         console.log("User has premium subscription, auto-closing modal");
@@ -224,9 +226,13 @@ const JobListings = () => {
     }
 
     // If user has ANY subscription type other than "regular", don't show modal
+    // If user has subscription type "basic", "standard", "booster", or "job", don't show modal
+    const premiumTypes = ["basic", "standard", "booster", "job"];
     if (
-      (user.subscription_type && user.subscription_type !== "regular" && user.subscription_type !== "other_templates") ||
-      (user.subscription_type_2 && user.subscription_type_2 !== "regular" && user.subscription_type_2 !== "other_templates") || 
+      (user.subscription_type &&
+        premiumTypes.includes(user.subscription_type)) ||
+      (user.subscription_type_2 &&
+        premiumTypes.includes(user.subscription_type_2)) ||
       (user as any).job === true
     ) {
       console.log("User has premium subscription, not showing modal");
