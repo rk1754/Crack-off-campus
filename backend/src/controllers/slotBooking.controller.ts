@@ -7,8 +7,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 
-class SlotBookingController {
-  // Helper function to validate resume URL
+class SlotBookingController {  // Helper function to validate resume URL
   private isValidResumeUrl = (url: string | null | undefined): boolean => {
     if (!url) return false;
     if (typeof url !== 'string') return false;
@@ -21,6 +20,7 @@ class SlotBookingController {
       return false;
     }
   };
+
   private getFileExtensionFromUrl = (url: string): string => {
     if (!url) return 'pdf';
     const urlMatch = url.match(/\.([^.?]+)(\?|$)/);
@@ -30,7 +30,7 @@ class SlotBookingController {
       if (ext === 'pdf') return 'pdf';
       if (ext === 'doc' || ext === 'docx') return ext;
     }
-    if (url.includes('cloudinary.com')) {
+    if (url.includes('cloudinary.com') || url.includes('gofile.io')) {
       const pathParts = url.split('/');
       const filename = pathParts[pathParts.length - 1];
       const fileMatch = filename.match(/\.([^.?]+)(\?|$)/);
@@ -40,11 +40,15 @@ class SlotBookingController {
     }
     return 'pdf';
   };
+
   private generateSafeFilename = (userName: string, extension: string): string => {
     const safeName = (userName || 'User').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
     const validExt = extension || 'pdf';
     return `${safeName}_Resume.${validExt}`;
   };
+
+  // Note: The following methods are kept for backward compatibility but not used in the simplified flow
+  // They can be removed in future cleanup if no other parts of the system use them
 
   // Helper function to download resume from URL and save it locally as PDF
   private downloadAndSaveResume = async (resumeUrl: string, fileName: string): Promise<string | null> => {
@@ -286,36 +290,15 @@ class SlotBookingController {
       const hasValidResume = this.isValidResumeUrl(resumeUrl);
       const resumeFileExtension = hasValidResume ? this.getFileExtensionFromUrl(resumeUrl) : 'pdf';
       const downloadFileName = this.generateSafeFilename(user.name || 'User', resumeFileExtension);
-      let localResumeFileName = null;
+      
+      // Simply use the Gofile URL directly - no need to download and save locally
       let downloadUrl = resumeUrl;
-
-      if (hasValidResume) {
-        // Download and save resume locally
-        try {
-          localResumeFileName = await this.downloadAndSaveResume(resumeUrl, downloadFileName);
-          
-          if (localResumeFileName) {
-            // Create URL to serve the local file
-            downloadUrl = `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/session/booking/resume/${localResumeFileName}`;
-            console.log(`Resume downloaded and saved locally: ${localResumeFileName}`);
-          } else {
-            console.log('Failed to download resume, falling back to original URL');
-            // Keep the original downloadUrl format for fallback
-            downloadUrl = `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}`;
-          }
-        } catch (error) {
-          console.error('Error downloading resume:', error);
-          // Fall back to original URL format if download fails
-          downloadUrl = `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}`;
-        }
-      }
 
       console.log("=== RESUME VALIDATION ===");
       console.log("hasValidResume:", hasValidResume);
       console.log("resumeUrl:", resumeUrl);
       console.log("resumeFileExtension:", resumeFileExtension);
       console.log("downloadFileName:", downloadFileName);
-      console.log("localResumeFileName:", localResumeFileName);
       console.log("downloadUrl:", downloadUrl);
       console.log("=== END VALIDATION ===");// User email
       const userHtml = `
@@ -327,7 +310,6 @@ class SlotBookingController {
             <div style="margin: 20px 0; padding: 15px; background-color: #f0f8ff; border-radius: 5px; border-left: 4px solid #667eea;">
               <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">📄 Your Resume:</p>
               <a href="${downloadUrl}" 
-                 download="${downloadFileName}" 
                  target="_blank" 
                  style="display: inline-block; 
                         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
