@@ -325,11 +325,10 @@ const JobManagement = () => {
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            job.status === "open"
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${job.status === "open"
                               ? "bg-green-100 text-green-800"
                               : "bg-red-100 text-red-800"
-                          }`}
+                            }`}
                         >
                           {job.status === "open" ? "Active" : "Closed"}
                         </span>
@@ -670,16 +669,16 @@ Remote work options"
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Job Description*</Label>
+              <Label htmlFor="edit-description">Job Description (Optional)</Label>
               <Textarea
                 id="edit-description"
                 name="description"
                 value={currentJob.description}
                 onChange={handleInputChange}
                 rows={5}
-                required
               />
             </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
