@@ -433,14 +433,14 @@ const JobManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Job Description*</Label>
+              <Label htmlFor="description">Job Description (optional)</Label>
               <Textarea
                 id="description"
                 name="description"
                 value={currentJob.description}
                 onChange={handleInputChange}
                 rows={5}
-                required
+         
               />
             </div>
 
