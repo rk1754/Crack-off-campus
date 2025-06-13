@@ -93,21 +93,24 @@ export default function FormPage() {
       setFile(file);
     }
   };
+
   const uploadResumeToGofile = async (file: File): Promise<string> => {
     try {
       setIsUploading(true);
       setUploadProgress(0);
+
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("token", "gVsmPar8khN8SAt6YjJCylSXWa75MWiK");
 
+      // Use your backend as a proxy to avoid CORS issues
       const response = await axios.post(
-        "https://upload.gofile.io/uploadfile",
+        `${BACKEND_URL}/api/v1/gofile/upload`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
+          withCredentials: true,
           onUploadProgress: (progressEvent) => {
             if (progressEvent.total) {
               const progress = Math.round(
@@ -121,9 +124,8 @@ export default function FormPage() {
 
       setIsUploading(false);
 
-      if (response.data.status === "ok") {
-        // Gofile returns the download URL in response.data.data.downloadPage
-        const downloadUrl = response.data.data.downloadPage;
+      if (response.data.success) {
+        const downloadUrl = response.data.downloadUrl;
         console.log("Gofile upload successful. Download URL:", downloadUrl);
         return downloadUrl;
       } else {
@@ -147,6 +149,7 @@ export default function FormPage() {
       }
     }
   };
+
   // Load Cashfree SDK only when needed (not on mount)
   const loadCashfreeSDK = async (): Promise<boolean> => {
     return new Promise((resolve) => {

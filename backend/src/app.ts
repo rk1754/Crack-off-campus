@@ -13,6 +13,7 @@ import resumeRoutes from './routes/resume.route';
 import resumeUploadRoutes from './routes/resumeUpload.route';
 import new_resumeRoutes from './routes/new_resume.route';
 import resourcesRoutes from './routes/resources.routes';
+import gofileRoutes from './routes/gofile.route';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -145,10 +146,11 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   app.use('/api/v1/experience', experienceRoutes);
   app.use('/api/v1/job', jobRoutes);
   app.use('/api/v1/analytics', analyticsRoutes);  app.use('/api/v1/session', sessionRoutes);
-  app.use('/api/v1/session/booking', sessionBookingRoutes);
-  app.use('/api/v1/resume', resumeRoutes);
+  app.use('/api/v1/session/booking', sessionBookingRoutes);  app.use('/api/v1/resume', resumeRoutes);
   app.use('/api/v1/resume-upload', resumeUploadRoutes);
-  app.use('/api/v1/payment', paymentRoutes);  app.use('/api/v1/new/resume', new_resumeRoutes);
+  app.use('/api/v1/payment', paymentRoutes);
+  app.use('/api/v1/gofile', gofileRoutes);
+  app.use('/api/v1/new/resume', new_resumeRoutes);
   app.use('/api/v1/resources', resourcesRoutes);
   
   // Direct payment update route - accessible without auth
