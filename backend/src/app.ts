@@ -12,6 +12,7 @@ import sessionBookingRoutes from './routes/sessionBooking.route';
 import resumeRoutes from './routes/resume.route';
 import resumeUploadRoutes from './routes/resumeUpload.route';
 import new_resumeRoutes from './routes/new_resume.route';
+import resourcesRoutes from './routes/resources.routes';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -138,7 +139,6 @@ if (cluster.isPrimary && IS_PRODUCTION) {
       headers: req.headers,
     });
   });
-
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/admin', adminRoutes);
   app.use('/api/v1/education', educationRoutes);
@@ -149,6 +149,7 @@ if (cluster.isPrimary && IS_PRODUCTION) {
   app.use('/api/v1/resume', resumeRoutes);
   app.use('/api/v1/resume-upload', resumeUploadRoutes);
   app.use('/api/v1/payment', paymentRoutes);  app.use('/api/v1/new/resume', new_resumeRoutes);
+  app.use('/api/v1/resources', resourcesRoutes);
   
   // Direct payment update route - accessible without auth
   app.post('/update', async (req: Request, res: Response): Promise<void> => {

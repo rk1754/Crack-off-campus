@@ -11,6 +11,7 @@ import {
   downloadColdMailTemplate,
   downloadCoverLetterTemplate,
 } from "../redux/slices/resourceSlice";
+import { fetchCurrentUser } from "../redux/slices/userSlice";
 import { RootState, AppDispatch } from "../redux/store";
 import { toast } from "sonner";
 import axios from "axios";
@@ -32,7 +33,6 @@ const ResourcesPage = () => {
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false); // Only for payment
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-
   // Check for payment success in URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -41,12 +41,14 @@ const ResourcesPage = () => {
 
     if (success === "1" && type) {
       toast.success(
-        `Payment successful! Your ${type} template has been downloaded.`
+        `Payment successful! Your ${type} template is now available for download.`
       );
+      // Refresh user data to get updated permissions
+      dispatch(fetchCurrentUser());
       // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [dispatch]);
 
   // Load Cashfree SDK
   useEffect(() => {
@@ -141,8 +143,7 @@ const ResourcesPage = () => {
       setLoading(false);
     }
   };
-
-  // Helper for login check
+  // Helper for login check and error handling
   const requireLogin = async (
     action: () => Promise<any> | void,
     resourceId?: number
@@ -154,6 +155,16 @@ const ResourcesPage = () => {
     if (resourceId) setDownloadingId(resourceId);
     try {
       await action();
+    } catch (error: any) {
+      // Handle specific error messages from the backend
+      const errorMessage = error.message || "Failed to download resource";
+      if (errorMessage.includes("Access denied")) {
+        toast.error("Access denied. Please purchase this resource first.");
+      } else if (errorMessage.includes("Not authenticated")) {
+        toast.error("Please login to download this resource.");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       if (resourceId) setDownloadingId(null);
     }
@@ -363,41 +374,15 @@ const ResourcesPage = () => {
                           user ? user[resource.requiredBoolean] : undefined
                         );
 
-                        // Check if user recently made a payment (from localStorage)
-                        const recentPayment = localStorage.getItem(
-                          `payment_${resource.requiredBoolean}`
-                        );
-                        const now = Date.now();
-                        const paymentTime = recentPayment
-                          ? parseInt(recentPayment)
-                          : 0;
-                        const isRecentPayment =
-                          now - paymentTime < 5 * 60 * 1000; // 5 minutes
-
-                        // Allow download if: 1) User has the boolean flag, OR 2) Recent payment was made
-                        if (
-                          (user && user[resource.requiredBoolean] === true) ||
-                          isRecentPayment
-                        ) {
-                          if (isRecentPayment) {
-                            console.log(
-                              "Allowing download due to recent payment"
-                            );
-                            toast.success(
-                              "Download started! Payment was successful."
-                            );
-                          }
+                        // Check if user has access to the resource
+                        if (user && user[resource.requiredBoolean] === true) {
+                          // User has access, allow download
                           await resource.action();
                           return;
                         }
 
-                        // Otherwise, redirect to payment
+                        // User doesn't have access, redirect to payment
                         setLoading(true);
-                        // Set a timestamp for this payment attempt
-                        localStorage.setItem(
-                          `payment_${resource.requiredBoolean}`,
-                          now.toString()
-                        );
                         await handleUpgradeSubscription(
                           resource.requiredBoolean
                         );
@@ -410,6 +395,10 @@ const ResourcesPage = () => {
                         ? "Processing..."
                         : !sdkLoaded
                         ? "Loading..."
+                        : resource.buttonText === "Coming Soon"
+                        ? "Coming Soon"
+                        : user && user[resource.requiredBoolean] === true
+                        ? "Download"
                         : resource.buttonText}
                     </Button>
                   </div>

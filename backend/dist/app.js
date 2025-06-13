@@ -17,6 +17,7 @@ const sessionBooking_route_1 = __importDefault(require("./routes/sessionBooking.
 const resume_route_1 = __importDefault(require("./routes/resume.route"));
 const resumeUpload_route_1 = __importDefault(require("./routes/resumeUpload.route"));
 const new_resume_route_1 = __importDefault(require("./routes/new_resume.route"));
+const resources_routes_1 = __importDefault(require("./routes/resources.routes"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -111,6 +112,7 @@ else {
     app.use('/api/v1/resume-upload', resumeUpload_route_1.default);
     app.use('/api/v1/payment', payment_routes_1.default);
     app.use('/api/v1/new/resume', new_resume_route_1.default);
+    app.use('/api/v1/resources', resources_routes_1.default);
     // Direct payment update route - accessible without auth
     app.post('/update', async (req, res) => {
         try {
