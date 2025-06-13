@@ -613,7 +613,7 @@ Remote work options"
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="gold">Premium</SelectItem>
+                  <SelectItem value="gold">Gold</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -846,8 +846,9 @@ Remote work options"
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="gold">Premium</SelectItem>
-                  
+                  <SelectItem value="gold">Gold</SelectItem>
+                  <SelectItem value="gold_plus">Gold Plus</SelectItem>
+                  <SelectItem value="diamond">Diamond</SelectItem>
                 </SelectContent>
               </Select>
             </div>
