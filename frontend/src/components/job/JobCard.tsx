@@ -156,24 +156,26 @@ const JobCard = ({
                   </span>
                 )}
               </div>
+              {/* Updated Apply Now button logic */}
               {canAccess ? (
-                isPremiumJob ? (
-                  <a
-                    href={getSafeUrl(jobUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                isPremiumJob && userSubscriptionType === "premium" ? (
+                  // Premium user & premium job: go to job details page
+                  <Link
+                    to={`/jobs/${id}`}
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
                     <Crown size={14} className="mr-1" />
                     Apply Now
-                  </a>
+                  </Link>
                 ) : (
+                  // Non-premium job or non-premium user: go to job URL
                   <a
                     href={getSafeUrl(jobUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
+                    {isPremiumJob ? <Crown size={14} className="mr-1" /> : null}
                     Apply Now
                   </a>
                 )
