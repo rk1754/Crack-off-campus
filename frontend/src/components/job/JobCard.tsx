@@ -47,14 +47,17 @@ const JobCard = ({
     if (jobSubscriptionType === "regular") {
       return true;
     } else {
-      // Hide premium warning only for basic, standard, booster, and job subscription types
-      // Show premium warning for all other subscription types (including other_template)
-      return (
-        userSubscriptionType === "booster" ||
-        userSubscriptionType === "job" ||
-        userSubscriptionType === "standard" ||
-        userSubscriptionType === "basic"
-      );
+      // If job is premium (not regular) and user doesn't have basic/standard/booster/job subscription
+      // then canAccess should be false (to show premium warning)
+      if (
+        userSubscriptionType !== "basic" &&
+        userSubscriptionType !== "standard" &&
+        userSubscriptionType !== "booster" &&
+        userSubscriptionType !== "job"
+      ) {
+        return false;
+      }
+      return true;
     }
   };
   const getJobPremiumStatus = () => {
