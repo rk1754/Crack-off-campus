@@ -484,15 +484,15 @@ const Profile = () => {
                               <div className="flex items-center gap-2 text-purple-700 font-semibold mb-2 sm:mb-3">
                                 <Building
                                   size={14}
-                                  className="sm:w-4 sm:h-4 md:w-5 md:h-5 text-purple-600 flex-shrink-0"
+                                  className="sm:w-4 sm:h-4 md:w-5 md:h-5 text-gray-900 flex-shrink-0"
                                 />
                                 <span className="text-sm sm:text-base md:text-lg break-words">{exp.company_name}</span>
                               </div>
                             </div>
                             <div className="flex flex-col gap-2">
                               <div className="flex items-center gap-2 bg-purple-100 px-3 py-1 sm:px-4 sm:py-2 rounded-full w-fit">
-                                <Calendar size={12} className="sm:w-4 sm:h-4 text-purple-600 flex-shrink-0" />
-                                <span className="text-xs sm:text-sm font-medium text-purple-800 whitespace-nowrap">
+                                <Calendar size={12} className="sm:w-4 sm:h-4 text-gray-700 flex-shrink-0" />
+                                <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
                                   {exp.start_date ? format(new Date(exp.start_date.slice(0, 10)), "MMM yyyy") : ""} -{" "}
                                   {exp.end_date ? format(new Date(exp.end_date.slice(0, 10)), "MMM yyyy") : "Present"}
                                 </span>
@@ -514,7 +514,7 @@ const Profile = () => {
                             )}
                             <Badge
                               variant="outline"
-                              className="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 border-purple-200 font-medium px-2 sm:px-3 py-1 text-xs sm:text-sm"
+                              className="bg-gradient-to-r from-purple-100 to-purple-200 text-gray-700 border-purple-200 font-medium px-2 sm:px-3 py-1 text-xs sm:text-sm"
                             >
                               {(exp.employment_type || "")
                                 .replace("_", " ")
