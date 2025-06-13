@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import multer from 'multer';
 import axios from 'axios';
 import FormData from 'form-data';
@@ -27,13 +27,14 @@ const upload = multer({
 });
 
 // POST endpoint to upload file to Gofile
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'No file provided'
       });
+      return;
     }
 
     // Create FormData for Gofile API
@@ -50,45 +51,46 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         ...formData.getHeaders(),
       },
       timeout: 30000, // 30 second timeout
-    });
-
-    if (response.data.status === 'ok') {
+    });    if (response.data.status === 'ok') {
       // Return success response with download URL
-      return res.json({
+      res.json({
         success: true,
         downloadUrl: response.data.data.downloadPage,
         message: 'File uploaded successfully to Gofile'
       });
+      return;
     } else {
       throw new Error(response.data.message || 'Upload failed');
     }
 
   } catch (error: any) {
     console.error('Gofile upload error:', error);
-    
-    // Handle specific error types
+      // Handle specific error types
     if (error.code === 'ECONNABORTED') {
-      return res.status(408).json({
+      res.status(408).json({
         success: false,
         message: 'Upload timeout. Please try again.'
       });
+      return;
     }
     
     if (error.response?.status === 401) {
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         message: 'Invalid Gofile API token'
       });
+      return;
     }
     
     if (error.response?.status === 413) {
-      return res.status(413).json({
+      res.status(413).json({
         success: false,
         message: 'File too large for upload'
       });
+      return;
     }
     
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: error.message || 'Failed to upload file to Gofile'
     });
