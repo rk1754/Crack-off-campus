@@ -27,7 +27,7 @@ const triggerFileDownload = (blob: Blob, fileName: string) => {
 
 // Helper function to make protected download request
 const makeProtectedDownloadRequest = async (endpoint: string, fileName: string) => {
-  const response = await axios.get(`${BACKEND_URL}/resources${endpoint}`, {
+  const response = await axios.get(`${BACKEND_URL}/api/v1/resources${endpoint}`, {
     responseType: 'blob',
     withCredentials: true, // Include authentication cookies
   });

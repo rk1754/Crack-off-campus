@@ -4,6 +4,9 @@ import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
+// Debug endpoint (remove in production)
+router.get('/debug', authMiddleware, resourcesController.debugPaths);
+
 // All resource download routes require authentication
 router.get('/download/resume', authMiddleware, resourcesController.downloadResumeTemplate);
 router.get('/download/referral', authMiddleware, resourcesController.downloadReferralTemplate);
