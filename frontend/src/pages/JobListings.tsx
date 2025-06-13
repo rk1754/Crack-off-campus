@@ -168,9 +168,7 @@ const JobListings = () => {
       subscription_type_2: user.subscription_type_2,
       is_premium: user.is_premium,
       job: (user as any).job,
-    });
-
-    // Check both subscription_type and subscription_type_2
+    }); // Check both subscription_type and subscription_type_2
     if (
       user.subscription_type === "booster" ||
       user.subscription_type === "standard" ||
@@ -185,10 +183,8 @@ const JobListings = () => {
       user.subscription_type_2 === "job" // Added "job" to recognize it as premium
     ) {
       userSubscriptionType = user.subscription_type_2;
-    } else if ((user as any).job === true) {
-      // If user has job access flag, treat as job subscription
-      userSubscriptionType = "job";
     } else {
+      // For all other subscription types (including "resume", "other_template", etc.)
       userSubscriptionType =
         user.subscription_type || user.subscription_type_2 || "regular";
     }
@@ -202,8 +198,7 @@ const JobListings = () => {
         (user.subscription_type &&
           allowedSubscriptions.includes(user.subscription_type)) ||
         (user.subscription_type_2 &&
-          allowedSubscriptions.includes(user.subscription_type_2)) ||
-        (user as any).job === true
+          allowedSubscriptions.includes(user.subscription_type_2))
       ) {
         console.log("User has allowed subscription, auto-closing modal");
         setIsPremiumModalOpen(false);
@@ -223,17 +218,14 @@ const JobListings = () => {
       console.log("No user, redirecting to login");
       navigate("/login?redirect=/jobs");
       return;
-    }
-
-    // Hide modal only for subscription types: "basic", "standard", "booster", or "job"
-    // Show modal for all other subscription types (including undefined, null, other_template, etc.)
+    } // Hide modal only for subscription types: "basic", "standard", "booster", or "job"
+    // Show modal for all other subscription types (including undefined, null, other_template, resume, etc.)
     const allowedSubscriptions = ["basic", "standard", "booster", "job"];
     if (
       (user.subscription_type &&
         allowedSubscriptions.includes(user.subscription_type)) ||
       (user.subscription_type_2 &&
-        allowedSubscriptions.includes(user.subscription_type_2)) ||
-      (user as any).job === true
+        allowedSubscriptions.includes(user.subscription_type_2))
     ) {
       console.log("User has allowed subscription, not showing modal");
       setIsPremiumModalOpen(false);
