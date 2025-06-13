@@ -175,15 +175,17 @@ const PremiumJobsFeature: React.FC = () => {
   };
   return (
     <>
-      {/* Only show premium banner if user has no subscription or "regular" subscription */}
+      {" "}
+      {/* Show premium banner to all users EXCEPT those with subscription types: basic, standard, booster, job */}
       {(!user ||
-        ((!user.subscription_type ||
-          user.subscription_type === "regular" ||
-          user.subscription_type === "other_templates") &&
-          (!user.subscription_type_2 ||
-            user.subscription_type_2 === "regular" ||
-            user.subscription_type_2 === "other_templates") &&
-          !(user as any).job)) && (
+        (user.subscription_type !== "basic" &&
+          user.subscription_type !== "standard" &&
+          user.subscription_type !== "booster" &&
+          user.subscription_type !== "job" &&
+          user.subscription_type_2 !== "basic" &&
+          user.subscription_type_2 !== "standard" &&
+          user.subscription_type_2 !== "booster" &&
+          user.subscription_type_2 !== "job")) && (
         <div
           className="w-full mx-auto rounded-xl text-white shadow-lg"
           style={{ backgroundColor: "rgb(186, 175, 220)" }}
@@ -245,7 +247,6 @@ const PremiumJobsFeature: React.FC = () => {
           </div>
         </div>
       )}
-
       <Dialog open={isUnlockModalOpen} onOpenChange={setIsUnlockModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
