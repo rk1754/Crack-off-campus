@@ -196,16 +196,16 @@ const JobListings = () => {
   } // Auto-close premium modal if user has any premium subscription
   useEffect(() => {
     if (user) {
-      // If user has subscription type "basic", "standard", "booster", or "job", close modal
-      const premiumTypes = ["basic", "standard", "booster", "job"];
+      // Hide modal only for subscription types: "basic", "standard", "booster", or "job"
+      const allowedSubscriptions = ["basic", "standard", "booster", "job"];
       if (
         (user.subscription_type &&
-          premiumTypes.includes(user.subscription_type)) ||
+          allowedSubscriptions.includes(user.subscription_type)) ||
         (user.subscription_type_2 &&
-          premiumTypes.includes(user.subscription_type_2)) ||
+          allowedSubscriptions.includes(user.subscription_type_2)) ||
         (user as any).job === true
       ) {
-        console.log("User has premium subscription, auto-closing modal");
+        console.log("User has allowed subscription, auto-closing modal");
         setIsPremiumModalOpen(false);
       }
     }
@@ -225,23 +225,25 @@ const JobListings = () => {
       return;
     }
 
-    // If user has ANY subscription type other than "regular", don't show modal
-    // If user has subscription type "basic", "standard", "booster", or "job", don't show modal
-    const premiumTypes = ["basic", "standard", "booster", "job"];
+    // Hide modal only for subscription types: "basic", "standard", "booster", or "job"
+    // Show modal for all other subscription types (including undefined, null, other_template, etc.)
+    const allowedSubscriptions = ["basic", "standard", "booster", "job"];
     if (
       (user.subscription_type &&
-        premiumTypes.includes(user.subscription_type)) ||
+        allowedSubscriptions.includes(user.subscription_type)) ||
       (user.subscription_type_2 &&
-        premiumTypes.includes(user.subscription_type_2)) ||
+        allowedSubscriptions.includes(user.subscription_type_2)) ||
       (user as any).job === true
     ) {
-      console.log("User has premium subscription, not showing modal");
+      console.log("User has allowed subscription, not showing modal");
       setIsPremiumModalOpen(false);
       return;
     }
 
-    // Only show modal for users with no subscription or "regular" subscription
-    console.log("User has regular/no subscription, showing premium modal");
+    // Show modal for users with any other subscription type or no subscription
+    console.log(
+      "User does not have allowed subscription, showing premium modal"
+    );
     setIsPremiumModalOpen(true);
   };
 
