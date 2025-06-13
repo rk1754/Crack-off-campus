@@ -51,8 +51,7 @@ const JobCard = ({
         userSubscriptionType === "booster" ||
         userSubscriptionType === "job" ||
         userSubscriptionType === "standard" ||
-        userSubscriptionType === "basic" ||
-        userSubscriptionType === "premium"
+        userSubscriptionType === "basic"
       );
     }
   };
