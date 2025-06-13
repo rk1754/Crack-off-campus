@@ -138,7 +138,7 @@ export default function BookingPage() {
         id: 1,
         title: "Resume / CV Review",
         duration: "45 Mins",
-        amount: 1,
+        amount: 199,
         moreDetails:
           "We'll help you revise your resume as per industry standards.",
         whatIncluded: [
@@ -168,7 +168,7 @@ export default function BookingPage() {
         id: 2,
         title: "LinkedIn Review",
         duration: "45 Mins",
-        amount: 1,
+        amount: 199,
         moreDetails:
           "Enhance your LinkedIn profile for better visibility and outreach.",
         whatIncluded: [
@@ -198,7 +198,7 @@ export default function BookingPage() {
         id: 3,
         title: "Get a Referral",
         duration: "45 Mins",
-        amount: 1,
+        amount: 199,
         moreDetails: "Get referred to top companies with a tailored approach.",
         whatIncluded: [
           {
@@ -227,7 +227,7 @@ export default function BookingPage() {
         id: 4,
         title: "Career Guidance ",
         duration: "45 Mins",
-        amount: 1,
+        amount: 199,
         moreDetails:
           "Discuss your career path, job options, and get referrals.",
         whatIncluded: [
@@ -258,7 +258,7 @@ export default function BookingPage() {
         id: 6,
         title: "Find Job & Internship Strategy",
         duration: "45 Minutes",
-        amount: 2,
+        amount: 299,
         moreDetails:
           "Build a complete job search roadmap to land your dream role.",
         whatIncluded: [
@@ -283,7 +283,7 @@ export default function BookingPage() {
         id: 7,
         title: "Get Hired on LinkedIn",
         duration: "45 Mins",
-        amount: 1,
+        amount: 299,
         moreDetails: "Crack the hidden job market via LinkedIn optimization.",
         whatIncluded: [
           "Profile overhaul and keyword alignment",

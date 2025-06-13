@@ -1,317 +1,168 @@
 "use client"
 
-import type React from "react"
-import { useState, useRef } from "react"
-import emailjs from "@emailjs/browser"
-import { Mail, Phone, MessageSquare, Send, CheckCircle, AlertCircle } from "lucide-react"
+import { useState } from "react"
+import { Mail, Phone, MessageSquare } from "lucide-react"
 import Navbar from "../components/layout/Navbar"
 import Footer from "../components/layout/Footer"
 
-interface FormData {
-  name: string
-  email: string
-  contactNumber: string
-  queryType: "enquiry" | "payment"
-  message: string
-}
-
-interface FormStatus {
-  type: "success" | "error" | null
-  message: string
-}
-
-const Contact: React.FC = () => {
-  const form = useRef<HTMLFormElement>(null)
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    contactNumber: "",
-    queryType: "enquiry",
-    message: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [status, setStatus] = useState<FormStatus>({ type: null, message: "" })
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setStatus({ type: null, message: "" })
-
-    try {
-      if (form.current) {
-        // Initialize EmailJS with your public key
-        emailjs.init("PkEK-jqv8myEbf6Hi")
-
-        const result = await emailjs.sendForm(
-          "service_omoc41u", // ✅ Correct Gmail service ID
-          "template_dopujol", // ✅ Your template ID
-          form.current,
-          "PkEK-jqv8myEbf6Hi", // ✅ Your public key
-        )
-
-        console.log("EmailJS Success:", result)
-
-        if (result.status === 200) {
-          setStatus({
-            type: "success",
-            message: "Thank you for your message! We'll get back to you within 24 hours.",
-          })
-          setFormData({
-            name: "",
-            email: "",
-            contactNumber: "",
-            queryType: "enquiry",
-            message: "",
-          })
-        }
-      }
-    } catch (error: any) {
-      console.error("EmailJS Error:", error)
-      setStatus({
-        type: "error",
-        message: `Failed to send message: ${error.text || error.message || "Unknown error"}. Please try again or contact us directly at crackoffcampus63@gmail.com.`,
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+const Contact = () => {
+  const [message, setMessage] = useState("")
 
   const handleWhatsAppClick = () => {
-    const message = encodeURIComponent(
-      `Hi, I'm ${formData.name}. I have a ${formData.queryType} regarding your services. ${formData.message}`,
-    )
-    window.open(`https://wa.me/918218498723?text=${message}`, "_blank")
+    const encodedMessage = encodeURIComponent(message || "Hi, I'm interested in your services.")
+    window.open(`https://wa.me/918218498723?text=${encodedMessage}`, "_blank")
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full">
       <Navbar />
 
-      <main className="flex-grow bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-grow bg-gradient-to-br from-purple-50 to-pink-100 py-8 px-4 sm:py-12 sm:px-6 lg:px-8 w-full">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Have questions about our services or need support? We're here to help! Whether it's about resume reviews,
-              career services, or payment issues, reach out to us.
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Get in Touch</h1>
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
+              Have questions about our services? We're here to help! Reach out to us directly through WhatsApp or email.
             </p>
           </div>
 
           {/* Contact Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Contact Information */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-lg p-6 h-fit">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Get in Touch</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Contact Card */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all hover:scale-105">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-5 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Contact Information</h2>
+                <p className="text-purple-100 mt-1 sm:mt-2 text-sm sm:text-base">
+                  Reach out to us through any of these channels for quick assistance
+                </p>
+              </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-6 w-6 text-indigo-600" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Email</p>
-                      <a href="mailto:crackoffcampus63@gmail.com" className="text-indigo-600 hover:text-indigo-500">
+              <div className="p-5 sm:p-8">
+                <div className="space-y-5 sm:space-y-6">
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="bg-purple-100 p-2 sm:p-3 rounded-full flex-shrink-0">
+                      <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-500">Email</p>
+                      <a
+                        href="mailto:crackoffcampus63@gmail.com"
+                        className="text-base sm:text-lg font-semibold text-purple-600 hover:text-purple-500 break-all"
+                      >
                         crackoffcampus63@gmail.com
                       </a>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <Phone className="h-6 w-6 text-indigo-600" />
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="bg-purple-100 p-2 sm:p-3 rounded-full flex-shrink-0">
+                      <Phone className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                    </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Phone</p>
-                      <a href="tel:+918218498723" className="text-indigo-600 hover:text-indigo-500">
+                      <p className="text-sm font-medium text-gray-500">Phone</p>
+                      <a
+                        href="tel:+918218498723"
+                        className="text-base sm:text-lg font-semibold text-purple-600 hover:text-purple-500"
+                      >
                         +91 82184 98723
                       </a>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <MessageSquare className="h-6 w-6 text-green-600" />
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="bg-green-100 p-2 sm:p-3 rounded-full flex-shrink-0">
+                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                    </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">WhatsApp</p>
-                      <button onClick={handleWhatsAppClick} className="text-green-600 hover:text-green-500">
+                      <p className="text-sm font-medium text-gray-500">WhatsApp</p>
+                      <a
+                        href="https://wa.me/918218498723"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base sm:text-lg font-semibold text-green-600 hover:text-green-500"
+                      >
                         Chat with us
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 p-4 bg-indigo-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-indigo-900 mb-2">Quick Response</h3>
-                  <p className="text-sm text-indigo-700">
-                    We typically respond to all inquiries within 24 hours. For urgent payment issues, please call us
-                    directly or use WhatsApp for faster assistance.
+                <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-purple-50 rounded-lg border border-purple-100">
+                  <h3 className="text-xs sm:text-sm font-medium text-purple-900 mb-1 sm:mb-2">Quick Response</h3>
+                  <p className="text-xs sm:text-sm text-purple-700">
+                    We typically respond to all inquiries within 24 hours. For urgent matters, please contact us
+                    directly via WhatsApp for faster assistance.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Send us a Message</h2>
+            {/* WhatsApp Message Card */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-5 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Send us a WhatsApp</h2>
+                <p className="text-green-100 mt-1 sm:mt-2 text-sm sm:text-base">
+                  Type your message below and send it directly to our WhatsApp
+                </p>
+              </div>
 
-                {status.type && (
-                  <div
-                    className={`mb-6 p-4 rounded-lg flex items-center space-x-2 ${status.type === "success"
-                        ? "bg-green-50 text-green-800 border border-green-200"
-                        : "bg-red-50 text-red-800 border border-red-200"
-                      }`}
-                  >
-                    {status.type === "success" ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5" />
-                    )}
-                    <span>{status.message}</span>
-                  </div>
-                )}
-
-                <form ref={form} onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                        Your Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Enter your email address"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                        Contact Number *
-                      </label>
-                      <input
-                        type="tel"
-                        id="contactNumber"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Enter your contact number"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="queryType" className="block text-sm font-medium text-gray-700 mb-2">
-                        Query Type *
-                      </label>
-                      <select
-                        id="queryType"
-                        name="queryType"
-                        value={formData.queryType}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                      >
-                        <option value="enquiry">General Enquiry</option>
-                        <option value="payment">Payment Issue</option>
-                      </select>
-                    </div>
-                  </div>
-
+              <div className="p-5 sm:p-8">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                      Your Query *
+                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Your Message
                     </label>
                     <textarea
                       id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
                       rows={6}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 resize-vertical"
-                      placeholder="Please describe your query in detail. If it's a payment issue, include your transaction ID and service details."
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-sm sm:text-base"
+                      placeholder="Type your message here..."
                     />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center justify-center"
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleWhatsAppClick}
-                      className="flex-1 bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 flex items-center justify-center"
-                    >
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      <span>WhatsApp Us</span>
-                    </button>
-                  </div>
-                </form>
+                  <button
+                    onClick={handleWhatsAppClick}
+                    className="w-full bg-green-600 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all flex items-center justify-center space-x-2 text-sm sm:text-base"
+                  >
+                    <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span>Send via WhatsApp</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Services Section */}
-          <div className="mt-12 bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Our Services</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">📄</span>
+          <div className="mt-8 sm:mt-12 bg-white rounded-2xl shadow-xl p-5 sm:p-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">Our Services</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl text-center transform transition-all hover:scale-105">
+                <div className="bg-white rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
+                  <span className="text-xl sm:text-2xl">📄</span>
                 </div>
-                <h4 className="font-medium text-gray-900">Resume Review</h4>
-                <p className="text-sm text-gray-600 mt-1">Professional resume analysis and improvement suggestions</p>
+                <h4 className="text-base sm:text-lg font-semibold text-gray-900">Resume Review</h4>
+                <p className="text-sm text-gray-600 mt-1 sm:mt-2">
+                  Professional resume analysis and improvement suggestions
+                </p>
               </div>
 
-              <div className="text-center">
-                <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">💼</span>
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl text-center transform transition-all hover:scale-105">
+                <div className="bg-white rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
+                  <span className="text-xl sm:text-2xl">💼</span>
                 </div>
-                <h4 className="font-medium text-gray-900">Career Services</h4>
-                <p className="text-sm text-gray-600 mt-1">Interview preparation and career guidance</p>
+                <h4 className="text-base sm:text-lg font-semibold text-gray-900">Career Services</h4>
+                <p className="text-sm text-gray-600 mt-1 sm:mt-2">Interview preparation and career guidance</p>
               </div>
 
-              <div className="text-center">
-                <div className="bg-indigo-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🎯</span>
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 sm:p-6 rounded-xl text-center transform transition-all hover:scale-105">
+                <div className="bg-white rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-md">
+                  <span className="text-xl sm:text-2xl">🎯</span>
                 </div>
-                <h4 className="font-medium text-gray-900">Job Portal</h4>
-                <p className="text-sm text-gray-600 mt-1">Access to exclusive off-campus job opportunities</p>
+                <h4 className="text-base sm:text-lg font-semibold text-gray-900">Job Portal</h4>
+                <p className="text-sm text-gray-600 mt-1 sm:mt-2">Access to exclusive off-campus job opportunities</p>
               </div>
             </div>
           </div>
