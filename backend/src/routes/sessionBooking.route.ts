@@ -20,4 +20,7 @@ router.get('/bookingsForService', slotBookingController.getBookingsForService);
 // Check if a specific slot is available
 router.get('/checkAvailability', slotBookingController.checkSlotAvailability);
 
+// Serve locally saved resume files
+router.get('/resume/:fileName', slotBookingController.serveResumeFile);
+
 export default router;

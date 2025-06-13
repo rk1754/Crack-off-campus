@@ -3,6 +3,9 @@ import SessionBooking from "../models/sessionBooking.model";
 import { transporter } from "../utils/mailer";
 import User from "../models/user.model";
 import logger from "../utils/logger";
+import axios from "axios";
+import fs from "fs";
+import path from "path";
 
 class SlotBookingController {
   // Helper function to validate resume URL
@@ -37,12 +40,130 @@ class SlotBookingController {
     }
     return 'pdf';
   };
-
   private generateSafeFilename = (userName: string, extension: string): string => {
     const safeName = (userName || 'User').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
     const validExt = extension || 'pdf';
     return `${safeName}_Resume.${validExt}`;
-  };  // Book a slot (service_id, date, time)
+  };
+
+  // Helper function to download resume from URL and save it locally as PDF
+  private downloadAndSaveResume = async (resumeUrl: string, fileName: string): Promise<string | null> => {
+    try {
+      if (!this.isValidResumeUrl(resumeUrl)) {
+        return null;
+      }
+
+      // Create uploads directory if it doesn't exist
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      // Generate unique filename with PDF extension
+      const timestamp = Date.now();
+      const safeFileName = `${fileName.replace(/\.[^/.]+$/, '')}_${timestamp}.pdf`;
+      const filePath = path.join(uploadsDir, safeFileName);      // Download the file
+      const response = await axios({
+        method: 'GET',
+        url: resumeUrl,
+        responseType: 'stream',
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+
+      // Save the file
+      const writer = fs.createWriteStream(filePath);
+      response.data.pipe(writer);
+
+      return new Promise((resolve, reject) => {
+        writer.on('finish', () => {
+          console.log(`Resume saved successfully: ${filePath}`);
+          // Cleanup old files (older than 7 days)
+          this.cleanupOldFiles();
+          resolve(safeFileName);
+        });
+        writer.on('error', (error) => {
+          console.error('Error saving resume:', error);
+          // Clean up partial file
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+          reject(error);
+        });
+      });    } catch (error) {
+      console.error('Error downloading resume:', error);
+      return null;
+    }
+  };
+
+  // Cleanup old files (older than 7 days)
+  private cleanupOldFiles = (): void => {
+    try {
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        return;
+      }
+
+      const files = fs.readdirSync(uploadsDir);
+      const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
+
+      files.forEach(file => {
+        const filePath = path.join(uploadsDir, file);
+        const stats = fs.statSync(filePath);
+        
+        if (stats.isFile() && stats.mtime.getTime() < oneWeekAgo) {
+          fs.unlinkSync(filePath);
+          console.log(`Cleaned up old file: ${file}`);
+        }
+      });
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+    }
+  };
+
+  // Serve locally saved resume files
+  serveResumeFile = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { fileName } = req.params;
+      
+      if (!fileName) {
+        res.status(400).json({
+          success: false,
+          message: "File name is required",
+        });
+        return;
+      }
+
+      const filePath = path.join(process.cwd(), 'uploads', fileName);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        res.status(404).json({
+          success: false,
+          message: "File not found",
+        });
+        return;
+      }
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Cache-Control', 'no-cache');
+
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+    } catch (error) {
+      console.error('Error serving resume file:', error);
+      res.status(500).json({
+        success: false,
+        message: "Error serving file",
+      });
+    }
+  };// Book a slot (service_id, date, time)
   bookSlot = async (req: Request, res: Response): Promise<void> => {
     try {
       console.log("=== BOOKING REQUEST DEBUG ===");
@@ -165,17 +286,36 @@ class SlotBookingController {
       const hasValidResume = this.isValidResumeUrl(resumeUrl);
       const resumeFileExtension = hasValidResume ? this.getFileExtensionFromUrl(resumeUrl) : 'pdf';
       const downloadFileName = this.generateSafeFilename(user.name || 'User', resumeFileExtension);
-      
-      // Create download URL using our endpoint for proper headers
-      const downloadUrl = hasValidResume ? 
-        `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}` : 
-        resumeUrl;
+      let localResumeFileName = null;
+      let downloadUrl = resumeUrl;
+
+      if (hasValidResume) {
+        // Download and save resume locally
+        try {
+          localResumeFileName = await this.downloadAndSaveResume(resumeUrl, downloadFileName);
+          
+          if (localResumeFileName) {
+            // Create URL to serve the local file
+            downloadUrl = `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/session/booking/resume/${localResumeFileName}`;
+            console.log(`Resume downloaded and saved locally: ${localResumeFileName}`);
+          } else {
+            console.log('Failed to download resume, falling back to original URL');
+            // Keep the original downloadUrl format for fallback
+            downloadUrl = `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}`;
+          }
+        } catch (error) {
+          console.error('Error downloading resume:', error);
+          // Fall back to original URL format if download fails
+          downloadUrl = `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}`;
+        }
+      }
 
       console.log("=== RESUME VALIDATION ===");
       console.log("hasValidResume:", hasValidResume);
       console.log("resumeUrl:", resumeUrl);
       console.log("resumeFileExtension:", resumeFileExtension);
       console.log("downloadFileName:", downloadFileName);
+      console.log("localResumeFileName:", localResumeFileName);
       console.log("downloadUrl:", downloadUrl);
       console.log("=== END VALIDATION ===");// User email
       const userHtml = `
