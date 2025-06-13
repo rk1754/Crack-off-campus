@@ -104,7 +104,7 @@ export default function FormPage() {
 
       // Use your backend as a proxy to avoid CORS issues
       const response = await axios.post(
-       "http://localhost:5454/api/v1/gofile/upload",
+        "https://api.crackoffcampus.com/api/v1/gofile/upload",
         formData,
         {
           headers: {
