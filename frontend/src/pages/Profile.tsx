@@ -420,7 +420,7 @@ const Profile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
-                  <p className="text-gray-700 leading-relaxed text-base sm:text-lg">
+                  <p className="text-purple-800 leading-relaxed text-base sm:text-lg">
                     {user?.bio || "No bio provided yet."}
                   </p>
                 </CardContent>
@@ -555,60 +555,60 @@ const Profile = () => {
                       educationList.map((edu: any, idx: number) => (
                         <div
                           key={edu.id || edu._id || idx}
-                          className="mb-4 p-3 sm:p-4 rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-100 relative group"
+                          className="mb-4 p-3 sm:p-4 rounded-xl bg-purple-50 border border-purple-200 relative group"
                         >
                           <div className="flex flex-col gap-2 sm:gap-3">
                             <div className="space-y-2">
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <Award className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: 'gray' }} />
-                                <span className="font-semibold text-sm sm:text-base">Degree:</span>
-                                <span className="text-sm sm:text-base break-words">
-                                  {edu.education || <span className="text-gray-400">N/A</span>}
+                                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-purple-700" />
+                                <span className="font-semibold text-sm sm:text-base text-purple-700">Degree:</span>
+                                <span className="text-sm sm:text-base break-words text-purple-800">
+                                  {edu.education || <span className="text-purple-400">N/A</span>}
                                 </span>
                               </div>
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                                <span className="font-semibold text-sm sm:text-base">Specialization:</span>
-                                <span className="text-sm sm:text-base break-words">
-                                  {edu.specialization || <span className="text-gray-400">N/A</span>}
+                                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 text-purple-700 flex-shrink-0" />
+                                <span className="font-semibold text-sm sm:text-base text-purple-700">Specialization:</span>
+                                <span className="text-sm sm:text-base break-words text-purple-800">
+                                  {edu.specialization || <span className="text-purple-400">N/A</span>}
                                 </span>
                               </div>
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <Building className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                                <span className="font-semibold text-sm sm:text-base">College/University:</span>
-                                <span className="text-sm sm:text-base break-words">
+                                <Building className="w-3 h-3 sm:w-4 sm:h-4 text-purple-700 flex-shrink-0" />
+                                <span className="font-semibold text-sm sm:text-base text-purple-700">College/University:</span>
+                                <span className="text-sm sm:text-base break-words text-purple-800">
                                   {edu.college !== undefined && edu.college !== null && edu.college !== "" ? (
                                     edu.college
                                   ) : (
-                                    <span className="text-gray-400">N/A</span>
+                                    <span className="text-purple-400">N/A</span>
                                   )}
                                 </span>
                               </div>
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                                <span className="font-semibold text-sm sm:text-base">Location:</span>
-                                <span className="text-sm sm:text-base break-words">
+                                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-purple-700 flex-shrink-0" />
+                                <span className="font-semibold text-sm sm:text-base text-purple-700">Location:</span>
+                                <span className="text-sm sm:text-base break-words text-purple-800">
                                   {edu.location !== undefined && edu.location !== null && edu.location !== "" ? (
                                     edu.location
                                   ) : (
-                                    <span className="text-gray-400">N/A</span>
+                                    <span className="text-purple-400">N/A</span>
                                   )}
                                 </span>
                               </div>
                               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
-                                <span className="font-semibold text-sm sm:text-base">Year:</span>
-                                <span className="text-sm sm:text-base">
+                                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-purple-700 flex-shrink-0" />
+                                <span className="font-semibold text-sm sm:text-base text-purple-700">Year:</span>
+                                <span className="text-sm sm:text-base text-purple-800">
                                   {edu.start_year ? (
                                     new Date(edu.start_year).getFullYear()
                                   ) : (
-                                    <span className="text-gray-400">N/A</span>
+                                    <span className="text-purple-400">N/A</span>
                                   )}{" "}
                                   to{" "}
                                   {edu.end_year ? (
                                     new Date(edu.end_year).getFullYear()
                                   ) : (
-                                    <span className="text-gray-400">N/A</span>
+                                    <span className="text-purple-400">N/A</span>
                                   )}
                                 </span>
                               </div>
@@ -617,7 +617,7 @@ const Profile = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="text-gray-500 text-center py-6 sm:py-8 text-sm sm:text-base">
+                      <div className="text-purple-400 text-center py-6 sm:py-8 text-sm sm:text-base">
                         No education details added yet.
                       </div>
                     )}
