@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import Education from "../models/education.model";
 
-class EducationController{
-    addEducation = async(req : Request, res : Response):Promise<void>=>{
+class EducationController{    addEducation = async(req : Request, res : Response):Promise<void>=>{
         try{
-            const {education, start_year, end_year,location, specialization} = req.body;
+            const {education, start_year, end_year, location, specialization, college} = req.body;
             const user = req.user;
             if(!user){
                 res.status(403).json({
@@ -28,6 +27,7 @@ class EducationController{
                 end_year,
                 specialization,
                 location,
+                college,
                 user_id : user.id
             });
             if(!userEducation){
