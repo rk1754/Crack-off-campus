@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Lock, Crown } from "lucide-react";
+import { Calendar, MapPin, Lock, Crown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface JobCardProps {
@@ -56,16 +56,8 @@ const JobCard = ({
       );
     }
   };
-  const getJobPremiumStatus = () => {
-    if (jobSubscriptionType !== "regular") {
-      return true;
-    } else {
-      return false;
-    }
-  };
 
   const isPremiumJob = jobSubscriptionType !== "regular";
-
   const canAccess = checkAccess();
   console.log("canAccess", canAccess);
 
@@ -88,6 +80,7 @@ const JobCard = ({
       <div>
         <div className="flex items-start">
           <div className="flex-grow">
+            {/* Job title - always links to job details for premium jobs */}
             {isPremiumJob ? (
               <Link to={`/jobs/${id}`} className="job-title-class">
                 <h3 className="text-lg font-medium text-foundit-blue hover:text-foundit-blue-light transition-colors">
@@ -156,19 +149,20 @@ const JobCard = ({
                   </span>
                 )}
               </div>
-              {/* Updated Apply Now button logic */}
+
+              {/* Apply Now button logic */}
               {canAccess ? (
                 isPremiumJob ? (
-                  // Any user with access to a premium job: go to job details page
+                  // Premium job with access: go to job details page
                   <Link
                     to={`/jobs/${id}`}
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
                     <Crown size={14} className="mr-1" />
-                    Apply Now
+                    View Details
                   </Link>
                 ) : (
-                  // Non-premium job: go to job URL
+                  // Non-premium job: go directly to job URL
                   <a
                     href={getSafeUrl(jobUrl)}
                     target="_blank"
@@ -178,22 +172,15 @@ const JobCard = ({
                     Apply Now
                   </a>
                 )
-              ) : isPremiumJob ? (
+              ) : (
+                // No access: show unlock button
                 <Button
                   size="sm"
                   onClick={onUnlockJob}
                   className="text-xs px-3 py-1 h-auto flex items-center bg-foundit-orange hover:bg-orange-600 text-white"
                 >
-                  <Crown size={14} className="mr-1" />
-                  Apply Now
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={onUnlockJob}
-                  className="text-xs px-3 py-1 h-auto flex items-center"
-                >
-                  Apply Now
+                  <Lock size={14} className="mr-1" />
+                  Unlock Job
                 </Button>
               )}
             </div>

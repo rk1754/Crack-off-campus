@@ -160,6 +160,20 @@ const JobDetail = () => {
     }
   };
 
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center min-h-[40vh]">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-lg text-gray-700 mb-2">{error}</p>
+          {error.includes('401') || error.toLowerCase().includes('unauthorized') ? (
+            <p className="text-md text-orange-600">You are not authorized to view this job. Please log in with the correct account or upgrade your subscription.</p>
+          ) : null}
+        </div>
+      </Layout>
+    );
+  }
+
   if (!job || (isPremiumJob && !isUserPremium)) {
     return (
       <Layout>
@@ -195,8 +209,8 @@ const JobDetail = () => {
                 {!sdkLoaded
                   ? "Loading Payment Gateway..."
                   : isProcessing
-                  ? "Processing..."
-                  : "Pay ₹99 & Unlock"}
+                    ? "Processing..."
+                    : "Pay ₹99 & Unlock"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -331,7 +345,7 @@ const JobDetail = () => {
               <a
                 href={
                   job.job_url?.startsWith("http://") ||
-                  job.job_url?.startsWith("https://")
+                    job.job_url?.startsWith("https://")
                     ? job.job_url
                     : `https://${job.job_url}`
                 }
