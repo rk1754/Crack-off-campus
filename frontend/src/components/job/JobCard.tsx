@@ -47,6 +47,7 @@ const JobCard = ({
     if (jobSubscriptionType === "regular") {
       return true;
     } else {
+      // Show premium warning to all except basic, standard, booster, and job subscription types
       return (
         userSubscriptionType === "booster" ||
         userSubscriptionType === "job" ||
