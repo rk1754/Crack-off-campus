@@ -102,7 +102,9 @@ export const getAllJobsAdmin = createAsyncThunk<AllJobsResponse>(
 export const getJobById = createAsyncThunk<JobResponse, string>(
   "job/byId",
   async (id) => {
-    const res = await axios.get(`${BACKEND_URL}/job/by/id/${id}`);
+    const res = await axios.get(`${BACKEND_URL}/job/by/id/${id}`, {
+      withCredentials: true,
+    });
     return res.data as JobResponse;
   }
 );

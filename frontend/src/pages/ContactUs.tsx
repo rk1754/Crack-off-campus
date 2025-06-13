@@ -23,7 +23,7 @@ const Contact = () => {
           <div className="text-center mb-8 sm:mb-12">
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Get in Touch</h1>
             <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
-              Have questions about our services? We're here to help! Reach out to us directly through WhatsApp or email.
+              Have questions about our services? We're here to help! Reach out to us directly through WhatsApp or Email.
             </p>
           </div>
 
@@ -101,7 +101,7 @@ const Contact = () => {
             {/* WhatsApp Message Card */}
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-5 sm:p-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Send us a WhatsApp</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Send us on WhatsApp</h2>
                 <p className="text-green-100 mt-1 sm:mt-2 text-sm sm:text-base">
                   Type your message below and send it directly to our WhatsApp
                 </p>
