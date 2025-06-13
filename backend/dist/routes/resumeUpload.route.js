@@ -10,4 +10,5 @@ const auth_middleware_1 = __importDefault(require("../middleware/auth.middleware
 const router = express_1.default.Router();
 const resumeUploadController = new resumeUpload_controller_1.default();
 router.post('/upload', auth_middleware_1.default, upload_middleware_1.upload.single("resume"), resumeUploadController.uploadResumeForBooking);
+router.get('/download', resumeUploadController.downloadResume);
 exports.default = router;

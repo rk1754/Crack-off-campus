@@ -26,35 +26,50 @@ class SlotBookingController {
                 return false;
             }
         };
-        // Helper function to extract file extension from URL
         this.getFileExtensionFromUrl = (url) => {
             if (!url)
                 return 'pdf';
-            const match = url.match(/\.([^.?]+)(\?|$)/);
-            return match ? match[1].toLowerCase() : 'pdf';
+            const urlMatch = url.match(/\.([^.?]+)(\?|$)/);
+            if (urlMatch) {
+                const ext = urlMatch[1].toLowerCase();
+                // Map common document extensions
+                if (ext === 'pdf')
+                    return 'pdf';
+                if (ext === 'doc' || ext === 'docx')
+                    return ext;
+            }
+            if (url.includes('cloudinary.com')) {
+                const pathParts = url.split('/');
+                const filename = pathParts[pathParts.length - 1];
+                const fileMatch = filename.match(/\.([^.?]+)(\?|$)/);
+                if (fileMatch) {
+                    return fileMatch[1].toLowerCase();
+                }
+            }
+            return 'pdf';
         };
-        // Helper function to generate safe filename
         this.generateSafeFilename = (userName, extension) => {
             const safeName = (userName || 'User').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-            return `${safeName}_Resume.${extension}`;
-        };
-        // Book a slot (service_id, date, time)
+            const validExt = extension || 'pdf';
+            return `${safeName}_Resume.${validExt}`;
+        }; // Book a slot (service_id, date, time)
         this.bookSlot = async (req, res) => {
             try {
                 console.log("=== BOOKING REQUEST DEBUG ===");
                 console.log("req.body:", req.body);
                 console.log("req.user:", req.user);
                 console.log("=== END DEBUG ===");
-                const { serviceId, date, service_name, time, resumeUrl } = req.body;
+                const { serviceId, date, service_name, time, resumeUrl, payment_status } = req.body;
                 const userId = req.user?.id;
                 if (!userId) {
                     res.status(400).json({
                         success: false,
                         message: "Please Login to book a slot",
+                        errorCode: "USER_NOT_AUTHENTICATED"
                     });
                     return;
                 }
-                logger_1.default.info("Logging input data of slot booking", serviceId, date, service_name, time, resumeUrl);
+                logger_1.default.info("Logging input data of slot booking", serviceId, date, service_name, time, resumeUrl, payment_status);
                 // Debug resume URL
                 console.log("=== RESUME URL DEBUG ===");
                 console.log("resumeUrl:", resumeUrl);
@@ -66,8 +81,26 @@ class SlotBookingController {
                     res.status(400).json({
                         success: false,
                         message: "Please provide service_id, date, and time",
+                        errorCode: "MISSING_REQUIRED_FIELDS"
                     });
                     return;
+                }
+                // Validate payment_status if provided
+                const validPaymentStatuses = ['pending', 'completed', 'failed'];
+                let validatedPaymentStatus = payment_status;
+                if (payment_status) {
+                    if (payment_status === 'paid') {
+                        validatedPaymentStatus = 'completed';
+                        console.log("Converting payment_status from 'paid' to 'completed'");
+                    }
+                    else if (!validPaymentStatuses.includes(payment_status)) {
+                        res.status(400).json({
+                            success: false,
+                            message: `Invalid payment_status. Must be one of: ${validPaymentStatuses.join(', ')}`,
+                            errorCode: "INVALID_PAYMENT_STATUS"
+                        });
+                        return;
+                    }
                 }
                 // Check if slot is already booked (not cancelled)
                 const existing = await sessionBooking_model_1.default.findOne({
@@ -82,10 +115,12 @@ class SlotBookingController {
                     res.status(409).json({
                         success: false,
                         message: "Slot already booked",
+                        errorCode: "SLOT_ALREADY_BOOKED"
                     });
                     return;
                 }
-                const booking = await sessionBooking_model_1.default.create({
+                console.log("=== CREATING BOOKING WITH DATA ===");
+                const bookingData = {
                     userId,
                     service_id: serviceId,
                     service_name: service_name,
@@ -93,7 +128,11 @@ class SlotBookingController {
                     time,
                     resume_url: resumeUrl || null,
                     cancelled: false,
-                });
+                    payment_status: validatedPaymentStatus || 'pending'
+                };
+                console.log("Booking data:", bookingData);
+                console.log("=== END BOOKING DATA ===");
+                const booking = await sessionBooking_model_1.default.create(bookingData);
                 const u = req.user;
                 if (!u) {
                     res.status(401).json({
@@ -122,27 +161,30 @@ class SlotBookingController {
                     timeZone: "Asia/Kolkata",
                 };
                 const formattedDateTime = istDateObj.toLocaleString("en-IN", options);
-                console.log(service_name, date, time, formattedDateTime);
-                // Use helper functions for resume validation
+                console.log(service_name, date, time, formattedDateTime); // Use helper functions for resume validation
                 const hasValidResume = this.isValidResumeUrl(resumeUrl);
                 const resumeFileExtension = hasValidResume ? this.getFileExtensionFromUrl(resumeUrl) : 'pdf';
                 const downloadFileName = this.generateSafeFilename(user.name || 'User', resumeFileExtension);
+                // Create download URL using our endpoint for proper headers
+                const downloadUrl = hasValidResume ?
+                    `${process.env.BACKEND_URL || 'https://api.crackoffcampus.com'}/api/v1/resume-upload/download?resumeUrl=${encodeURIComponent(resumeUrl)}&fileName=${encodeURIComponent(downloadFileName)}` :
+                    resumeUrl;
                 console.log("=== RESUME VALIDATION ===");
                 console.log("hasValidResume:", hasValidResume);
                 console.log("resumeUrl:", resumeUrl);
+                console.log("resumeFileExtension:", resumeFileExtension);
                 console.log("downloadFileName:", downloadFileName);
+                console.log("downloadUrl:", downloadUrl);
                 console.log("=== END VALIDATION ==="); // User email
                 const userHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
             <h2 style="color: #333; margin-bottom: 20px;">Slot Booking Confirmation</h2>
             <p>Dear ${user.name || 'User'},</p>
-            <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>
-            
-            ${hasValidResume ? `
+            <p>Your slot has been booked successfully for <b>${service_name}</b> on <b>${date} at ${time}</b>.</p>            ${hasValidResume ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f0f8ff; border-radius: 5px; border-left: 4px solid #667eea;">
               <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">📄 Your Resume:</p>
-              <a href="${resumeUrl}" 
+              <a href="${downloadUrl}" 
                  download="${downloadFileName}" 
                  target="_blank" 
                  style="display: inline-block; 
@@ -187,11 +229,10 @@ class SlotBookingController {
               <p style="margin: 0 0 5px 0;"><b>📞 User Contact:</b> ${user.phone_number || 'Not provided'}</p>
               <p style="margin: 0;"><b>📧 User Email:</b> ${user.email}</p>
             </div>
-            
-            ${hasValidResume ? `
+              ${hasValidResume ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f0f8ff; border-radius: 5px; border-left: 4px solid #667eea;">
               <p style="margin: 0 0 10px 0; font-weight: bold; color: #333;">📄 User's Resume:</p>
-              <a href="${resumeUrl}" 
+              <a href="${downloadUrl}" 
                  download="${downloadFileName}" 
                  target="_blank" 
                  style="display: inline-block; 
@@ -277,16 +318,187 @@ class SlotBookingController {
                 });
             }
             catch (err) {
-                console.error("Booking error:", err);
+                console.error("=== BOOKING ERROR DETAILS ===");
+                console.error("Error message:", err.message);
+                console.error("Error name:", err.name);
+                console.error("Error stack:", err.stack);
+                console.error("Request body:", req.body);
+                console.error("Request user:", req.user);
+                console.error("=== END ERROR DETAILS ===");
                 logger_1.default.error("Booking error:", {
                     message: err.message,
                     name: err.name,
-                    stack: err.stack
+                    stack: err.stack,
+                    requestBody: req.body,
+                    requestUser: req.user
                 });
+                // Provide more specific error messages
+                let errorMessage = "Something went wrong";
+                let errorCode = "UNKNOWN_ERROR";
+                if (err.name === 'ValidationError') {
+                    errorMessage = "Invalid data provided";
+                    errorCode = "VALIDATION_ERROR";
+                }
+                else if (err.name === 'SequelizeUniqueConstraintError') {
+                    errorMessage = "Slot already booked or duplicate booking";
+                    errorCode = "DUPLICATE_BOOKING";
+                }
+                else if (err.name === 'SequelizeDatabaseError') {
+                    errorMessage = "Database error occurred";
+                    errorCode = "DATABASE_ERROR";
+                }
+                else if (err.message.includes('User not found')) {
+                    errorMessage = "User not found";
+                    errorCode = "USER_NOT_FOUND";
+                }
+                else if (err.message.includes('Service not found')) {
+                    errorMessage = "Service not found";
+                    errorCode = "SERVICE_NOT_FOUND";
+                }
                 res.status(500).json({
                     success: false,
-                    message: "Something went wrong",
-                    error: process.env.NODE_ENV === "development" ? err.message : undefined
+                    message: errorMessage,
+                    errorCode,
+                    error: process.env.NODE_ENV === "development" ? err.message : undefined,
+                    details: process.env.NODE_ENV === "development" ? {
+                        name: err.name,
+                        stack: err.stack
+                    } : undefined
+                });
+            }
+        };
+        // Test method without authentication - REMOVE IN PRODUCTION
+        this.bookSlotTest = async (req, res) => {
+            try {
+                console.log("=== TEST BOOKING REQUEST DEBUG ===");
+                console.log("req.body:", req.body);
+                console.log("=== END TEST DEBUG ===");
+                const { serviceId, date, service_name, time, resumeUrl, payment_status, email, name } = req.body;
+                // For testing, create a mock user from the request data
+                if (!email || !name) {
+                    res.status(400).json({
+                        success: false,
+                        message: "Please provide email and name for test booking",
+                        errorCode: "MISSING_USER_DATA"
+                    });
+                    return;
+                }
+                // Find or create user for testing
+                let user = await user_model_1.default.findOne({ where: { email } });
+                if (!user) {
+                    res.status(400).json({
+                        success: false,
+                        message: "User not found. Please register first or use existing user credentials.",
+                        errorCode: "USER_NOT_FOUND"
+                    });
+                    return;
+                }
+                logger_1.default.info("Test booking with user:", user.id, email);
+                // Validate input
+                if (!serviceId || !date || !time) {
+                    res.status(400).json({
+                        success: false,
+                        message: "Please provide service_id, date, and time",
+                        errorCode: "MISSING_REQUIRED_FIELDS"
+                    });
+                    return;
+                }
+                // Validate payment_status if provided
+                const validPaymentStatuses = ['pending', 'completed', 'failed'];
+                let validatedPaymentStatus = payment_status;
+                if (payment_status) {
+                    if (payment_status === 'paid') {
+                        validatedPaymentStatus = 'completed';
+                        console.log("Converting payment_status from 'paid' to 'completed'");
+                    }
+                    else if (!validPaymentStatuses.includes(payment_status)) {
+                        res.status(400).json({
+                            success: false,
+                            message: `Invalid payment_status. Must be one of: ${validPaymentStatuses.join(', ')}`,
+                            errorCode: "INVALID_PAYMENT_STATUS"
+                        });
+                        return;
+                    }
+                }
+                // Check if slot is already booked (not cancelled)
+                const existing = await sessionBooking_model_1.default.findOne({
+                    where: {
+                        service_id: serviceId,
+                        date,
+                        time,
+                        cancelled: false,
+                    },
+                });
+                if (existing) {
+                    res.status(409).json({
+                        success: false,
+                        message: "Slot already booked",
+                        errorCode: "SLOT_ALREADY_BOOKED"
+                    });
+                    return;
+                }
+                console.log("=== CREATING TEST BOOKING WITH DATA ===");
+                const bookingData = {
+                    userId: user.id,
+                    service_id: serviceId,
+                    service_name: service_name,
+                    date,
+                    time,
+                    resume_url: resumeUrl || null,
+                    cancelled: false,
+                    payment_status: validatedPaymentStatus || 'pending'
+                };
+                console.log("Test booking data:", bookingData);
+                console.log("=== END TEST BOOKING DATA ===");
+                const booking = await sessionBooking_model_1.default.create(bookingData);
+                // Format booking for response
+                res.status(201).json({
+                    success: true,
+                    message: "Test slot booked successfully",
+                    booking: {
+                        ...booking.toJSON(),
+                        date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null,
+                        time: booking.time ? booking.time.slice(0, 5) : null,
+                    },
+                });
+            }
+            catch (err) {
+                console.error("=== TEST BOOKING ERROR DETAILS ===");
+                console.error("Error message:", err.message);
+                console.error("Error name:", err.name);
+                console.error("Error stack:", err.stack);
+                console.error("Request body:", req.body);
+                console.error("=== END TEST ERROR DETAILS ===");
+                logger_1.default.error("Test booking error:", {
+                    message: err.message,
+                    name: err.name,
+                    stack: err.stack,
+                    requestBody: req.body
+                });
+                // Provide more specific error messages
+                let errorMessage = "Something went wrong";
+                let errorCode = "UNKNOWN_ERROR";
+                if (err.name === 'ValidationError' || err.name === 'SequelizeValidationError') {
+                    errorMessage = "Invalid data provided";
+                    errorCode = "VALIDATION_ERROR";
+                }
+                else if (err.name === 'SequelizeUniqueConstraintError') {
+                    errorMessage = "Slot already booked or duplicate booking";
+                    errorCode = "DUPLICATE_BOOKING";
+                }
+                else if (err.name === 'SequelizeDatabaseError') {
+                    errorMessage = "Database error occurred";
+                    errorCode = "DATABASE_ERROR";
+                }
+                res.status(500).json({
+                    success: false,
+                    message: errorMessage,
+                    errorCode,
+                    error: err.message,
+                    details: {
+                        name: err.name,
+                        stack: err.stack
+                    }
                 });
             }
         };

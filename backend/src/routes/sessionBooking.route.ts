@@ -8,6 +8,8 @@ const router = express.Router();
 const slotBookingController = new SlotBookingController();
 
 router.post('/book', authMiddleware, upload.none(), slotBookingController.bookSlot);
+// Temporary route for testing without authentication - REMOVE IN PRODUCTION
+router.post('/book-test', upload.none(), slotBookingController.bookSlotTest);
 router.get('/getAll', authMiddleware, slotBookingController.findMyBookings);
 router.get('/getById/:id', authMiddleware, slotBookingController.getBookingById);
 router.delete('/cancel/:id', authMiddleware, slotBookingController.cancelSlot);

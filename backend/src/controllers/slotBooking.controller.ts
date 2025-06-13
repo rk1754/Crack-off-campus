@@ -42,8 +42,7 @@ class SlotBookingController {
     const safeName = (userName || 'User').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
     const validExt = extension || 'pdf';
     return `${safeName}_Resume.${validExt}`;
-  };
-  // Book a slot (service_id, date, time)
+  };  // Book a slot (service_id, date, time)
   bookSlot = async (req: Request, res: Response): Promise<void> => {
     try {
       console.log("=== BOOKING REQUEST DEBUG ===");
@@ -51,15 +50,19 @@ class SlotBookingController {
       console.log("req.user:", req.user);
       console.log("=== END DEBUG ===");
       
-      const { serviceId, date, service_name, time, resumeUrl } = req.body;
+      const { serviceId, date, service_name, time, resumeUrl, payment_status } = req.body;
       const userId = req.user?.id;
+      
       if (!userId) {
         res.status(400).json({
           success: false,
           message: "Please Login to book a slot",
+          errorCode: "USER_NOT_AUTHENTICATED"
         });
         return;
-      }      logger.info("Logging input data of slot booking", serviceId, date, service_name, time, resumeUrl);
+      }
+      
+      logger.info("Logging input data of slot booking", serviceId, date, service_name, time, resumeUrl, payment_status);
       
       // Debug resume URL
       console.log("=== RESUME URL DEBUG ===");
@@ -73,8 +76,27 @@ class SlotBookingController {
         res.status(400).json({
           success: false,
           message: "Please provide service_id, date, and time",
+          errorCode: "MISSING_REQUIRED_FIELDS"
         });
         return;
+      }
+
+      // Validate payment_status if provided
+      const validPaymentStatuses = ['pending', 'completed', 'failed'];
+      let validatedPaymentStatus = payment_status;
+      
+      if (payment_status) {
+        if (payment_status === 'paid') {
+          validatedPaymentStatus = 'completed';
+          console.log("Converting payment_status from 'paid' to 'completed'");
+        } else if (!validPaymentStatuses.includes(payment_status)) {
+          res.status(400).json({
+            success: false,
+            message: `Invalid payment_status. Must be one of: ${validPaymentStatuses.join(', ')}`,
+            errorCode: "INVALID_PAYMENT_STATUS"
+          });
+          return;
+        }
       }
 
       // Check if slot is already booked (not cancelled)
@@ -90,9 +112,13 @@ class SlotBookingController {
         res.status(409).json({
           success: false,
           message: "Slot already booked",
+          errorCode: "SLOT_ALREADY_BOOKED"
         });
         return;
-      }      const booking = await SessionBooking.create({
+      }
+
+      console.log("=== CREATING BOOKING WITH DATA ===");
+      const bookingData = {
         userId,
         service_id: serviceId,
         service_name: service_name,
@@ -100,7 +126,12 @@ class SlotBookingController {
         time,
         resume_url: resumeUrl || null,
         cancelled: false,
-      });
+        payment_status: validatedPaymentStatus || 'pending'
+      };
+      console.log("Booking data:", bookingData);
+      console.log("=== END BOOKING DATA ===");
+
+      const booking = await SessionBooking.create(bookingData);
 
       const u = req.user;
       if (!u) {
@@ -293,18 +324,199 @@ class SlotBookingController {
           ...booking.toJSON(),          date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null, // YYYY-MM-DD
           time: booking.time ? booking.time.slice(0, 5) : null, // HH:mm
         },
-      });
-    } catch (err: any) {
-      console.error("Booking error:", err);
+      });    } catch (err: any) {
+      console.error("=== BOOKING ERROR DETAILS ===");
+      console.error("Error message:", err.message);
+      console.error("Error name:", err.name);
+      console.error("Error stack:", err.stack);
+      console.error("Request body:", req.body);
+      console.error("Request user:", req.user);
+      console.error("=== END ERROR DETAILS ===");
+      
       logger.error("Booking error:", {
         message: err.message,
         name: err.name,
-        stack: err.stack
+        stack: err.stack,
+        requestBody: req.body,
+        requestUser: req.user
       });
+      
+      // Provide more specific error messages
+      let errorMessage = "Something went wrong";
+      let errorCode = "UNKNOWN_ERROR";
+      
+      if (err.name === 'ValidationError') {
+        errorMessage = "Invalid data provided";
+        errorCode = "VALIDATION_ERROR";
+      } else if (err.name === 'SequelizeUniqueConstraintError') {
+        errorMessage = "Slot already booked or duplicate booking";
+        errorCode = "DUPLICATE_BOOKING";
+      } else if (err.name === 'SequelizeDatabaseError') {
+        errorMessage = "Database error occurred";
+        errorCode = "DATABASE_ERROR";
+      } else if (err.message.includes('User not found')) {
+        errorMessage = "User not found";
+        errorCode = "USER_NOT_FOUND";
+      } else if (err.message.includes('Service not found')) {
+        errorMessage = "Service not found";
+        errorCode = "SERVICE_NOT_FOUND";
+      }
+      
       res.status(500).json({
         success: false,
-        message: "Something went wrong",
-        error: process.env.NODE_ENV === "development" ? err.message : undefined
+        message: errorMessage,
+        errorCode,
+        error: process.env.NODE_ENV === "development" ? err.message : undefined,
+        details: process.env.NODE_ENV === "development" ? {
+          name: err.name,
+          stack: err.stack
+        } : undefined
+      });    }
+  };
+
+  // Test method without authentication - REMOVE IN PRODUCTION
+  bookSlotTest = async (req: Request, res: Response): Promise<void> => {
+    try {
+      console.log("=== TEST BOOKING REQUEST DEBUG ===");
+      console.log("req.body:", req.body);
+      console.log("=== END TEST DEBUG ===");
+      
+      const { serviceId, date, service_name, time, resumeUrl, payment_status, email, name } = req.body;
+      
+      // For testing, create a mock user from the request data
+      if (!email || !name) {
+        res.status(400).json({
+          success: false,
+          message: "Please provide email and name for test booking",
+          errorCode: "MISSING_USER_DATA"
+        });
+        return;
+      }
+      
+      // Find or create user for testing
+      let user = await User.findOne({ where: { email } });
+      if (!user) {
+        res.status(400).json({
+          success: false,
+          message: "User not found. Please register first or use existing user credentials.",
+          errorCode: "USER_NOT_FOUND"
+        });
+        return;
+      }
+      
+      logger.info("Test booking with user:", user.id, email);
+      
+      // Validate input
+      if (!serviceId || !date || !time) {
+        res.status(400).json({
+          success: false,
+          message: "Please provide service_id, date, and time",
+          errorCode: "MISSING_REQUIRED_FIELDS"
+        });
+        return;
+      }
+
+      // Validate payment_status if provided
+      const validPaymentStatuses = ['pending', 'completed', 'failed'];
+      let validatedPaymentStatus = payment_status;
+      
+      if (payment_status) {
+        if (payment_status === 'paid') {
+          validatedPaymentStatus = 'completed';
+          console.log("Converting payment_status from 'paid' to 'completed'");
+        } else if (!validPaymentStatuses.includes(payment_status)) {
+          res.status(400).json({
+            success: false,
+            message: `Invalid payment_status. Must be one of: ${validPaymentStatuses.join(', ')}`,
+            errorCode: "INVALID_PAYMENT_STATUS"
+          });
+          return;
+        }
+      }
+
+      // Check if slot is already booked (not cancelled)
+      const existing = await SessionBooking.findOne({
+        where: {
+          service_id: serviceId,
+          date,
+          time,
+          cancelled: false,
+        },
+      });
+      if (existing) {
+        res.status(409).json({
+          success: false,
+          message: "Slot already booked",
+          errorCode: "SLOT_ALREADY_BOOKED"
+        });
+        return;
+      }
+
+      console.log("=== CREATING TEST BOOKING WITH DATA ===");
+      const bookingData = {
+        userId: user.id,
+        service_id: serviceId,
+        service_name: service_name,
+        date,
+        time,
+        resume_url: resumeUrl || null,
+        cancelled: false,
+        payment_status: validatedPaymentStatus || 'pending'
+      };
+      console.log("Test booking data:", bookingData);
+      console.log("=== END TEST BOOKING DATA ===");
+
+      const booking = await SessionBooking.create(bookingData);
+
+      // Format booking for response
+      res.status(201).json({
+        success: true,
+        message: "Test slot booked successfully",
+        booking: {
+          ...booking.toJSON(),
+          date: booking.date ? new Date(booking.date).toISOString().slice(0, 10) : null,
+          time: booking.time ? booking.time.slice(0, 5) : null,
+        },
+      });
+    } catch (err: any) {
+      console.error("=== TEST BOOKING ERROR DETAILS ===");
+      console.error("Error message:", err.message);
+      console.error("Error name:", err.name);
+      console.error("Error stack:", err.stack);
+      console.error("Request body:", req.body);
+      console.error("=== END TEST ERROR DETAILS ===");
+      
+      logger.error("Test booking error:", {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+        requestBody: req.body
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = "Something went wrong";
+      let errorCode = "UNKNOWN_ERROR";
+      
+      if (err.name === 'ValidationError' || err.name === 'SequelizeValidationError') {
+        errorMessage = "Invalid data provided";
+        errorCode = "VALIDATION_ERROR";
+      } else if (err.name === 'SequelizeUniqueConstraintError') {
+        errorMessage = "Slot already booked or duplicate booking";
+        errorCode = "DUPLICATE_BOOKING";
+      } else if (err.name === 'SequelizeDatabaseError') {
+        errorMessage = "Database error occurred";
+        errorCode = "DATABASE_ERROR";
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: errorMessage,
+        errorCode,
+        error: err.message,
+        details: {
+          name: err.name,
+          stack: err.stack
+        }
       });
     }
   };

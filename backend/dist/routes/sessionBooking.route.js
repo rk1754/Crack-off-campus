@@ -10,6 +10,8 @@ const upload_middleware_1 = require("../middleware/upload.middleware");
 const router = express_1.default.Router();
 const slotBookingController = new slotBooking_controller_1.default();
 router.post('/book', auth_middleware_1.default, upload_middleware_1.upload.none(), slotBookingController.bookSlot);
+// Temporary route for testing without authentication - REMOVE IN PRODUCTION
+router.post('/book-test', upload_middleware_1.upload.none(), slotBookingController.bookSlotTest);
 router.get('/getAll', auth_middleware_1.default, slotBookingController.findMyBookings);
 router.get('/getById/:id', auth_middleware_1.default, slotBookingController.getBookingById);
 router.delete('/cancel/:id', auth_middleware_1.default, slotBookingController.cancelSlot);
