@@ -185,9 +185,6 @@ const JobListings = () => {
       user.subscription_type_2 === "job" // Added "job" to recognize it as premium
     ) {
       userSubscriptionType = user.subscription_type_2;
-    } else if (user.is_premium === true) {
-      // If user has is_premium flag, treat as premium
-      userSubscriptionType = "premium";
     } else if ((user as any).job === true) {
       // If user has job access flag, treat as job subscription
       userSubscriptionType = "job";
@@ -228,9 +225,8 @@ const JobListings = () => {
 
     // If user has ANY subscription type other than "regular", don't show modal
     if (
-      (user.subscription_type && user.subscription_type !== "regular") ||
-      (user.subscription_type_2 && user.subscription_type_2 !== "regular") ||
-      user.is_premium === true ||
+      (user.subscription_type && user.subscription_type !== "regular" && user.subscription_type !== "other_templates") ||
+      (user.subscription_type_2 && user.subscription_type_2 !== "regular" && user.subscription_type_2 !== "other_templates") || 
       (user as any).job === true
     ) {
       console.log("User has premium subscription, not showing modal");
