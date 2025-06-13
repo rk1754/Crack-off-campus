@@ -85,7 +85,7 @@ class JobController {
         });
         return;
       }
-      if(job.subscription_type !== "free" && req.user?.subscription_type !== "booster" && req.user?.subscription_type !== "standard" && req.user?.subscription_type !== "job" && req.user?.subscription_type !== "basic"){
+      if(req.user?.subscription_type !== "booster" && req.user?.subscription_type !== "standard" && req.user?.subscription_type !== "job" && req.user?.subscription_type !== "basic" && req.user?.job !== true){
         res.status(403).json({
           success: false,
           message: "You are not allowed to view this job",
