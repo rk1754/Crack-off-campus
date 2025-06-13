@@ -138,7 +138,7 @@ export default function BookingPage() {
         id: 1,
         title: "Resume / CV Review",
         duration: "45 Mins",
-        amount: 1,
+        amount: 199,
         moreDetails:
           "We'll help you revise your resume as per industry standards.",
         whatIncluded: [
