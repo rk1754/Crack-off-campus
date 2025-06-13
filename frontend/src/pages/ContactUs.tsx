@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { Mail, Phone, MessageSquare } from "lucide-react"
+import Navbar from "../components/layout/Navbar"
+import Footer from "../components/layout/Footer"
 
 const Contact = () => {
   const [message, setMessage] = useState("")
@@ -12,9 +14,11 @@ const Contact = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-grow bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen flex flex-col w-full">
+      <Navbar />
+
+      <main className="flex-grow bg-gradient-to-br from-purple-50 to-pink-100 py-12 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in Touch</h1>
@@ -160,6 +164,8 @@ const Contact = () => {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }
