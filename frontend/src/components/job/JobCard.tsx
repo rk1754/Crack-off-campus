@@ -154,18 +154,16 @@ const JobCard = ({
                     {ctc_stipend}
                   </span>
                 )}
-              </div>
+              </div>{" "}
               {canAccess ? (
                 isPremiumJob ? (
-                  <a
-                    href={getSafeUrl(jobUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to={`/jobs/${id}`}
                     className="text-sm text-foundit-orange hover:text-orange-700 font-medium flex items-center"
                   >
                     <Crown size={14} className="mr-1" />
                     Apply Now
-                  </a>
+                  </Link>
                 ) : (
                   <a
                     href={getSafeUrl(jobUrl)}
