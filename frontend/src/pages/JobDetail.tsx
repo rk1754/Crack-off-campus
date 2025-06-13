@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const BACKEND_URL = "https://api.crackoffcampus.com"; // or your prod URL
-
+// const BACKEND_URL = "http://localhost:5454"; // or your local URL
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<AppDispatch>();
@@ -113,16 +113,20 @@ const JobDetail = () => {
         phone: user.phone_number || "+919876543210",
         currency: "INR",
       };
-      const res = await fetch(`${BACKEND_URL}/payment/create-order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${BACKEND_URL}/api/v1/payment/create-order`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await res.json();
       if (!res.ok) {
         toast.error(
-          data?.message || "Failed to create payment order. Please try again."
+          data?.message ||
+            "Failed to create payment order. Please try again."
         );
         setIsProcessing(false);
         return;
@@ -143,9 +147,10 @@ const JobDetail = () => {
       }
       const cashfree = new window.Cashfree({ mode: "production" });
       const order_type = "job";
+      console.log(payment_session_id, order_id, order_type);
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=${order_type}&resourceType=${order_type}`,
         redirectTarget: "_self" as "_self",
       };
       cashfree.checkout(checkoutOptions).then((result: any) => {
@@ -159,20 +164,6 @@ const JobDetail = () => {
       setIsProcessing(false);
     }
   };
-
-  if (error) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[40vh]">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-lg text-gray-700 mb-2">{error}</p>
-          {error.includes('401') || error.toLowerCase().includes('unauthorized') ? (
-            <p className="text-md text-orange-600">You are not authorized to view this job. Please log in with the correct account or upgrade your subscription.</p>
-          ) : null}
-        </div>
-      </Layout>
-    );
-  }
 
   if (!job || (isPremiumJob && !isUserPremium)) {
     return (
@@ -189,8 +180,8 @@ const JobDetail = () => {
                 <span className="text-[#9b87f5] font-bold">₹99</span>
               </p>
               <p className="text-gray-600 mb-4">
-                Get exclusive access to premium job listings and boost your
-                career opportunities.
+                Get exclusive access to premium job listings and boost your career
+                opportunities.
               </p>
             </div>
             <DialogFooter>
@@ -209,8 +200,8 @@ const JobDetail = () => {
                 {!sdkLoaded
                   ? "Loading Payment Gateway..."
                   : isProcessing
-                    ? "Processing..."
-                    : "Pay ₹99 & Unlock"}
+                  ? "Processing..."
+                  : "Pay ₹99 & Unlock"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -345,7 +336,7 @@ const JobDetail = () => {
               <a
                 href={
                   job.job_url?.startsWith("http://") ||
-                    job.job_url?.startsWith("https://")
+                  job.job_url?.startsWith("https://")
                     ? job.job_url
                     : `https://${job.job_url}`
                 }
