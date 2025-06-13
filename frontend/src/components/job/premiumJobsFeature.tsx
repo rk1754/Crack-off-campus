@@ -177,10 +177,12 @@ const PremiumJobsFeature: React.FC = () => {
     <>
       {/* Only show premium banner if user has no subscription or "regular" subscription */}
       {(!user ||
-        ((!user.subscription_type || user.subscription_type === "regular") &&
+        ((!user.subscription_type ||
+          user.subscription_type === "regular" ||
+          user.subscription_type === "other_templates") &&
           (!user.subscription_type_2 ||
-            user.subscription_type_2 === "regular") &&
-          !user.is_premium &&
+            user.subscription_type_2 === "regular" ||
+            user.subscription_type_2 === "other_templates") &&
           !(user as any).job)) && (
         <div
           className="w-full mx-auto rounded-xl text-white shadow-lg"
