@@ -48,6 +48,10 @@ const JobCard = ({
   skills,
 }: JobCardProps) => {
   const { user } = useSelector((state: RootState) => state.user);
+  let userjobType:boolean = user?.job as boolean;
+  if(!user){
+    userjobType = false
+  }
   console.log(`Job ${title} subscription type: ${jobSubscriptionType}`);
   const checkAccess = () => {
     if (jobSubscriptionType === "regular") {
@@ -56,7 +60,7 @@ const JobCard = ({
       // Hide premium modal only for specific subscription types: booster, basic, job, standard
       // Show premium modal for all other subscription types (including undefined, null, other_template, etc.)
       const allowedSubscriptions = ["booster", "basic", "job", "standard"];
-      if (allowedSubscriptions.includes(userSubscriptionType || "") || user.job === true) {
+      if (allowedSubscriptions.includes(userSubscriptionType || "") || userjobType === true) {
         return true; // Hide premium warning for these subscription types
       }
       return false; // Show premium warning for all other cases
