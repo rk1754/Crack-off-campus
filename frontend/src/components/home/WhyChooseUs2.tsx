@@ -32,7 +32,7 @@ export default function WhyChooseUs2() {
       color: "bg-indigo-100",
     },
     {
-      title: "Find Jobs and Internships Stategy",
+      title: "Find Jobs and Internships Strategy",
       img: "/lovable-uploads/internshipstategy.png",
       color: "bg-purple-100",
     },
