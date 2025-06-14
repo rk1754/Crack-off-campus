@@ -145,7 +145,7 @@ const PremiumJobsFeature: React.FC = () => {
       });
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=job`,
+        returnUrl: `https://www.crackoffcampus.com/payment/verify?order_id=${order_id}&serviceName=job&resourceType=job`,
         redirectTarget: "_self" as "_self",
       };
 
