@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface JobCardProps {
   id: string;
@@ -26,6 +28,9 @@ const subscriptionTiers: { [key: string]: number } = {
   diamond: 3,
 };
 
+
+
+
 const JobCard = ({
   id,
   title,
@@ -42,6 +47,7 @@ const JobCard = ({
   experience,
   skills,
 }: JobCardProps) => {
+  const { user } = useSelector((state: RootState) => state.user);
   console.log(`Job ${title} subscription type: ${jobSubscriptionType}`);
   const checkAccess = () => {
     if (jobSubscriptionType === "regular") {
@@ -50,7 +56,7 @@ const JobCard = ({
       // Hide premium modal only for specific subscription types: booster, basic, job, standard
       // Show premium modal for all other subscription types (including undefined, null, other_template, etc.)
       const allowedSubscriptions = ["booster", "basic", "job", "standard"];
-      if (allowedSubscriptions.includes(userSubscriptionType || "")) {
+      if (allowedSubscriptions.includes(userSubscriptionType || "") || user.job === true) {
         return true; // Hide premium warning for these subscription types
       }
       return false; // Show premium warning for all other cases

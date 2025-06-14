@@ -182,6 +182,7 @@ const PremiumJobsFeature: React.FC = () => {
           user.subscription_type !== "standard" &&
           user.subscription_type !== "booster" &&
           user.subscription_type !== "job" &&
+          user.job !== true &&
           user.subscription_type_2 !== "basic" &&
           user.subscription_type_2 !== "standard" &&
           user.subscription_type_2 !== "booster" &&

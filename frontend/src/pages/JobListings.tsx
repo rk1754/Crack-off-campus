@@ -300,6 +300,14 @@ const JobListings = () => {
         }),
       });
       const data = await res.json();
+
+      // Check for success before using payment_session_id
+      if (!data.success) {
+        alert(data.message || "Failed to create payment order.");
+        setCurrentOrderId(null);
+        return;
+      }
+
       const { payment_session_id, order_id } = data;
 
       // Store order_id for later use

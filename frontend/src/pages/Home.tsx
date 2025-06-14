@@ -142,7 +142,7 @@ const Home = () => {
         phone: user.phone_number || "+919876543210",
         currency: "INR",
       };
-      const res = await fetch(`${BACKEND_URL}/payment/create-order`, {
+      const res = await fetch(`${BACKEND_URL}/api/v1/payment/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

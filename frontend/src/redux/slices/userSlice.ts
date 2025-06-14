@@ -12,6 +12,7 @@ export interface User {
   is_employer?: boolean;
   google_id?: string;
   profile_pic?: string;
+  job?: boolean;
   bio?: string;
   cover_image?: string;
   provider?: "manual" | "google";

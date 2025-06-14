@@ -114,7 +114,7 @@ const JobDetail = () => {
         currency: "INR",
       };
       const res = await fetch(
-        `${BACKEND_URL}/api/v1/payment/create-order`,
+        `${BACKEND_URL}/api/v1/payment/create-order`, // changed endpoint to match JobListings
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -123,7 +123,7 @@ const JobDetail = () => {
         }
       );
       const data = await res.json();
-      if (!res.ok) {
+      if (!data.success) {
         toast.error(
           data?.message ||
             "Failed to create payment order. Please try again."

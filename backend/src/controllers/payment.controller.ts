@@ -43,7 +43,8 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
       let order;
       try {
         order = await cashfree.PGCreateOrder(orderPayload);
-        logger.info("Order created:", order.data);      } catch (cashfreeError: any) {
+        logger.info("Order created:", order.data);
+      } catch (cashfreeError: any) {
         console.error("❌ Cashfree PGCreateOrder error:", {
           message: cashfreeError.message,
           status: cashfreeError.response?.status,
@@ -62,7 +63,18 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         });
         return;
       }
-      
+
+      // Check if payment_session_id is present
+      if (!order?.data?.payment_session_id) {
+        logger.error("Cashfree did not return a valid payment_session_id", { orderData: order?.data });
+        res.status(500).json({
+          success: false,
+          message: "Cashfree did not return a valid payment_session_id",
+          orderData: order?.data,
+        });
+        return;
+      }
+
       res.status(201).json({
         success: true,
         order_id: orderPayload.order_id,
