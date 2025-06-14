@@ -550,6 +550,106 @@ const Profile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
+                  {/* Add Education Inline Form */}
+                  {editingSection === "add-education" && (
+                    <form
+                      className="mb-6 p-4 rounded-xl border border-purple-200 bg-purple-50/50 space-y-4"
+                      onSubmit={e => {
+                        e.preventDefault();
+                        handleAddEducation();
+                      }}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-1">Degree</label>
+                          <input
+                            type="text"
+                            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border-purple-200"
+                            value={educationForm.education}
+                            onChange={e => setEducationForm(f => ({ ...f, education: e.target.value }))}
+                            placeholder="e.g., B.Tech, B.Sc, MBA"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-1">Specialization</label>
+                          <input
+                            type="text"
+                            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border-purple-200"
+                            value={educationForm.specialization}
+                            onChange={e => setEducationForm(f => ({ ...f, specialization: e.target.value }))}
+                            placeholder="e.g., Computer Science"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-1">College/University</label>
+                          <input
+                            type="text"
+                            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border-purple-200"
+                            value={educationForm.college}
+                            onChange={e => setEducationForm(f => ({ ...f, college: e.target.value }))}
+                            placeholder="e.g., IIT Bombay"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-1">Location</label>
+                          <input
+                            type="text"
+                            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border-purple-200"
+                            value={educationForm.location}
+                            onChange={e => setEducationForm(f => ({ ...f, location: e.target.value }))}
+                            placeholder="e.g., Mumbai, India"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-1">Start Year</label>
+                          <input
+                            type="number"
+                            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border-purple-200"
+                            value={educationForm.start_year}
+                            onChange={e => setEducationForm(f => ({ ...f, start_year: e.target.value }))}
+                            placeholder="e.g., 2020"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-purple-700 mb-1">End Year</label>
+                          <input
+                            type="number"
+                            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border-purple-200"
+                            value={educationForm.end_year}
+                            onChange={e => setEducationForm(f => ({ ...f, end_year: e.target.value }))}
+                            placeholder="e.g., 2024"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-2">
+                        <button
+                          type="submit"
+                          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2 rounded-lg"
+                          onClick={() => setEditingSection(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                  {/* Add Education Button */}
+                  <button
+                    className="mb-4 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 font-semibold px-6 py-2 rounded-lg shadow hover:from-purple-200 hover:to-purple-300 transition"
+                    onClick={() => setEditingSection(editingSection === "add-education" ? null : "add-education")}
+                  >
+                    + Add Education
+                  </button>
                   <div className="space-y-2">
                     {educationList && educationList.length > 0 ? (
                       educationList.map((edu: any, idx: number) => (
