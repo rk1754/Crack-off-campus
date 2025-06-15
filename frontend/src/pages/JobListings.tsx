@@ -225,7 +225,8 @@ const JobListings = () => {
       (user.subscription_type &&
         allowedSubscriptions.includes(user.subscription_type)) ||
       (user.subscription_type_2 &&
-        allowedSubscriptions.includes(user.subscription_type_2))
+        allowedSubscriptions.includes(user.subscription_type_2)) ||
+        (user.job === true)
     ) {
       console.log("User has allowed subscription, not showing modal");
       setIsPremiumModalOpen(false);

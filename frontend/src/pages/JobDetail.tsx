@@ -77,7 +77,7 @@ const JobDetail = () => {
   // --- Premium job access logic ---
   const isPremiumJob =
     job && job.subscription_type && job.subscription_type !== "regular";
-  const isUserPremium =
+  const isUserPremium = // This already includes user.subscription_type === "job"
     user &&
     [
       "booster",
@@ -92,8 +92,19 @@ const JobDetail = () => {
 
   // Show modal if not premium and job is premium
   useEffect(() => {
-    if (isPremiumJob && !isUserPremium) setShowPremiumModal(true);
-  }, [isPremiumJob, isUserPremium]);
+    if (job) {
+      const userHasJobFlagAccess = user && user.job === true;
+      const canAccessPremiumJob = isUserPremium || userHasJobFlagAccess;
+
+      if (isPremiumJob && !canAccessPremiumJob) {
+        setShowPremiumModal(true);
+      } else {
+        setShowPremiumModal(false);
+      }
+    } else {
+      setShowPremiumModal(false); // If job is not loaded, don't show the premium modal
+    }
+  }, [job, user, isPremiumJob, isUserPremium]); // Dependencies cover all relevant state changes
 
   const handleCashfreePayment = async () => {
     if (!sdkLoaded || !window.Cashfree) {
@@ -107,7 +118,7 @@ const JobDetail = () => {
     setIsProcessing(true);
     try {
       const payload = {
-        amount: 1,
+        amount: 99,
         name: user.name,
         email: user.email,
         phone: user.phone_number || "+919876543210",
@@ -165,7 +176,13 @@ const JobDetail = () => {
     }
   };
 
-  if (!job || (isPremiumJob && !isUserPremium)) {
+  // Condition to show modal block:
+  // 1. Job is not loaded yet (job is null/undefined).
+  // 2. Job is loaded, is premium, AND user does not have access.
+  const userHasJobFlagAccess = user && user.job === true;
+  const shouldShowModalBlock = !job || (isPremiumJob && !(isUserPremium || userHasJobFlagAccess));
+
+  if (shouldShowModalBlock) {
     return (
       <Layout>
         {/* Unlock Premium Jobs Modal */}
