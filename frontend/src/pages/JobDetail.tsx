@@ -400,9 +400,10 @@ const JobDetail = () => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">CTC / Stipend</p>
-                    <p className="font-medium">
-                      {job.ctc_stipend || "Not Disclosed"}
-                    </p>
+                    {/* Only show CTC if present and not empty/null/undefined */}
+                    {job.ctc_stipend && job.ctc_stipend.trim() !== "" ? (
+                      <p className="font-medium">{job.ctc_stipend}</p>
+                    ) : null}
                   </div>
                 </div>
 
