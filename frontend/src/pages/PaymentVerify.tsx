@@ -162,6 +162,8 @@ const PaymentVerify = () => {
               if (updateResponse.ok && updateRes.success) {
                 toast.success("Payment successful and subscription updated!");
                 console.log("Subscription update response:", updateRes);
+                // Ensure user state is refreshed after subscription update
+                await dispatch(fetchCurrentUser());
               } else {
                 console.warn("Subscription update failed:", updateRes);
                 toast.warning(

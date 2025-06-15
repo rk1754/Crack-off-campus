@@ -247,7 +247,11 @@ const JobDetail = () => {
                 </span>
                 <span className="flex items-center mr-4 mb-2 md:mb-0">
                   <Briefcase size={16} className="mr-1" />
-                  {job.employment_type}
+                  {/* Capitalize first letter of job.employment_type */}
+                  {job.employment_type
+                    ? job.employment_type.charAt(0).toUpperCase() +
+                      job.employment_type.slice(1)
+                    : ""}
                 </span>
               </div>
             </div>
@@ -413,9 +417,10 @@ const JobDetail = () => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">CTC / Stipend</p>
-                    <p className="font-medium">
-                      {job.ctc_stipend || "Not Disclosed"}
-                    </p>
+                    {/* Only show CTC if present and not empty/null/undefined */}
+                    {job.ctc_stipend && job.ctc_stipend.trim() !== "" ? (
+                      <p className="font-medium">{job.ctc_stipend}</p>
+                    ) : null}
                   </div>
                 </div>
 

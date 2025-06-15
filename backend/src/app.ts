@@ -20,6 +20,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import sequelize from './config/db';
+import { Op } from 'sequelize';
 import logger from './utils/logger';
 import cluster from 'cluster';
 import os from 'os';
@@ -337,6 +338,122 @@ if (cluster.isPrimary && IS_PRODUCTION) {
       return;
     }
   });
+  
+  // Subscription expiry check route - runs every 10 minutes automatically
+  app.get('/check-subscription-expiry', async (req: Request, res: Response): Promise<void> => {
+    try {
+      const currentDate = new Date();
+      console.log('=== Subscription expiry check started ===');
+      console.log('Current date:', currentDate);      // Find all users whose subscription has expired
+      const expiredUsers = await User.findAll({
+        where: {
+          subscription_expiry: {
+            [Op.lt]: currentDate // Less than current date means expired
+          },
+          subscription_type: {
+            [Op.ne]: 'regular' // Not equal to regular (already expired users)
+          }
+        }
+      });
+
+      console.log(`Found ${expiredUsers.length} users with expired subscriptions`);
+
+      let updatedCount = 0;
+      for (const user of expiredUsers) {
+        console.log(`Updating user ${user.id} - Subscription expired on ${user.subscription_expiry}`);
+        
+        // Update subscription types to regular
+        user.subscription_type = 'regular';
+        user.subscription_type_2 = 'regular';
+        user.is_premium = false;
+        
+        // Reset all premium features to false
+        user.resume = false;
+        user.referral = false;
+        user.cold_mail = false;
+        user.cover_letter = false;
+        user.hr_mail = false;
+        user.linkedin = false;
+        user.cv = false;
+        user.roadmaps = false;
+        user.interview = false;
+        user.job = false;
+
+        await user.save();
+        updatedCount++;
+      }
+
+      console.log(`Successfully updated ${updatedCount} expired subscriptions`);
+      console.log('=== Subscription expiry check completed ===');
+
+      res.status(200).json({
+        success: true,
+        message: `Successfully checked and updated ${updatedCount} expired subscriptions`,
+        updatedCount,
+        totalExpiredUsers: expiredUsers.length
+      });
+
+    } catch (error: any) {
+      console.error('=== Subscription expiry check error ===');
+      console.error('Error details:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Error checking subscription expiry'
+      });
+    }
+  });
+
+  // Set up automatic subscription expiry check every 10 minutes
+  setInterval(async () => {
+    try {
+      console.log('=== Automatic subscription expiry check triggered ===');
+      const currentDate = new Date();
+        // Find all users whose subscription has expired
+      const expiredUsers = await User.findAll({
+        where: {
+          subscription_expiry: {
+            [Op.lt]: currentDate
+          },
+          subscription_type: {
+            [Op.ne]: 'regular'
+          }
+        }
+      });
+
+      if (expiredUsers.length > 0) {
+        console.log(`Found ${expiredUsers.length} users with expired subscriptions - updating to regular`);
+        
+        let updatedCount = 0;
+        for (const user of expiredUsers) {
+          // Update subscription types to regular
+          user.subscription_type = 'regular';
+          user.subscription_type_2 = 'regular';
+          user.is_premium = false;
+          
+          // Reset all premium features to false
+          user.resume = false;
+          user.referral = false;
+          user.cold_mail = false;
+          user.cover_letter = false;
+          user.hr_mail = false;
+          user.linkedin = false;
+          user.cv = false;
+          user.roadmaps = false;
+          user.interview = false;
+          user.job = false;
+
+          await user.save();
+          updatedCount++;
+        }
+
+        console.log(`Automatically updated ${updatedCount} expired subscriptions to regular`);
+      } else {
+        console.log('No expired subscriptions found during automatic check');
+      }
+    } catch (error: any) {
+      console.error('Error in automatic subscription expiry check:', error);
+    }
+  }, 10 * 60 * 1000); // Run every 10 minutes (10 * 60 * 1000 milliseconds)
   
   // Global error handler
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
