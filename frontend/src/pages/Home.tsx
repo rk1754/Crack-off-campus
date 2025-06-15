@@ -136,7 +136,7 @@ const Home = () => {
     try {
       // Create order for ₹99 using your backend
       const payload = {
-        amount: 99,
+        amount: 1,
         name: user.name,
         email: user.email,
         phone: user.phone_number || "+919876543210",
