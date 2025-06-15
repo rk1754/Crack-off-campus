@@ -407,7 +407,7 @@ const JobDetail = () => {
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">Job Type</p>
-                    <p className="font-medium">{job.employment_type}</p>
+                    <p className="font-medium">{job.employment_type ? job.employment_type.charAt(0).toUpperCase() + job.employment_type.slice(1) : ""}</p>
                   </div>
                 </div>
 
