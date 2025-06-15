@@ -27,15 +27,12 @@ import { Briefcase, Users, FileText } from "lucide-react";
 const DashboardOverview = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { data, loading, error } = useSelector((state: RootState) => state.analytics);
-  const { admin } = useSelector((state: RootState) => state.admin);
   // FIX: Use data directly, not data.data
   const dashboardData = data;
   const { totalUsers, totalJobs, totalApplications } = dashboardData || {};
   useEffect(() => {
-    if (admin) {
-      dispatch(fetchDashboardData());
-    }
-  }, [dispatch, admin]);
+    dispatch(fetchDashboardData());
+  }, [dispatch]);
 
   if (loading) {
     return <div className="p-6 text-center">Loading dashboard data...</div>;
@@ -204,7 +201,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              { (dashboardData.recentJobs || []).map((job) => (
+              {(dashboardData.recentJobs || []).map((job) => (
                 <div
                   key={job.id}
                   className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0"
@@ -234,7 +231,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              { (dashboardData.recentUsers || []).map((user) => (
+              {(dashboardData.recentUsers || []).map((user) => (
                 <div
                   key={user.id}
                   className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0"
@@ -244,7 +241,10 @@ const DashboardOverview = () => {
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
                   <div className="text-xs text-gray-500">
-                    {new Date(user.created_at).toLocaleDateString()}
+                    {/* Show formatted date only if valid, else show nothing */}
+                    {user.created_at && !isNaN(new Date(user.created_at).getTime())
+                      ? new Date(user.created_at).toLocaleDateString()
+                      : ""}
                   </div>
                 </div>
               ))}
