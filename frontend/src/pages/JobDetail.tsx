@@ -118,7 +118,7 @@ const JobDetail = () => {
     setIsProcessing(true);
     try {
       const payload = {
-        amount: 1,
+        amount: 99,
         name: user.name,
         email: user.email,
         phone: user.phone_number || "+919876543210",

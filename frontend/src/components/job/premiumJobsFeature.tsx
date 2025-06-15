@@ -117,7 +117,7 @@ const PremiumJobsFeature: React.FC = () => {
     }
     setIsPaying(true);
     try {
-      const amount = 1;
+      const amount = 99;
       const orderRes = await axios.post(`${BACKEND_URL}/payment/create-order`, {
         amount,
         name: user.name,

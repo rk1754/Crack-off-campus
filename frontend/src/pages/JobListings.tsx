@@ -293,7 +293,7 @@ const JobListings = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          amount: 1, // Changed from 1 to 99 to match the modal display
+          amount: 99, // Changed from 1 to 99 to match the modal display
           name: user.name,
           email: user.email,
           phone: user.phone_number || "+919876543210",
