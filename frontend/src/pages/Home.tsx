@@ -136,7 +136,7 @@ const Home = () => {
     try {
       // Create order for ₹99 using your backend
       const payload = {
-        amount: 1,
+        amount: 99,
         name: user.name,
         email: user.email,
         phone: user.phone_number || "+919876543210",
@@ -483,7 +483,7 @@ const Home = () => {
                   ? "Loading Payment Gateway..."
                   : isProcessing
                   ? "Processing..."
-                  : "Pay ₹1 & Unlock"}
+                  : "Pay ₹99 & Unlock"}
               </Button>
             </DialogFooter>
           </DialogContent>
