@@ -107,7 +107,7 @@ const JobDetail = () => {
     setIsProcessing(true);
     try {
       const payload = {
-        amount: 99,
+        amount: 1,
         name: user.name,
         email: user.email,
         phone: user.phone_number || "+919876543210",
@@ -126,7 +126,7 @@ const JobDetail = () => {
       if (!data.success) {
         toast.error(
           data?.message ||
-            "Failed to create payment order. Please try again."
+          "Failed to create payment order. Please try again."
         );
         setIsProcessing(false);
         return;
@@ -200,8 +200,8 @@ const JobDetail = () => {
                 {!sdkLoaded
                   ? "Loading Payment Gateway..."
                   : isProcessing
-                  ? "Processing..."
-                  : "Pay ₹99 & Unlock"}
+                    ? "Processing..."
+                    : "Pay ₹99 & Unlock"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -233,7 +233,7 @@ const JobDetail = () => {
                   {/* Capitalize first letter of job.employment_type */}
                   {job.employment_type
                     ? job.employment_type.charAt(0).toUpperCase() +
-                      job.employment_type.slice(1)
+                    job.employment_type.slice(1)
                     : ""}
                 </span>
               </div>
@@ -340,7 +340,7 @@ const JobDetail = () => {
               <a
                 href={
                   job.job_url?.startsWith("http://") ||
-                  job.job_url?.startsWith("https://")
+                    job.job_url?.startsWith("https://")
                     ? job.job_url
                     : `https://${job.job_url}`
                 }
