@@ -226,7 +226,7 @@ const JobListings = () => {
         allowedSubscriptions.includes(user.subscription_type)) ||
       (user.subscription_type_2 &&
         allowedSubscriptions.includes(user.subscription_type_2)) ||
-        (user.job === true)
+      (user.job === true)
     ) {
       console.log("User has allowed subscription, not showing modal");
       setIsPremiumModalOpen(false);
@@ -476,7 +476,7 @@ const JobListings = () => {
                   title={job.title}
                   company={job.company_name}
                   location={job.location || "N/A"}
-                  ctc_stipend={job.ctc_stipend || "Not Disclosed"}
+                  ctc_stipend={job.ctc_stipend || undefined}
                   postedDate={
                     job.posted_at
                       ? new Date(job.posted_at).toLocaleDateString()
