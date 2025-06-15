@@ -483,7 +483,7 @@ const Home = () => {
                   ? "Loading Payment Gateway..."
                   : isProcessing
                   ? "Processing..."
-                  : "Pay ₹99 & Unlock"}
+                  : "Pay ₹1 & Unlock"}
               </Button>
             </DialogFooter>
           </DialogContent>
