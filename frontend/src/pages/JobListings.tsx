@@ -225,7 +225,8 @@ const JobListings = () => {
       (user.subscription_type &&
         allowedSubscriptions.includes(user.subscription_type)) ||
       (user.subscription_type_2 &&
-        allowedSubscriptions.includes(user.subscription_type_2))
+        allowedSubscriptions.includes(user.subscription_type_2)) ||
+        (user.job === true)
     ) {
       console.log("User has allowed subscription, not showing modal");
       setIsPremiumModalOpen(false);
@@ -292,7 +293,7 @@ const JobListings = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          amount: 99, // Changed from 1 to 99 to match the modal display
+          amount: 1, // Changed from 1 to 99 to match the modal display
           name: user.name,
           email: user.email,
           phone: user.phone_number || "+919876543210",
