@@ -28,9 +28,6 @@ const subscriptionTiers: { [key: string]: number } = {
   diamond: 3,
 };
 
-
-
-
 const JobCard = ({
   id,
   title,
@@ -48,9 +45,9 @@ const JobCard = ({
   skills,
 }: JobCardProps) => {
   const { user } = useSelector((state: RootState) => state.user);
-  let userjobType:boolean = user?.job as boolean;
-  if(!user){
-    userjobType = false
+  let userjobType: boolean = user?.job as boolean;
+  if (!user) {
+    userjobType = false;
   }
   console.log(`Job ${title} subscription type: ${jobSubscriptionType}`);
   const checkAccess = () => {
@@ -60,7 +57,10 @@ const JobCard = ({
       // Hide premium modal only for specific subscription types: booster, basic, job, standard
       // Show premium modal for all other subscription types (including undefined, null, other_template, etc.)
       const allowedSubscriptions = ["booster", "basic", "job", "standard"];
-      if (allowedSubscriptions.includes(userSubscriptionType || "") || userjobType === true) {
+      if (
+        allowedSubscriptions.includes(userSubscriptionType || "") ||
+        userjobType === true
+      ) {
         return true; // Hide premium warning for these subscription types
       }
       return false; // Show premium warning for all other cases
@@ -158,7 +158,9 @@ const JobCard = ({
             <div className="flex items-center justify-between mt-3">
               <div className="flex flex-wrap gap-2">
                 <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 text-foundit-blue rounded-full">
-                  {jobType}
+                  {jobType === "internship"
+                    ? "Internship"
+                    : jobType.charAt(0).toUpperCase() + jobType.slice(1)}
                 </span>
                 {ctc_stipend && (
                   <span className="px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
