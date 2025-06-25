@@ -708,14 +708,14 @@ class AuthController {
         },
         JWT_SECRET,
         {
-          expiresIn: "2d",
+          expiresIn: "30d",
         }
       );
 
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });      res.status(200).json({ success: true, user: updatedUser });
     } catch (err: any) {
       console.error(err);
