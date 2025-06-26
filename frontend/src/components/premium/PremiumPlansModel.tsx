@@ -33,7 +33,7 @@ export interface PremiumPlansModalProps {
 }
 
 const planAmountMap: Record<string, number> = {
-  BASIC: 199,
+  BASIC: 1,
   STANDARD: 329,
   BOOSTER: 699,
 };
