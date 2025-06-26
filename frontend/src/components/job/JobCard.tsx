@@ -156,7 +156,7 @@ const JobCard = ({
             )}
 
             <div className="flex items-center justify-between mt-3">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 md:flex-row flex-col px-auto text-center">
                 <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 text-foundit-blue rounded-full">
                   {jobType === "internship"
                     ? "Internship"
