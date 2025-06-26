@@ -398,7 +398,7 @@ const Home = () => {
                     title={job.title}
                     company={job.company_name}
                     location={job.location || "N/A"}
-                    ctc_stipend={job.ctc_stipend || "Not Disclosed"}
+                    ctc_stipend={job.ctc_stipend}
                     postedDate={
                       job.posted_at
                         ? new Date(job.posted_at).toLocaleDateString()
