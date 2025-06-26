@@ -18,6 +18,9 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         });
         return;
       }
+
+      const normalizedPhone = phone.startsWith("+91") ? phone: `+91${phone.replace(/^\+?91/, "")}`;
+
       const user = req.user;
       if (!user) {
         res.status(401).json({
@@ -26,9 +29,11 @@ class PaymentController {  createPaymentOrder = async (req: Request, res: Respon
         });
         return;
       }
+
+      const normalizedUserPhone = user.phone_number.startsWith("+91") ? user.phone_number: `+91${user.phone_number.replace(/^\+?91/, "")}`;
       
       // Use provided phone or fallback to user's phone or default
-      const customerPhone = phone || user.phone_number || "+919876543210";
+      const customerPhone = normalizedPhone || normalizedUserPhone || "9876543210";
         const orderPayload = {
         order_amount: amount,
         order_currency: currency,
