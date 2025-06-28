@@ -14,7 +14,7 @@ const authMiddleware = async(req : Request, res : Response, next : NextFunction)
             console.error("Authentication failed: No token provided in cookies");
             res.status(401).json({
                 success : false,
-                message : "Not authenticated - No token provided in cookies",
+                message : "Please login again",
                 error: "AUTH_TOKEN_MISSING"
             });
             return;

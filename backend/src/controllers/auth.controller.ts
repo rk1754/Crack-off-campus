@@ -83,14 +83,14 @@ class AuthController {
         },
         JWT_SECRET,
         {
-          expiresIn: "2d",
+          expiresIn: "30d",
         }
       );
 
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
       res.status(201).json({
@@ -155,14 +155,14 @@ class AuthController {
         },
         JWT_SECRET,
         {
-          expiresIn: "2d",
+          expiresIn: "30d",
         }
       );
 
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
       res.status(200).json({
@@ -771,17 +771,30 @@ class AuthController {
           id: user.id,
           email: user.email,
           subscription_type: "booster",
+          subscription_type_2: user.subscription_type_2,
+          phone_number: user.phone_number,
+          // Add all resource booleans
+          resume: user.resume,
+          referral: user.referral,
+          cold_mail: user.cold_mail,
+          cover_letter: user.cover_letter,
+          hr_mail: user.hr_mail,
+          linkedin: user.linkedin,
+          cv: user.cv,
+          roadmaps: user.roadmaps,
+          interview: user.interview,
+          job: user.job,
         },
         JWT_SECRET,
         {
-          expiresIn: "2d",
+          expiresIn: "30d",
         }
       );
 
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
       res.status(200).json({
         success: true,

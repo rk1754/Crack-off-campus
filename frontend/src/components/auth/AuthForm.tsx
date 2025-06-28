@@ -28,6 +28,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
   const [name, setName] = useState(""); // For registration
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null); // For phone validation
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false); // Added for register terms
@@ -71,6 +72,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setPhoneError(null);
 
     // Validate password confirmation for registration
     if (type === "register" && password !== confirmPassword) {
@@ -78,6 +80,16 @@ const AuthForm = ({ type }: AuthFormProps) => {
       toast.error("Passwords do not match");
       setLoading(false);
       return;
+    }
+
+    // Phone number validation for registration
+    if (type === "register") {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phoneNumber)) {
+        setPhoneError("Phone number must be exactly 10 digits");
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -246,11 +258,26 @@ const AuthForm = ({ type }: AuthFormProps) => {
               type="tel"
               id="phoneNumber"
               value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              onChange={(e) => {
+                // Only allow digits
+                const value = e.target.value.replace(/\D/g, "");
+                setPhoneNumber(value);
+                if (value.length === 10) {
+                  setPhoneError(null);
+                } else {
+                  setPhoneError("Phone number must be exactly 10 digits");
+                }
+              }}
               className="w-full mt-1"
               required
-              placeholder="Enter your phone number"
+              placeholder="Enter your 10 digit phone number"
+              maxLength={10}
+              pattern="\\d{10}"
+              inputMode="numeric"
             />
+            {phoneError && (
+              <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+            )}
           </div>
         )}
         {type === "register" && (
