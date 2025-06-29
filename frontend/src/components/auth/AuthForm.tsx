@@ -272,7 +272,6 @@ const AuthForm = ({ type }: AuthFormProps) => {
               required
               placeholder="Enter your 10 digit phone number"
               maxLength={10}
-              pattern="\\d{10}"
               inputMode="numeric"
             />
             {phoneError && (
